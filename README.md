@@ -26,7 +26,7 @@ El proyecto utiliza una Arquitectura Multicapa (Clean Architecture) para separar
 ## Estructura del Proyecto
 
 
-
+```text
 /Pagina-Web-Inmobiliaria
 │
 ├── backend
