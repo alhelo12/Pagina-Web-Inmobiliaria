@@ -5,6 +5,7 @@ import LoginView from '../views/LoginView.vue'
 import PropertiesView from '../views/PropertiesView.vue'
 import PropertyDetailView from '../views/PropertyDetailView.vue'
 import NosotrosView from '../views/client/NosotrosView.vue'
+import ContactosView from '../views/client/ContactosView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -20,11 +21,15 @@ const router = createRouter({
       component: PropertyDetailView
     },
     {
-  path: '/nosotros',
-  name: 'nosotros',
-  component: NosotrosView
-}
-,
+      path: '/nosotros',
+      name: 'nosotros',
+      component: NosotrosView
+    },
+    {
+      path: '/contacto',
+      name: 'contacto',
+      component: ContactosView
+    },
 
     { path: '/login', name: 'login', component: LoginView },
     { path: '/registro', name: 'register', component: RegisterView }
