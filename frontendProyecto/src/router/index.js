@@ -4,6 +4,7 @@ import RegisterView from '../views/RegisterView.vue'
 import LoginView from '../views/LoginView.vue'
 import PropertiesView from '../views/PropertiesView.vue'
 import PropertyDetailView from '../views/PropertyDetailView.vue'
+import NosotrosView from '../views/client/NosotrosView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -18,6 +19,12 @@ const router = createRouter({
       name: 'property-detail',
       component: PropertyDetailView
     },
+    {
+  path: '/nosotros',
+  name: 'nosotros',
+  component: NosotrosView
+}
+,
 
     { path: '/login', name: 'login', component: LoginView },
     { path: '/registro', name: 'register', component: RegisterView }
