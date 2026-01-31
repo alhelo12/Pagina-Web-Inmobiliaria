@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from dotenv import load_dotenv
+from app.dbConfig.databaseSession import test_db_connection
 import os
+
+# Ejecutar prueba al iniciar
+test_db_connection()
 
 # 1. Cargar variables de entorno al inicio
 load_dotenv()
@@ -21,3 +25,4 @@ def read_root():
 @app.get("/api/v1/health", tags=["General"])
 def health_check():
     return {"status": "active", "version": "v1"}
+
