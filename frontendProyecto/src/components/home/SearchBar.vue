@@ -1,34 +1,63 @@
 <template>
   <div class="search-box">
-    <input placeholder="Ubicación" />
+    <input type="text" placeholder="Ubicación" />
+
     <select>
-      <option>Tipo de Propiedad</option>
+      <option disabled selected>Tipo de Propiedad</option>
+      <option>Casa</option>
+      <option>Departamento</option>
+      <option>Terreno</option>
     </select>
+
     <select>
-      <option>Operación</option>
+      <option disabled selected>Operación</option>
+      <option>Venta</option>
+      <option>Renta</option>
     </select>
+
     <button>Buscar Propiedades</button>
   </div>
 </template>
 
 <style scoped>
 .search-box {
-  background: rgba(255, 255, 255, 0);
+  background: white;
   padding: 20px;
-  display: flex;
-  gap: 20px;
-  border-radius: 8px;
-  margin-top: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr;
+  gap: 15px;
+  max-width: 900px;
+  margin: auto;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
 }
 
-input, select {
-  padding: 20px;
+input,
+select {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
 }
+
 button {
-  background: #f59e0b;
+  grid-column: 1 / -1;
+  background: #d4af37;
   border: none;
-  color: white;
-  padding: 10px 20px;
+  padding: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #c9a227;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .search-box {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

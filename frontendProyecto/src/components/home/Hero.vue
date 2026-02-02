@@ -9,33 +9,36 @@
         venta y renta de inmuebles
       </p>
 
-      <div class="search-box">
-        <input type="text" placeholder="Ubicación" />
-        <select>
-          <option>Tipo de propiedad</option>
-          <option>Casa</option>
-          <option>Departamento</option>
-          <option>Terreno</option>
-        </select>
-        <select>
-          <option>Operación</option>
-          <option>Venta</option>
-          <option>Renta</option>
-        </select>
-        <button>Buscar propiedades</button>
-      </div>
+      <!-- Lazy SearchBar -->
+      <Suspense>
+        <template #default>
+          <SearchBar />
+        </template>
+
+        <template #fallback>
+          <div class="search-skeleton">
+            Cargando buscador...
+          </div>
+        </template>
+      </Suspense>
     </div>
   </section>
 </template>
 
 <script setup>
+import { defineAsyncComponent } from 'vue'
+
+const SearchBar = defineAsyncComponent(() =>
+  import('@/components/home/SearchBar.vue')
+)
 </script>
 
 <style scoped>
 .hero {
+  padding-top: 80px;
   position: relative;
   min-height: 80vh;
-  background-image: url('@/assets/images/hero.jpg');
+  background-image: url('@/assets/images/fondo.webp'); /* 👉 usa webp */
   background-size: cover;
   background-position: center;
   display: flex;
@@ -72,50 +75,18 @@
   line-height: 1.6;
 }
 
-/* Search box */
-.search-box {
-  background: white;
-  padding: 20px;
+/* Skeleton */
+.search-skeleton {
+  background: rgba(255,255,255,.2);
+  padding: 24px;
   border-radius: 10px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  gap: 12px;
-}
-
-.search-box input,
-.search-box select {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.search-box button {
-  padding: 12px 24px;
-  background: #f5a623;
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-.search-box button:hover {
-  background: #e6951c;
-}
-
-/* RESPONSIVE */
+/* Responsive */
 @media (max-width: 900px) {
   .hero-content h1 {
     font-size: 36px;
-  }
-
-  .search-box {
-    grid-template-columns: 1fr;
-  }
-
-  .search-box button {
-    width: 100%;
   }
 }
 
@@ -126,10 +97,6 @@
 
   .hero-content h1 {
     font-size: 28px;
-  }
-
-  .hero-content p {
-    font-size: 16px;
   }
 }
 </style>
