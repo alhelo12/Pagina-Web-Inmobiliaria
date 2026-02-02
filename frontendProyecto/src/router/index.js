@@ -6,6 +6,8 @@ import PropertiesView from '../views/PropertiesView.vue'
 import PropertyDetailView from '../views/PropertyDetailView.vue'
 import NosotrosView from '../views/client/NosotrosView.vue'
 import ContactosView from '../views/client/ContactosView.vue'
+import ServicesView from '../views/client/ServicesView.vue'
+
 
 const router = createRouter({
   history: createWebHistory(),
@@ -30,6 +32,29 @@ const router = createRouter({
       name: 'contacto',
       component: ContactosView
     },
+        {
+      path: '/servicios',
+      name: 'servicios',
+      component: ServicesView
+    },
+   {
+  path: '/admin',
+  component: () => import('@/views/admin/AdminLayout.vue'),
+  children: [
+    {
+      path: 'dashboard',
+      component: () => import('@/views/admin/DashboardView.vue')
+    },
+    {
+      path: 'propiedades',
+      component: () => import('@/views/admin/PropertiesAdminView.vue')
+    },
+    {
+      path: 'usuarios',
+      component: () => import('@/views/admin/UsersView.vue')
+    }
+  ]
+},
 
     { path: '/login', name: 'login', component: LoginView },
     { path: '/registro', name: 'register', component: RegisterView }
