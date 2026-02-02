@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import FiltersBar from '@/components/properties/FiltersBar.vue'
+import PropertyCard from '@/components/PropertyCard.vue'
+
 import { RouterLink } from 'vue-router'
 
 /* =========================
@@ -72,26 +74,17 @@ const applyFilters = (data) => {
     <FiltersBar @filter="applyFilters" />
 
     <!-- GRID -->
-    <div class="grid">
-      <RouterLink
-        v-for="property in filteredProperties"
-        :key="property.id"
-        :to="`/propiedades/${property.id}`"
-        class="card-link"
-      >
-        <div class="card">
-          <img :src="property.image" alt="Propiedad" />
+<div class="grid">
+  <RouterLink
+    v-for="property in filteredProperties"
+    :key="property.id"
+    :to="`/propiedades/${property.id}`"
+    class="card-link"
+  >
+    <PropertyCard v-bind="property" />
+  </RouterLink>
+</div>
 
-          <div class="card-body">
-            <h3>{{ property.title }}</h3>
-            <p>{{ property.city }} · {{ property.type }}</p>
-            <strong>
-              ${{ property.price.toLocaleString() }} MXN
-            </strong>
-          </div>
-        </div>
-      </RouterLink>
-    </div>
   </section>
 </template>
 
