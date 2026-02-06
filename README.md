@@ -47,6 +47,9 @@ El proyecto utiliza una Arquitectura Multicapa (Clean Architecture) para separar
 │   │   ├── schemas/            # Validaciones Pydantic
 │   │   ├── core/               # Seguridad JWT y Hashing
 │   │   └── main.py             # Punto de entrada de la API
+│   ├── docs
+│   │   ├── inmobiliaria_db.sql # schema DataBase
+│   │   └── README.md
 │   ├── media/                  # Almacenamiento de imagenes
 │   ├── dbMigrations/           # Historial de cambios en DB
 │   ├── .env                    # Variables de entorno (Ignorado en Git)
