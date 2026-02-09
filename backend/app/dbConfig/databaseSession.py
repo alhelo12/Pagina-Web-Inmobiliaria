@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 import logging
+from app.dbConfig.baseModels import Base
 
 load_dotenv()
 
