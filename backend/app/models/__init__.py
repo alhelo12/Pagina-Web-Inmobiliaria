@@ -15,8 +15,8 @@ Modelos disponibles:
 """
 
 from app.models.roleModel import Role
+from app.models.userModel import User
 # TODO: Descomentar a medida que se creen los modelos
-# from app.models.userModel import User
 # from app.models.advisorModel import Advisor
 # from app.models.propertyModel import Property
 # from app.models.propertyImageModel import PropertyImage
@@ -25,8 +25,8 @@ from app.models.roleModel import Role
 
 __all__ = [
     'Role',
+    'User',
     # TODO: Descomentar cuando se creen
-    # 'User',
     # 'Advisor',
     # 'Property',
     # 'PropertyImage',
