@@ -14,9 +14,8 @@ Modelos disponibles:
 - Favorite: Propiedades favoritas de usuarios
 """
 
-
+from app.models.roleModel import Role
 # TODO: Descomentar a medida que se creen los modelos
-# from app.models.roleModel import Role
 # from app.models.userModel import User
 # from app.models.advisorModel import Advisor
 # from app.models.propertyModel import Property
@@ -25,8 +24,8 @@ Modelos disponibles:
 # from app.models.favoriteModel import Favorite
 
 __all__ = [
+    'Role',
     # TODO: Descomentar cuando se creen
-    # 'Role',
     # 'User',
     # 'Advisor',
     # 'Property',
