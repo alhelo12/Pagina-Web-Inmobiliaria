@@ -203,14 +203,14 @@ class Property(BaseModel):
     # Relación One-to-Many con Appointment
     appointments = relationship(
         "Appointment",
-        back_populates="property",
+        back_populates="related_property",
         lazy="dynamic"
     )
     
     # Relación One-to-Many con Favorite
     favorites = relationship(
         "Favorite",
-        back_populates="property",
+        back_populates="favorited_property",
         cascade="all, delete-orphan",
         lazy="dynamic"
     )

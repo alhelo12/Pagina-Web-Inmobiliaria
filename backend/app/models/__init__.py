@@ -20,8 +20,7 @@ from app.models.advisorModel import Advisor
 from app.models.propertyModel import Property
 from app.models.propertyImageModel import PropertyImage
 from app.models.appointmentModel import Appointment
-# TODO: Descomentar a medida que se creen los modelos
-# from app.models.favoriteModel import Favorite
+from app.models.favoriteModel import Favorite
 
 __all__ = [
     'Role',
@@ -30,6 +29,6 @@ __all__ = [
     'Property',
     'PropertyImage',
     'Appointment',
-    # TODO: Descomentar cuando se creen
-    # 'Favorite'
+    'Favorite'
+
 ]
