@@ -106,12 +106,21 @@ def get_pool_status():
     }
 
 def test_db_connection():
+    """
+    Prueba la conexión a la base de datos.
+    
+    Returns:
+        bool: True si la conexión es exitosa, False en caso contrario
+    """
+    from sqlalchemy import text
+    
     try:
-        # Intenta conectar físicamente
-        connection = engine.connect()
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
         print("--- CONEXION A BASE DE DATOS: EXITOSA ---")
-        connection.close()
+        return True
     except Exception as e:
         print("--- ERROR DE CONEXION A BASE DE DATOS ---")
         print(f"Detalle: {e}")
-    
+        logging.error(f"Error al conectar a la BD: {e}")
+        return False
