@@ -60,8 +60,27 @@ from app.schemas.advisorSchema import (
     AdvisorRanking
 )
 
+from app.schemas.appointmentSchema import (
+    AppointmentTypeEnum,
+    AppointmentStatusEnum,
+    AppointmentBase,
+    AppointmentCreate,
+    AppointmentUpdate,
+    AppointmentConfirm,
+    AppointmentComplete,
+    AppointmentCancel,
+    AppointmentResponse,
+    AppointmentDetailResponse,
+    AppointmentListResponse,
+    AppointmentFilter,
+    AppointmentStats,
+    AppointmentCalendar,
+    AppointmentClientResponse,
+    AppointmentAdvisorResponse,
+    AppointmentPropertyResponse
+)
+
 # TODO: Descomentar a medida que se creen los schemas
-# from app.schemas.appointmentSchema import AppointmentCreate, AppointmentResponse
 # from app.schemas.favoriteSchema import FavoriteCreate, FavoriteResponse
 
 __all__ = [
@@ -108,6 +127,25 @@ __all__ = [
     'AdvisorUserResponse',
     'AdvisorStats',
     'AdvisorRanking',
+    
+    # Appointment schemas
+    'AppointmentTypeEnum',
+    'AppointmentStatusEnum',
+    'AppointmentBase',
+    'AppointmentCreate',
+    'AppointmentUpdate',
+    'AppointmentConfirm',
+    'AppointmentComplete',
+    'AppointmentCancel',
+    'AppointmentResponse',
+    'AppointmentDetailResponse',
+    'AppointmentListResponse',
+    'AppointmentFilter',
+    'AppointmentStats',
+    'AppointmentCalendar',
+    'AppointmentClientResponse',
+    'AppointmentAdvisorResponse',
+    'AppointmentPropertyResponse',
     
     # TODO: Agregar schemas aquí cuando se creen
 
