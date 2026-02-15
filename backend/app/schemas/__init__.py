@@ -27,9 +27,28 @@ from app.schemas.userSchema import (
     TokenData
 )
 
+from app.schemas.propertySchema import (
+    PropertyTypeEnum,
+    TransactionTypeEnum,
+    PropertyStatusEnum,
+    PropertyImageBase,
+    PropertyImageCreate,
+    PropertyImageResponse,
+    PropertyBase,
+    PropertyCreate,
+    PropertyUpdate,
+    PropertyApprove,
+    PropertyReject,
+    PropertyResponse,
+    PropertyDetailResponse,
+    PropertyListResponse,
+    PropertyFilter,
+    PropertyStats,
+    PropertyOwnerResponse,
+    PropertyAdvisorResponse
+)
+
 # TODO: Descomentar a medida que se creen los schemas
-# from app.schemas.propertySchema import PropertyCreate, PropertyResponse
-# from app.schemas.appointmentSchema import AppointmentCreate, AppointmentResponse
 # from app.schemas.advisorSchema import AdvisorCreate, AdvisorResponse
 
 __all__ = [
@@ -46,7 +65,26 @@ __all__ = [
     'Token',
     'TokenData',
     
+    # Property schemas
+    'PropertyTypeEnum',
+    'TransactionTypeEnum',
+    'PropertyStatusEnum',
+    'PropertyImageBase',
+    'PropertyImageCreate',
+    'PropertyImageResponse',
+    'PropertyBase',
+    'PropertyCreate',
+    'PropertyUpdate',
+    'PropertyApprove',
+    'PropertyReject',
+    'PropertyResponse',
+    'PropertyDetailResponse',
+    'PropertyListResponse',
+    'PropertyFilter',
+    'PropertyStats',
+    'PropertyOwnerResponse',
+    'PropertyAdvisorResponse',
+    
     # TODO: Agregar schemas aquí cuando se creen
-    # 'PropertyCreate',
-    # 'PropertyResponse',
+
 ]
