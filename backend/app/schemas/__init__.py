@@ -13,19 +13,40 @@ Schemas disponibles:
 - etc.
 """
 
+from app.schemas.userSchema import (
+    UserBase,
+    UserCreate,
+    UserLogin,
+    UserUpdate,
+    PasswordChange,
+    UserResponse,
+    UserResponseWithAdvisor,
+    UserListResponse,
+    RoleResponse,
+    Token,
+    TokenData
+)
+
 # TODO: Descomentar a medida que se creen los schemas
-# from app.schemas.userSchema import UserCreate, UserUpdate, UserResponse, UserLogin
-# from app.schemas.propertySchema import PropertyCreate, PropertyUpdate, PropertyResponse
+# from app.schemas.propertySchema import PropertyCreate, PropertyResponse
 # from app.schemas.appointmentSchema import AppointmentCreate, AppointmentResponse
 # from app.schemas.advisorSchema import AdvisorCreate, AdvisorResponse
 
 __all__ = [
+    # User schemas
+    'UserBase',
+    'UserCreate',
+    'UserLogin',
+    'UserUpdate',
+    'PasswordChange',
+    'UserResponse',
+    'UserResponseWithAdvisor',
+    'UserListResponse',
+    'RoleResponse',
+    'Token',
+    'TokenData',
+    
     # TODO: Agregar schemas aquí cuando se creen
-    # 'UserCreate',
-    # 'UserUpdate',
-    # 'UserResponse',
-    # 'UserLogin',
     # 'PropertyCreate',
-    # 'PropertyUpdate',
     # 'PropertyResponse',
 ]
