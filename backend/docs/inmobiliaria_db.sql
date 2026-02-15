@@ -1,6 +1,6 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.0.0
+-- Version: 1.0.1
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
 --              con sistema de aprobación de propiedades
 -- ==========================================
@@ -25,7 +25,8 @@ $$ language 'plpgsql';
 CREATE TABLE IF NOT EXISTS roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Tabla: users
@@ -38,8 +39,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     role_id INT REFERENCES roles(id),
     is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Tabla: advisors
@@ -51,8 +52,8 @@ CREATE TABLE IF NOT EXISTS advisors (
     agency_name VARCHAR(100),
     profile_picture TEXT,
     rating DECIMAL(3,2) DEFAULT 5.00,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Tabla: properties
@@ -81,8 +82,8 @@ CREATE TABLE IF NOT EXISTS properties (
     submitted_by_user_id INT REFERENCES users(id),
     advisor_id INT REFERENCES advisors(id),
     
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Tabla: property_images
@@ -92,7 +93,8 @@ CREATE TABLE IF NOT EXISTS property_images (
     property_id INT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
     is_main BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Tabla: appointments
@@ -108,8 +110,8 @@ CREATE TABLE IF NOT EXISTS appointments (
     status VARCHAR(50) DEFAULT 'pending', -- pending | confirmed | completed | cancelled
     
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Tabla: favorites
@@ -118,13 +120,17 @@ CREATE TABLE IF NOT EXISTS favorites (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     property_id INT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT unique_favorite UNIQUE (user_id, property_id)
 );
 
 -- ==========================================
 -- 3. ÍNDICES PARA OPTIMIZACIÓN
 -- ==========================================
+
+-- Índices en roles
+CREATE INDEX IF NOT EXISTS idx_roles_name ON roles(name);
 
 -- Índices en users
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -156,6 +162,12 @@ CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
 -- 4. TRIGGERS
 -- ==========================================
 
+-- Trigger: Actualizar updated_at en roles
+CREATE TRIGGER tr_update_roles 
+    BEFORE UPDATE ON roles 
+    FOR EACH ROW 
+    EXECUTE PROCEDURE update_updated_at_column();
+
 -- Trigger: Actualizar updated_at en users
 CREATE TRIGGER tr_update_users 
     BEFORE UPDATE ON users 
@@ -174,9 +186,21 @@ CREATE TRIGGER tr_update_properties
     FOR EACH ROW 
     EXECUTE PROCEDURE update_updated_at_column();
 
+-- Trigger: Actualizar updated_at en property_images
+CREATE TRIGGER tr_update_property_images 
+    BEFORE UPDATE ON property_images 
+    FOR EACH ROW 
+    EXECUTE PROCEDURE update_updated_at_column();
+
 -- Trigger: Actualizar updated_at en appointments
 CREATE TRIGGER tr_update_appointments 
     BEFORE UPDATE ON appointments 
+    FOR EACH ROW 
+    EXECUTE PROCEDURE update_updated_at_column();
+
+-- Trigger: Actualizar updated_at en favorites
+CREATE TRIGGER tr_update_favorites 
+    BEFORE UPDATE ON favorites 
     FOR EACH ROW 
     EXECUTE PROCEDURE update_updated_at_column();
 
