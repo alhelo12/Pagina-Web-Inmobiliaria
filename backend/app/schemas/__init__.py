@@ -48,8 +48,21 @@ from app.schemas.propertySchema import (
     PropertyAdvisorResponse
 )
 
+from app.schemas.advisorSchema import (
+    AdvisorBase,
+    AdvisorCreate,
+    AdvisorUpdate,
+    AdvisorResponse,
+    AdvisorDetailResponse,
+    AdvisorListResponse,
+    AdvisorUserResponse,
+    AdvisorStats,
+    AdvisorRanking
+)
+
 # TODO: Descomentar a medida que se creen los schemas
-# from app.schemas.advisorSchema import AdvisorCreate, AdvisorResponse
+# from app.schemas.appointmentSchema import AppointmentCreate, AppointmentResponse
+# from app.schemas.favoriteSchema import FavoriteCreate, FavoriteResponse
 
 __all__ = [
     # User schemas
@@ -84,6 +97,17 @@ __all__ = [
     'PropertyStats',
     'PropertyOwnerResponse',
     'PropertyAdvisorResponse',
+    
+    # Advisor schemas
+    'AdvisorBase',
+    'AdvisorCreate',
+    'AdvisorUpdate',
+    'AdvisorResponse',
+    'AdvisorDetailResponse',
+    'AdvisorListResponse',
+    'AdvisorUserResponse',
+    'AdvisorStats',
+    'AdvisorRanking',
     
     # TODO: Agregar schemas aquí cuando se creen
 
