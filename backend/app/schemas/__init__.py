@@ -80,8 +80,21 @@ from app.schemas.appointmentSchema import (
     AppointmentPropertyResponse
 )
 
+from app.schemas.favoriteSchema import (
+    FavoriteCreate,
+    FavoriteDelete,
+    FavoriteResponse,
+    FavoriteDetailResponse,
+    FavoriteListResponse,
+    FavoriteToggle,
+    FavoriteToggleResponse,
+    FavoriteCheck,
+    FavoriteStats,
+    FavoritePropertyResponse
+)
+
 # TODO: Descomentar a medida que se creen los schemas
-# from app.schemas.favoriteSchema import FavoriteCreate, FavoriteResponse
+
 
 __all__ = [
     # User schemas
@@ -146,6 +159,18 @@ __all__ = [
     'AppointmentClientResponse',
     'AppointmentAdvisorResponse',
     'AppointmentPropertyResponse',
+    
+    # Favorite schemas
+    'FavoriteCreate',
+    'FavoriteDelete',
+    'FavoriteResponse',
+    'FavoriteDetailResponse',
+    'FavoriteListResponse',
+    'FavoriteToggle',
+    'FavoriteToggleResponse',
+    'FavoriteCheck',
+    'FavoriteStats',
+    'FavoritePropertyResponse',
     
     # TODO: Agregar schemas aquí cuando se creen
 
