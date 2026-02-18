@@ -6,11 +6,8 @@ export default [
     type: 'Casa',
     price: 2500000,
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
-    description:
-      'Hermosa casa moderna con amplios espacios, seguridad 24/7 y excelente ubicación.',
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 180
+    status: 'sold',
+    advisor_id: 2
   },
   {
     id: 2,
@@ -19,18 +16,29 @@ export default [
     type: 'Departamento',
     price: 8500,
     image: 'https://images.unsplash.com/photo-1600585152915-d208bec867a1',
-    description:
-      'Departamento ideal para parejas o profesionistas, cerca de todo.',
-    bedrooms: 2,
-    bathrooms: 1,
-    area: 90
+    status: 'pending',
+    advisor_id: 2
   },
   {
-  id: 3,
-    price: 3700000,
+    id: 3,
     title: 'Local Comercial en Plaza',
     city: 'Zona Comercial',
     type: 'Local',
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be'
+    price: 3700000,
+    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be',
+    status: 'rejected',
+    advisor_id: 3
+  },
+
+  // 👇 NUEVA PARA PROBAR BOTÓN VENDIDA
+  {
+    id: 4,
+    title: 'Residencia de lujo con alberca',
+    city: 'Monterrey',
+    type: 'Casa',
+    price: 5200000,
+    image: 'https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4',
+    status: 'approved',
+    advisor_id: 2
   }
 ]

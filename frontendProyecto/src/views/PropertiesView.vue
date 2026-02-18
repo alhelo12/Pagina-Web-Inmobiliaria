@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue'
 import FiltersBar from '@/components/properties/FiltersBar.vue'
 import PropertyCard from '@/components/PropertyCard.vue'
+import { usePropertyStore } from '@/stores/propertyStore'
+
 
 import { RouterLink } from 'vue-router'
 
@@ -17,46 +19,29 @@ const filters = ref({
 /* =========================
    PROPIEDADES (mock)
 ========================= */
-const properties = ref([
-  {
-    id: 1,
-    price: 2500000,
-    title: 'Casa Moderna en Residencial Cerrado',
-    city: 'Zona Norte',
-    type: 'Casa',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c'
-  },
-  {
-    id: 2,
-    price: 8500,
-    title: 'Departamento en Zona Céntrica',
-    city: 'Centro Histórico',
-    type: 'Departamento',
-    image: 'https://images.unsplash.com/photo-1600585152915-d208bec867a1'
-  },
-  {
-    id: 3,
-    price: 3700000,
-    title: 'Local Comercial en Plaza',
-    city: 'Zona Comercial',
-    type: 'Local',
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be'
-  }
-])
+const propertyStore = usePropertyStore()
+
+
 
 /* =========================
    FILTRADO
 ========================= */
-const filteredProperties = computed(() => {
-  return properties.value.filter(p => {
-    const cityMatch = !filters.value.city || p.city === filters.value.city
-    const typeMatch = !filters.value.type || p.type === filters.value.type
-    const priceMatch =
-      !filters.value.maxPrice || p.price <= Number(filters.value.maxPrice)
+const approvedList = computed(() => propertyStore.approved ?? [])
 
-    return cityMatch && typeMatch && priceMatch
-  })
+const filteredProperties = computed(() => {
+  return propertyStore.properties
+    .filter(p => p.status === 'approved') // solo aprobadas
+    .filter(p => {
+      const cityMatch = !filters.value.city || p.city === filters.value.city
+      const typeMatch = !filters.value.type || p.type === filters.value.type
+      const priceMatch =
+        !filters.value.maxPrice || p.price <= Number(filters.value.maxPrice)
+
+      return cityMatch && typeMatch && priceMatch
+    })
 })
+
+
 
 const applyFilters = (data) => {
   filters.value = data
