@@ -1,7 +1,6 @@
 <template>
   <div :class="['admin-layout', { dark: darkMode }]">
-    <Sidebar @toggleDark="toggleDark" />
-
+    <!-- CONTENIDO -->
     <main class="content">
       <RouterView />
     </main>
@@ -10,7 +9,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import Sidebar from '@/components/admin/Sidebar.vue'
 
 const darkMode = ref(false)
 
@@ -26,7 +24,6 @@ const toggleDark = () => {
 
 <style scoped>
 .admin-layout {
-  display: flex;
   min-height: 100vh;
   background: #f4f6f9;
 }
@@ -37,7 +34,6 @@ const toggleDark = () => {
 }
 
 .content {
-  flex: 1;
   padding: 30px;
 }
 </style>
