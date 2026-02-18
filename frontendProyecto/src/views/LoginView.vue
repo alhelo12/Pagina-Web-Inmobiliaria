@@ -1,16 +1,25 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const goRegister = () => {
   router.push('/registro')
 }
-
 const submitLogin = () => {
-  console.log('Login enviado')
-  // Backend decidirá rol y redirección
+  auth.login('admin')   // ← prueba admin
+  //auth.login('advisor') // ← prueba asesor
+  //auth.login('client')  // ← prueba cliente
+
+  router.push('/')
 }
+
+//const submitLogin = () => {
+  //console.log('Login enviado')
+  // Backend decidirá rol y redirección
+//}
 </script>
 
 <template>

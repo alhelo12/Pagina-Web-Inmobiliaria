@@ -9,6 +9,7 @@ import ContactosView from '../views/client/ContactosView.vue'
 import ServicesView from '../views/client/ServicesView.vue'
 
 
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -37,13 +38,25 @@ const router = createRouter({
       name: 'servicios',
       component: ServicesView
     },
-   {
+    {
+  path: '/crear-propiedad',
+  name: 'create-property',
+  component: () => import('@/views/client/CreatePropertyView.vue')
+},
+{
+  path: '/favoritos',
+  name: 'favoritos',
+  component: () => import('@/views/client/FavoritesView.vue'),
+  meta: { requiresAuth: true, role: 'client' }
+},
+{
   path: '/admin',
   component: () => import('@/views/admin/AdminLayout.vue'),
+  meta: { requiresAuth: true, role: 'admin' },
   children: [
     {
-      path: 'dashboard',
-      component: () => import('@/views/admin/DashboardView.vue')
+      path: '',
+      redirect: '/admin/propiedades'
     },
     {
       path: 'propiedades',
@@ -56,9 +69,41 @@ const router = createRouter({
   ]
 },
 
+// DASHBOARD (tarjetas)
+{
+  path: '/advisor',
+  component: () => import('@/views/advisor/AdvisorLayout.vue'),
+  children: [
+    {
+      path: 'panel',
+      component: () => import('@/views/advisor/AdvisorPanel.vue')
+    }
+  ]
+}
+,
+
     { path: '/login', name: 'login', component: LoginView },
     { path: '/registro', name: 'register', component: RegisterView }
   ]
 })
+
+import { useAuthStore } from '@/stores/authStore'
+
+router.beforeEach((to, from, next) => {
+  const auth = useAuthStore()
+
+  // requiere login
+  if (to.meta.requiresAuth && !auth.isLogged) {
+    return next('/login')
+  }
+
+  // requiere rol específico
+  if (to.meta.role && auth.role !== to.meta.role) {
+    return next('/')
+  }
+
+  next()
+})
+
 
 export default router
