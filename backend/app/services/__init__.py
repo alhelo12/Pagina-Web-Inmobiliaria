@@ -19,7 +19,7 @@ Uso:
 from app.services import authService
 from app.services import userService
 from app.services import propertyService
-# from app.services import appointmentService
+from app.services import appointmentService
 from app.services import advisorService
 
 __all__ = [
@@ -27,6 +27,6 @@ __all__ = [
     'authService',
     'userService',
     'propertyService',
-    # 'appointmentService',
+    'appointmentService',
     'advisorService'
 ]
