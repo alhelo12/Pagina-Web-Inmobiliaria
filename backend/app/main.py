@@ -1,24 +1,28 @@
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from dotenv import load_dotenv
-from sqlalchemy import func
-from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection
-from app.models import Property, User, Role
-from app.schemas import PropertyResponse
-
-# Ejecutar prueba al iniciar
-test_db_connection()
-
-# 1. Cargar variables de entorno al inicio
-load_dotenv()
-
-# app/main.py
 """
 FastAPI Main Application
 Sistema Inmobiliario - Backend API
 """
 
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+from sqlalchemy import func
+
+from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection
+from app.models import Property, User, Role
+from app.schemas import PropertyResponse
+
+# ==========================================
+# IMPORTAR ROUTERS
+# ==========================================
+from app.controllers.authController import router as auth_router
+
+# Ejecutar prueba al iniciar
+test_db_connection()
+
+# Cargar variables de entorno al inicio
+load_dotenv()
 
 # Crear aplicación FastAPI
 app = FastAPI(
@@ -32,11 +36,16 @@ app = FastAPI(
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Frontend
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ==========================================
+# INCLUIR ROUTERS
+# ==========================================
+app.include_router(auth_router)
 
 # ==========================================
 # ENDPOINTS DE PRUEBA
@@ -160,8 +169,6 @@ def test_property_detail(
     - Relaciones se cargan
     - 404 si no existe
     """
-    from fastapi import HTTPException
-    
     property = db.query(Property).filter(Property.id == property_id).first()
     
     if not property:
@@ -244,14 +251,6 @@ async def shutdown_event():
     Evento al cerrar la aplicación
     """
     print("👋 Cerrando Inmobiliaria API...")
-
-
-# ==========================================
-# IMPORTAR ROUTERS (Cuando estén listos)
-# ==========================================
-# from app.controllers import authController, propertyController
-# app.include_router(authController.router)
-# app.include_router(propertyController.router)
 
 
 if __name__ == "__main__":
