@@ -9,6 +9,7 @@ Estructura:
 - propertyService: Gestión de propiedades
 - appointmentService: Gestión de citas
 - advisorService: Gestión de asesores
+- favoriteService: agregar/quitar favoritos, listar favoritos
 
 Uso:
     from app.services import userService
@@ -21,6 +22,7 @@ from app.services import userService
 from app.services import propertyService
 from app.services import appointmentService
 from app.services import advisorService
+from app.services import favoriteService
 
 __all__ = [
     # TODO: Agregar services aquí cuando se creen
@@ -28,5 +30,6 @@ __all__ = [
     'userService',
     'propertyService',
     'appointmentService',
-    'advisorService'
+    'advisorService',
+    'favoriteService'
 ]
