@@ -18,7 +18,7 @@ Uso:
 # TODO: Descomentar a medida que se creen los services
 from app.services import authService
 from app.services import userService
-# from app.services import propertyService
+from app.services import propertyService
 # from app.services import appointmentService
 # from app.services import advisorService
 
@@ -26,7 +26,7 @@ __all__ = [
     # TODO: Agregar services aquí cuando se creen
     'authService',
     'userService',
-    # 'propertyService',
+    'propertyService',
     # 'appointmentService',
     # 'advisorService'
 ]
