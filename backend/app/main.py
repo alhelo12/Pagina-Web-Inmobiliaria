@@ -18,6 +18,7 @@ from app.schemas import PropertyResponse
 # ==========================================
 from app.controllers.authController import router as auth_router
 from app.controllers.userController import router as user_router
+from app.controllers.propertyController import router as property_router
 
 # Ejecutar prueba al iniciar
 test_db_connection()
@@ -48,6 +49,7 @@ app.add_middleware(
 # ==========================================
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(property_router)
 
 # ==========================================
 # ENDPOINTS DE PRUEBA
