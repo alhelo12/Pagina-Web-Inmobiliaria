@@ -21,7 +21,7 @@ Uso en main.py:
 # TODO: Descomentar a medida que se creen los controllers
 from app.controllers import authController
 from app.controllers import userController
-# from app.controllers import propertyController
+from app.controllers import propertyController
 # from app.controllers import appointmentController
 # from app.controllers import advisorController
 # from app.controllers import adminController
@@ -31,7 +31,7 @@ __all__ = [
     # TODO: Agregar controllers aquí cuando se creen
     'authController',
     'userController',
-    # 'propertyController',
+    'propertyController',
     # 'appointmentController',
     # 'advisorController',
     # 'adminController',
