@@ -23,7 +23,7 @@ from app.controllers import authController
 from app.controllers import userController
 from app.controllers import propertyController
 # from app.controllers import appointmentController
-# from app.controllers import advisorController
+from app.controllers import advisorController
 # from app.controllers import adminController
 # from app.controllers import clientController
 
@@ -33,7 +33,7 @@ __all__ = [
     'userController',
     'propertyController',
     # 'appointmentController',
-    # 'advisorController',
+    'advisorController',
     # 'adminController',
     # 'clientController'
 ]
