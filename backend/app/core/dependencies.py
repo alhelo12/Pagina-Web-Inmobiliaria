@@ -5,7 +5,7 @@ Dependencias de FastAPI para autenticación y autorización.
 """
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -15,11 +15,11 @@ from app.models import User
 from app.services import userService
 
 # ==========================================
-# OAUTH2 SCHEME
+# HTTP BEARER SCHEME
 # ==========================================
 
-# Esto le dice a FastAPI que el token viene en el header Authorization: Bearer <token>
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# HTTPBearer muestra un campo simple para pegar el token en Swagger
+security = HTTPBearer()
 
 
 # ==========================================
@@ -27,7 +27,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 # ==========================================
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """
@@ -36,7 +36,7 @@ def get_current_user(
     Esta es la dependencia principal para endpoints protegidos.
     
     Args:
-        token: Token JWT extraído del header Authorization
+        credentials: Credenciales HTTP Bearer (token)
         db: Sesión de base de datos
         
     Returns:
@@ -55,6 +55,12 @@ def get_current_user(
         detail="No se pudieron validar las credenciales",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Extraer token de las credentials
+    token = credentials.credentials
+    
+    if not token:
+        raise credentials_exception
     
     # Decodificar token
     payload = decode_access_token(token)
@@ -82,7 +88,7 @@ def get_current_user(
 
 
 def get_current_user_optional(
-    token: Optional[str] = Depends(oauth2_scheme),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
     """
@@ -92,7 +98,7 @@ def get_current_user_optional(
     Útil para endpoints públicos que cambian su comportamiento si hay usuario autenticado.
     
     Args:
-        token: Token JWT (opcional)
+        credentials: Credenciales HTTP Bearer (opcional)
         db: Sesión de base de datos
         
     Returns:
@@ -105,11 +111,11 @@ def get_current_user_optional(
                 return {"message": f"Hola {current_user.full_name}"}
             return {"message": "Hola visitante"}
     """
-    if not token:
+    if not credentials:
         return None
     
     try:
-        payload = decode_access_token(token)
+        payload = decode_access_token(credentials.credentials)
         if payload is None:
             return None
         
