@@ -12,13 +12,13 @@ Uso:
 """
 
 # TODO: Descomentar a medida que se creen
-# from app.core import security
-# from app.core import config
-# from app.core import dependencies
+from app.core import security
+#from app.core import config
+from app.core import dependencies
 
 __all__ = [
     # TODO: Agregar módulos core aquí cuando se creen
-    # 'security',
+    'security',
     # 'config',
-    # 'dependencies'
+    'dependencies'
 ]
