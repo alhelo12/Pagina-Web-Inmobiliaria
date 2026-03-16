@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import logging
 from app.dbConfig.baseModels import Base
+from app.core.config import settings
 
 load_dotenv()
 
@@ -23,13 +24,13 @@ if ENVIRONMENT == "production":
     engine = create_engine(
         DATABASE_URL,
         poolclass=pool.QueuePool,
-        pool_size=20,                      # Conexiones permanentes
-        max_overflow=30,                   # Conexiones adicionales
-        pool_recycle=1800,                 # Reciclar cada 30 min
-        pool_pre_ping=True,                # Verificar antes de usar
-        pool_timeout=30,                   # Timeout al esperar conexión
-        echo=False,                        # Sin debug SQL
-        echo_pool=False,                   # Sin debug pool
+        pool_size=20,                                   # Conexiones permanentes
+        max_overflow=30,                                # Conexiones adicionales
+        pool_recycle=settings.DB_POOL_RECYCLE,          # Reciclar cada 30 min
+        pool_pre_ping=settings.DB_POOL_PRE_PING,        # Verificar antes de usar
+        pool_timeout=30,                                # Timeout al esperar conexión
+        echo=settings.DB_ECHO,                          # Sin debug SQL
+        echo_pool=False,                                # Sin debug pool
         connect_args={
             "connect_timeout": 10,
             "application_name": "inmobiliaria_api_prod"
@@ -39,12 +40,12 @@ else:  # development
     engine = create_engine(
         DATABASE_URL,
         poolclass=pool.QueuePool,
-        pool_size=5,                       # Menos conexiones en dev
-        max_overflow=10,
-        pool_recycle=1800,
-        pool_pre_ping=True,
+        pool_size=settings.DB_POOL_SIZE,                # Menos conexiones en dev
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_recycle=settings.DB_POOL_RECYCLE,
+        pool_pre_ping=settings.DB_POOL_PRE_PING,
         pool_timeout=30,
-        echo=True,                         # Ver queries en desarrollo
+        echo=True,  # Mantener echo en desarrollo       # Ver queries en desarrollo
         echo_pool=False,
         connect_args={
             "connect_timeout": 10,
