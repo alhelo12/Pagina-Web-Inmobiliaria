@@ -9,8 +9,8 @@ Routers disponibles:
 - propertyController: Gestión de propiedades
 - appointmentController: Gestión de citas
 - advisorController: Gestión de asesores
-- adminController: Endpoints exclusivos de admin
-- clientController: Endpoints exclusivos de clientes
+- favoriteController: gestión de favoritos
+
 
 Uso en main.py:
     from app.controllers import authController, propertyController
@@ -24,8 +24,8 @@ from app.controllers import userController
 from app.controllers import propertyController
 from app.controllers import appointmentController
 from app.controllers import advisorController
-# from app.controllers import adminController
-# from app.controllers import clientController
+from app.controllers import favoriteController
+
 
 __all__ = [
     # TODO: Agregar controllers aquí cuando se creen
@@ -34,6 +34,6 @@ __all__ = [
     'propertyController',
     'appointmentController',
     'advisorController',
-    # 'adminController',
-    # 'clientController'
+    'favoriteController'
+
 ]
