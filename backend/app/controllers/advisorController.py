@@ -1,4 +1,3 @@
-# app/controllers/advisorController.py
 """
 Controller: Advisor
 
