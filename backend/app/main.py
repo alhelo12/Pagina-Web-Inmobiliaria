@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from sqlalchemy import func
 
+from app.core.config import settings
 from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection
 from app.models import Property, User, Role
 from app.schemas import PropertyResponse
@@ -31,20 +32,20 @@ load_dotenv()
 
 # Crear aplicación FastAPI
 app = FastAPI(
-    title="Inmobiliaria API",
+    title=settings.APP_NAME,  # ← USAR settings
     description="API para sistema inmobiliario con aprobación de propiedades",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    version=settings.APP_VERSION,  # ← USAR settings
+    docs_url=settings.DOCS_URL,  # ← USAR settings
+    redoc_url=settings.REDOC_URL  # ← USAR settings
 )
 
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.CORS_ORIGINS,  # ← USAR settings
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,  # ← USAR settings
+    allow_methods=settings.CORS_ALLOW_METHODS,  # ← USAR settings
+    allow_headers=settings.CORS_ALLOW_HEADERS,  # ← USAR settings
 )
 
 # ==========================================
