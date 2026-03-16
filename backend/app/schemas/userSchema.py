@@ -25,7 +25,9 @@ class UserBase(BaseModel):
 # SCHEMAS DE ENTRADA (Request)
 # ==========================================
 
-class UserCreate(UserBase):
+
+
+class UserCreate(BaseModel):
     """
     Schema para crear un nuevo usuario (Registro)
     
@@ -38,9 +40,42 @@ class UserCreate(UserBase):
             "role_id": 3
         }
     """
-    password: str = Field(..., min_length=8, max_length=100, description="Contraseña (mínimo 8 caracteres)")
-    role_id: int = Field(..., ge=1, description="ID del rol (1=admin, 2=advisor, 3=client)")
+    """Schema para crear usuario (requiere role_id)"""
+    full_name: str = Field(..., min_length=1, max_length=100, description="Nombre completo")
+    email: EmailStr = Field(..., description="Email único")
+    password: str = Field(..., min_length=8, description="Contraseña")
+    phone: Optional[str] = Field(None, max_length=20, description="Teléfono")
+    role_id: int = Field(..., ge=1, le=3, description="ID del rol (1=admin, 2=advisor, 3=client)")
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "full_name": "Juan Pérez",
+                "email": "juan@example.com",
+                "password": "Password123",
+                "phone": "5551234567",
+                "role_id": 3
+            }
+        }
+    )
 
+class ClientRegister(BaseModel):  
+    """Schema para registro público de cliente (sin role_id)"""
+    full_name: str = Field(..., min_length=1, max_length=100, description="Nombre completo")
+    email: EmailStr = Field(..., description="Email único")
+    password: str = Field(..., min_length=8, description="Contraseña")
+    phone: Optional[str] = Field(None, max_length=20, description="Teléfono")
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "full_name": "María González",
+                "email": "maria@example.com",
+                "password": "Password123",
+                "phone": "5559876543"
+            }
+        }
+    )
 
 class UserLogin(BaseModel):
     """
@@ -73,18 +108,18 @@ class UserUpdate(BaseModel):
 
 
 class PasswordChange(BaseModel):
-    """
-    Schema para cambio de contraseña
+    """Schema para cambio de contraseña"""
+    current_password: str = Field(..., min_length=1, description="Contraseña actual")
+    new_password: str = Field(..., min_length=8, description="Nueva contraseña")
     
-    Example:
-        {
-            "current_password": "OldPass123!",
-            "new_password": "NewPass456!"
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "current_password": "Password123",
+                "new_password": "NewPassword456"
+            }
         }
-    """
-    current_password: str = Field(..., description="Contraseña actual")
-    new_password: str = Field(..., min_length=8, max_length=100, description="Nueva contraseña")
-
+    )
 
 # ==========================================
 # SCHEMAS DE SALIDA (Response)

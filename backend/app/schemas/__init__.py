@@ -16,6 +16,7 @@ Schemas disponibles:
 from app.schemas.userSchema import (
     UserBase,
     UserCreate,
+    ClientRegister,
     UserLogin,
     UserUpdate,
     PasswordChange,
@@ -100,6 +101,7 @@ __all__ = [
     # User schemas
     'UserBase',
     'UserCreate',
+    "ClientRegister",
     'UserLogin',
     'UserUpdate',
     'PasswordChange',

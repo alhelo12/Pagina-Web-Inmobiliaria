@@ -83,36 +83,6 @@ def register_user(db: Session, user_data: UserCreate) -> User:
     
     return user
 
-
-def register_client(db: Session, user_data: UserCreate) -> User:
-    """
-    Registrar nuevo cliente (forzar role_id = 3)
-    
-    Esta función es útil para registro público donde
-    el usuario no elige su rol.
-    
-    Args:
-        db: Sesión de base de datos
-        user_data: Datos del usuario
-        
-    Returns:
-        Usuario creado como cliente
-    """
-    # Obtener el rol 'client'
-    client_role = db.query(Role).filter(Role.name == 'client').first()
-    
-    if not client_role:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error de configuración: rol 'client' no existe"
-        )
-    
-    # Forzar role_id a client
-    user_data.role_id = client_role.id
-    
-    return register_user(db, user_data)
-
-
 # ==========================================
 # LOGIN
 # ==========================================

@@ -6,7 +6,6 @@ Sistema Inmobiliario - Backend API
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from dotenv import load_dotenv
 from sqlalchemy import func
 
 from app.core.config import settings
@@ -26,9 +25,6 @@ from app.controllers.favoriteController import router as favorite_router
 
 # Ejecutar prueba al iniciar
 test_db_connection()
-
-# Cargar variables de entorno al inicio
-load_dotenv()
 
 # Crear aplicación FastAPI
 app = FastAPI(
