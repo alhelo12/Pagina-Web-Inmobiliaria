@@ -1,7 +1,7 @@
 """
-Controller: Favorite
+Controller: Favorites
 
-Endpoints para gestión de propiedades favoritas.
+Endpoints para gestión de favoritos de propiedades.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -10,13 +10,13 @@ from typing import List
 
 from app.dbConfig.databaseSession import get_db
 from app.services import favoriteService
+from app.core.dependencies import get_current_user
 from app.schemas import (
     FavoriteResponse,
-    FavoriteDetailResponse,
     FavoriteListResponse,
-    FavoriteToggleResponse,
-    PropertyResponse
+    FavoriteToggleResponse
 )
+from app.models import User
 
 router = APIRouter(
     prefix="/favorites",
@@ -25,186 +25,172 @@ router = APIRouter(
 
 
 # ==========================================
-# LISTAR FAVORITOS
-# ==========================================
-
-@router.get("", response_model=FavoriteListResponse)
-def get_user_favorites(
-    user_id: int = Query(..., description="ID del usuario (temporal, con JWT se extraerá del token)"),
-    skip: int = Query(0, ge=0, description="Registros a saltar"),
-    limit: int = Query(20, ge=1, le=100, description="Máximo de registros"),
-    db: Session = Depends(get_db)
-):
-    """
-    Listar favoritos de un usuario
-    
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL, con JWT del token)
-    - **skip**: Paginación
-    - **limit**: Máximo de resultados (1-100)
-    
-    Retorna:
-    - Lista de favoritos del usuario
-    - Total de favoritos
-    - Ordenados por fecha de agregado (más recientes primero)
-    """
-    favorites = favoriteService.get_user_favorites(db, user_id, skip, limit)
-    total = favoriteService.count_user_favorites(db, user_id)
-    
-    return {
-        "favorites": favorites,
-        "total": total,
-        "skip": skip,
-        "limit": limit
-    }
-
-
-@router.get("/properties", response_model=list[PropertyResponse])
-def get_favorite_properties(
-    user_id: int = Query(..., description="ID del usuario"),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db)
-):
-    """
-    Obtener propiedades favoritas (solo las Property)
-    
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL)
-    - **skip**: Paginación
-    - **limit**: Máximo de resultados
-    
-    Retorna:
-    - Lista de propiedades favoritas (objetos Property completos)
-    - Sin el wrapper de Favorite
-    
-    Útil para:
-    - Mostrar grid de propiedades favoritas
-    - Integración con componentes de propiedades
-    """
-    properties = favoriteService.get_favorite_properties(db, user_id, skip, limit)
-    return properties
-
-
-# ==========================================
-# AGREGAR/QUITAR FAVORITO
-# ==========================================
-
-@router.post("/{property_id}", response_model=FavoriteResponse, status_code=status.HTTP_201_CREATED)
-def add_favorite(
-    property_id: int,
-    user_id: int = Query(..., description="ID del usuario"),
-    db: Session = Depends(get_db)
-):
-    """
-    Agregar propiedad a favoritos
-    
-    Path params:
-    - **property_id**: ID de la propiedad
-    
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL)
-    
-    Validaciones:
-    - Usuario debe existir
-    - Propiedad debe existir
-    - No puede estar ya en favoritos
-    
-    Errores:
-    - 404: Usuario o propiedad no encontrado
-    - 400: Ya está en favoritos
-    """
-    favorite = favoriteService.add_favorite(db, user_id, property_id)
-    return favorite
-
-
-@router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_favorite(
-    property_id: int,
-    user_id: int = Query(..., description="ID del usuario"),
-    db: Session = Depends(get_db)
-):
-    """
-    Quitar propiedad de favoritos
-    
-    Path params:
-    - **property_id**: ID de la propiedad
-    
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL)
-    
-    Retorna 204 si se quitó correctamente.
-    También retorna 204 si no existía (idempotente).
-    """
-    favoriteService.remove_favorite(db, user_id, property_id)
-    return None
-
-
-# ==========================================
-# TOGGLE FAVORITO
+# TODOS LOS ENDPOINTS REQUIEREN AUTENTICACIÓN
 # ==========================================
 
 @router.post("/toggle/{property_id}", response_model=FavoriteToggleResponse)
 def toggle_favorite(
     property_id: int,
     user_id: int = Query(..., description="ID del usuario"),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
     db: Session = Depends(get_db)
 ):
     """
-    Toggle favorito (agregar si no existe, quitar si existe)
+    Agregar/quitar favorito (autenticado)
     
-    Path params:
-    - **property_id**: ID de la propiedad
+    Si la propiedad ya es favorita, la quita.
+    Si no es favorita, la agrega.
     
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL)
+    Validaciones:
+    - Usuario autenticado
+    - Usuario debe ser el mismo que user_id (o admin)
+    - Propiedad debe existir
     
     Retorna:
     - action: "added" o "removed"
     - is_favorite: True o False
-    - property_id: ID de la propiedad
     - favorite_id: ID del favorito (solo si action="added")
-    
-    Este endpoint es ideal para UX simple con un solo botón.
-    
-    Errores:
-    - 404: Propiedad no encontrada
     """
+    # Verificar que el usuario sea el dueño o admin
+    if not current_user.is_admin() and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes gestionar favoritos de otros usuarios"
+        )
+    
     result = favoriteService.toggle_favorite(db, user_id, property_id)
     return result
 
 
+@router.get("", response_model=FavoriteListResponse)
+def get_my_favorites(
+    user_id: int = Query(..., description="ID del usuario"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
+    db: Session = Depends(get_db)
+):
+    """
+    Listar favoritos del usuario (autenticado)
+    
+    Retorna todas las propiedades marcadas como favoritas.
+    
+    Validaciones:
+    - Usuario autenticado
+    - Usuario debe ser el mismo que user_id (o admin)
+    """
+    # Verificar ownership
+    if not current_user.is_admin() and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes ver favoritos de otros usuarios"
+        )
+    
+    result = favoriteService.get_user_favorites(db, user_id, skip=skip, limit=limit)
+    return result
+
+
+@router.get("/{favorite_id}", response_model=FavoriteResponse)
+def get_favorite(
+    favorite_id: int,
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
+    db: Session = Depends(get_db)
+):
+    """
+    Obtener detalle de un favorito (autenticado)
+    
+    Validaciones:
+    - Usuario autenticado
+    - Favorito debe pertenecer al usuario (o ser admin)
+    """
+    favorite = favoriteService.get_favorite_by_id(db, favorite_id)
+    
+    if not favorite:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Favorito no encontrado"
+        )
+    
+    # Verificar ownership
+    if not current_user.is_admin() and favorite.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Este favorito no te pertenece"
+        )
+    
+    return favorite
+
+
+@router.delete("/{favorite_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_favorite(
+    favorite_id: int,
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
+    db: Session = Depends(get_db)
+):
+    """
+    Eliminar favorito por ID (autenticado)
+    
+    Alternativa a usar toggle.
+    
+    Validaciones:
+    - Usuario autenticado
+    - Favorito debe pertenecer al usuario (o ser admin)
+    """
+    favorite = favoriteService.get_favorite_by_id(db, favorite_id)
+    
+    if not favorite:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Favorito no encontrado"
+        )
+    
+    # Verificar ownership
+    if not current_user.is_admin() and favorite.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes eliminar favoritos de otros usuarios"
+        )
+    
+    favoriteService.remove_favorite(db, favorite_id)
+    return None
+
+
 # ==========================================
-# VERIFICACIÓN
+# ENDPOINTS DE VERIFICACIÓN
 # ==========================================
 
 @router.get("/check/{property_id}")
 def check_is_favorite(
     property_id: int,
     user_id: int = Query(..., description="ID del usuario"),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
     db: Session = Depends(get_db)
 ):
     """
-    Verificar si una propiedad está en favoritos
+    Verificar si una propiedad es favorita (autenticado)
     
-    Path params:
-    - **property_id**: ID de la propiedad
+    Útil para mostrar el ícono de corazón en el frontend.
     
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL)
+    Validaciones:
+    - Usuario autenticado
+    - Usuario debe ser el mismo que user_id (o admin)
     
     Retorna:
-    - is_favorite: True o False
     - property_id: ID de la propiedad
-    
-    Útil para:
-    - Mostrar icono de corazón lleno/vacío
-    - Validaciones en frontend
+    - is_favorite: True o False
     """
-    is_favorite = favoriteService.is_favorite(db, user_id, property_id)
+    # Verificar ownership
+    if not current_user.is_admin() and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes verificar favoritos de otros usuarios"
+        )
+    
+    is_fav = favoriteService.is_favorite(db, user_id, property_id)
+    
     return {
         "property_id": property_id,
-        "is_favorite": is_favorite
+        "is_favorite": is_fav
     }
 
 
@@ -212,176 +198,87 @@ def check_is_favorite(
 def check_multiple_favorites(
     property_ids: List[int],
     user_id: int = Query(..., description="ID del usuario"),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
     db: Session = Depends(get_db)
 ):
     """
-    Verificar múltiples propiedades a la vez
+    Verificar múltiples propiedades a la vez (autenticado)
     
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL)
+    Útil para marcar favoritos en listados de propiedades.
+    
+    Validaciones:
+    - Usuario autenticado
+    - Usuario debe ser el mismo que user_id (o admin)
     
     Body:
     - Lista de property_ids
     
     Retorna:
-    - Diccionario {property_id: is_favorite}
-    
-    Útil para:
-    - Marcar favoritos en listados de propiedades
-    - Evitar múltiples llamadas al API
+    - Diccionario con property_id como key y booleano como value
     
     Ejemplo:
-```json
-    [1, 2, 3, 4, 5]
-```
-    
-    Respuesta:
-```json
-    {
-      "1": true,
-      "2": false,
-      "3": true,
-      "4": false,
-      "5": true
-    }
-```
+    Input: [1, 2, 3, 4, 5]
+    Output: {"1": true, "2": false, "3": true, "4": false, "5": true}
     """
+    # Verificar ownership
+    if not current_user.is_admin() and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes verificar favoritos de otros usuarios"
+        )
+    
     result = favoriteService.check_multiple_favorites(db, user_id, property_ids)
     return result
 
 
 # ==========================================
-# CONSULTAS ESPECIALES
+# ENDPOINTS DE ESTADÍSTICAS
 # ==========================================
 
-@router.get("/most-favorited/list")
-def get_most_favorited_properties(
-    limit: int = Query(10, ge=1, le=50, description="Número de propiedades"),
-    min_favorites: int = Query(1, ge=1, description="Mínimo de favoritos"),
+@router.get("/stats/summary")
+def get_favorites_stats(
+    user_id: int = Query(..., description="ID del usuario"),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
     db: Session = Depends(get_db)
 ):
     """
-    Obtener propiedades más guardadas en favoritos
+    Estadísticas de favoritos del usuario (autenticado)
     
-    Query params:
-    - **limit**: Número de propiedades a retornar (1-50)
-    - **min_favorites**: Mínimo de favoritos para incluir (default: 1)
+    Muestra:
+    - Total de favoritos
+    - Favoritos por tipo de propiedad
+    - Rango de precios promedio
     
-    Retorna:
-    - Lista de propiedades más populares
-    - Cada una con su contador de favoritos
-    
-    Solo incluye propiedades con status='approved'.
-    
-    Útil para:
-    - "Propiedades más populares"
-    - Recomendaciones
-    - Trending
+    Validaciones:
+    - Usuario autenticado
+    - Usuario debe ser el mismo que user_id (o admin)
     """
-    most_favorited = favoriteService.get_most_favorited_properties(
-        db,
-        limit=limit,
-        min_favorites=min_favorites
-    )
-    return {
-        "properties": most_favorited,
-        "total": len(most_favorited)
-    }
+    # Verificar ownership
+    if not current_user.is_admin() and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes ver estadísticas de otros usuarios"
+        )
+    
+    stats = favoriteService.get_user_favorites_stats(db, user_id)
+    return stats
 
 
 @router.get("/property/{property_id}/count")
-def count_property_favorites(
+def get_property_favorites_count(
     property_id: int,
     db: Session = Depends(get_db)
 ):
     """
-    Contar cuántos usuarios tienen una propiedad en favoritos
+    Contar cuántos usuarios tienen esta propiedad como favorita (público)
     
-    Path params:
-    - **property_id**: ID de la propiedad
-    
-    Retorna:
-    - property_id: ID de la propiedad
-    - favorite_count: Número de usuarios que la tienen
-    
-    Útil para:
-    - Mostrar "X personas guardaron esta propiedad"
-    - Métricas de popularidad
+    No requiere autenticación.
+    Útil para mostrar "X personas marcaron esto como favorito".
     """
-    count = favoriteService.count_property_favorites(db, property_id)
+    count = favoriteService.get_property_favorites_count(db, property_id)
+    
     return {
         "property_id": property_id,
-        "favorite_count": count
+        "favorites_count": count
     }
-
-
-# ==========================================
-# ESTADÍSTICAS
-# ==========================================
-
-@router.get("/stats/user")
-def get_user_favorite_stats(
-    user_id: int = Query(..., description="ID del usuario"),
-    db: Session = Depends(get_db)
-):
-    """
-    Obtener estadísticas de favoritos de un usuario
     
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL)
-    
-    Retorna:
-    - Total de favoritos
-    - Desglose por tipo de propiedad
-    
-    Útil para:
-    - Perfil de usuario
-    - Analytics
-    """
-    stats = favoriteService.get_favorite_stats(db, user_id=user_id)
-    return stats
-
-
-@router.get("/stats/global")
-def get_global_favorite_stats(db: Session = Depends(get_db)):
-    """
-    Obtener estadísticas globales de favoritos
-    
-    Retorna:
-    - Total de favoritos en el sistema
-    - Total de usuarios con favoritos
-    - Promedio de favoritos por usuario
-    
-    Útil para:
-    - Dashboard de admin
-    - Métricas del sistema
-    """
-    stats = favoriteService.get_favorite_stats(db)
-    return stats
-
-
-# ==========================================
-# LIMPIEZA (ADMIN)
-# ==========================================
-
-@router.delete("/user/{user_id}/all", status_code=status.HTTP_204_NO_CONTENT)
-def remove_all_user_favorites(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-    """
-    Quitar todos los favoritos de un usuario
-    
-    Path params:
-    - **user_id**: ID del usuario
-    
-    Retorna 204 y el número de favoritos eliminados.
-    
-    Útil para:
-    - Limpiar cuenta de usuario
-    - Admin tools
-    
-    Nota: Con JWT, solo el mismo usuario o admin podrá hacer esto.
-    """
-    count = favoriteService.remove_all_user_favorites(db, user_id)
-    return None

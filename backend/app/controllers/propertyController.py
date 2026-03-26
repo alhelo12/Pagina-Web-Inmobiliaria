@@ -1,8 +1,7 @@
 """
-Controller: Property
+Controller: Properties
 
-Endpoints para gestión de propiedades.
-Incluye CRUD, sistema de aprobación, búsquedas y estadísticas.
+Endpoints para gestión de propiedades inmobiliarias.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -11,16 +10,20 @@ from typing import Optional
 
 from app.dbConfig.databaseSession import get_db
 from app.services import propertyService
+from app.core.dependencies import (
+    get_current_user,
+    require_advisor,
+    verify_user_owns_resource
+)
 from app.schemas import (
     PropertyCreate,
     PropertyUpdate,
     PropertyResponse,
-    PropertyDetailResponse,
     PropertyListResponse,
-    PropertyFilter,
-    PropertyImageCreate,
-    PropertyImageResponse
+    PropertySearchFilters,
+    NearbySearchParams
 )
+from app.models import User
 
 router = APIRouter(
     prefix="/properties",
@@ -29,116 +32,38 @@ router = APIRouter(
 
 
 # ==========================================
-# CRUD BÁSICO
+# ENDPOINTS PÚBLICOS (sin autenticación)
 # ==========================================
 
 @router.get("", response_model=PropertyListResponse)
 def get_properties(
-    skip: int = Query(0, ge=0, description="Registros a saltar"),
-    limit: int = Query(20, ge=1, le=100, description="Máximo de registros"),
-    status: Optional[str] = Query(None, description="Filtrar por estado (pending, approved, rejected, sold)"),
-    user_id: Optional[int] = Query(None, description="Filtrar por usuario que publicó"),
+    skip: int = Query(0, ge=0, description="Número de registros a saltar"),
+    limit: int = Query(20, ge=1, le=100, description="Número máximo de registros"),
     db: Session = Depends(get_db)
 ):
     """
-    Listar propiedades con filtros básicos
+    Listar todas las propiedades aprobadas (público)
     
-    Query params:
-    - **skip**: Paginación
-    - **limit**: Máximo de registros (1-100)
-    - **status**: Estado de la propiedad
-    - **user_id**: Propiedades de un usuario específico
-    
-    Retorna:
-    - Lista de propiedades
-    - Total para paginación
+    Solo muestra propiedades con status='approved'.
+    Incluye paginación.
     """
-    properties = propertyService.get_properties(
-        db,
-        skip=skip,
-        limit=limit,
-        status=status,
-        user_id=user_id
-    )
-    
-    total = propertyService.count_properties(
-        db,
-        status=status,
-        user_id=user_id
-    )
-    
-    return {
-        "properties": properties,
-        "total": total,
-        "skip": skip,
-        "limit": limit
-    }
+    result = propertyService.get_properties(db, skip=skip, limit=limit)
+    return result
 
 
-@router.get("/approved", response_model=PropertyListResponse)
-def get_approved_properties(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db)
-):
-    """
-    Listar propiedades aprobadas (visibles públicamente)
-    
-    Solo retorna propiedades con status='approved'.
-    Útil para el catálogo público.
-    """
-    properties = propertyService.get_approved_properties(db, skip, limit)
-    total = propertyService.count_properties(db, status='approved')
-    
-    return {
-        "properties": properties,
-        "total": total,
-        "skip": skip,
-        "limit": limit
-    }
-
-
-@router.get("/pending", response_model=PropertyListResponse)
-def get_pending_properties(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db)
-):
-    """
-    Listar propiedades pendientes de aprobación
-    
-    Solo retorna propiedades con status='pending'.
-    Útil para el panel de asesores.
-    
-    Nota: Con JWT, solo asesores y admins podrán ver este endpoint.
-    """
-    properties = propertyService.get_pending_properties(db, skip, limit)
-    total = propertyService.count_properties(db, status='pending')
-    
-    return {
-        "properties": properties,
-        "total": total,
-        "skip": skip,
-        "limit": limit
-    }
-
-
-@router.get("/{property_id}", response_model=PropertyDetailResponse)
+@router.get("/{property_id}", response_model=PropertyResponse)
 def get_property(
     property_id: int,
     db: Session = Depends(get_db)
 ):
     """
-    Obtener propiedad por ID
+    Obtener detalle de una propiedad (público)
     
-    Retorna:
-    - Propiedad con todos sus detalles
+    Muestra información completa de la propiedad incluyendo:
+    - Datos básicos
+    - Usuario que la publicó
+    - Asesor asignado (si existe)
     - Imágenes
-    - Información del dueño
-    - Información del asesor (si está aprobada)
-    
-    Errores:
-    - 404: Propiedad no encontrada
     """
     property_obj = propertyService.get_property_by_id(db, property_id)
     
@@ -151,33 +76,77 @@ def get_property(
     return property_obj
 
 
-@router.post("", response_model=PropertyResponse, status_code=status.HTTP_201_CREATED)
-def create_property(
-    property_data: PropertyCreate,
-    user_id: int = Query(..., description="ID del usuario que publica (temporal, con JWT se extraerá del token)"),
+@router.post("/search", response_model=PropertyListResponse)
+def search_properties(
+    filters: PropertySearchFilters,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     """
-    Crear nueva propiedad
+    Búsqueda avanzada de propiedades (público)
     
-    Body:
-    - **title**: Título de la propiedad
-    - **description**: Descripción detallada
-    - **price**: Precio
-    - **property_type**: Tipo (house, apartment, land, commercial)
-    - **transaction_type**: Transacción (sale, rent)
-    - **address**: Dirección completa
-    - **city**: Ciudad
-    - **latitude**: Latitud
-    - **longitude**: Longitud
-    - **bedrooms**: Número de recámaras
-    - **bathrooms**: Número de baños
-    - **square_meters**: Metros cuadrados
-    
-    La propiedad se crea automáticamente con status='pending'.
-    
-    Nota: Con JWT, user_id se extraerá del token automáticamente.
+    Filtros disponibles:
+    - city: Buscar por ciudad
+    - property_type: house, apartment, land, commercial
+    - transaction_type: sale, rent
+    - min_price, max_price: Rango de precio
+    - bedrooms: Recámaras mínimas
+    - bathrooms: Baños mínimos
+    - min_square_meters, max_square_meters: Rango de m²
+    - status: pending, approved, rejected, sold
     """
+    result = propertyService.search_properties(db, filters, skip=skip, limit=limit)
+    return result
+
+
+@router.get("/nearby/search", response_model=PropertyListResponse)
+def search_nearby_properties(
+    latitude: float = Query(..., description="Latitud del punto de referencia"),
+    longitude: float = Query(..., description="Longitud del punto de referencia"),
+    radius_km: float = Query(5.0, ge=0.1, le=50, description="Radio de búsqueda en kilómetros"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    Búsqueda por proximidad geográfica (público)
+    
+    Encuentra propiedades dentro de un radio especificado.
+    Usa la fórmula de Haversine para calcular distancias.
+    """
+    params = NearbySearchParams(
+        latitude=latitude,
+        longitude=longitude,
+        radius_km=radius_km
+    )
+    result = propertyService.search_nearby_properties(db, params, skip=skip, limit=limit)
+    return result
+
+
+# ==========================================
+# ENDPOINTS PROTEGIDOS (requieren autenticación)
+# ==========================================
+
+@router.post("", response_model=PropertyResponse, status_code=status.HTTP_201_CREATED)
+def create_property(
+    property_data: PropertyCreate,
+    user_id: int = Query(..., description="ID del usuario que publica"),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere token
+    db: Session = Depends(get_db)
+):
+    """
+    Crear nueva propiedad (requiere autenticación)
+    
+    La propiedad se crea con status='pending' y requiere aprobación.
+    
+    Validaciones:
+    - Usuario debe estar autenticado
+    - Usuario debe ser el mismo que user_id (o ser admin)
+    """
+    # Verificar que el usuario sea dueño o admin
+    verify_user_owns_resource(user_id, current_user)
+    
     property_obj = propertyService.create_property(db, property_data, user_id)
     return property_obj
 
@@ -186,30 +155,20 @@ def create_property(
 def update_property(
     property_id: int,
     property_data: PropertyUpdate,
-    user_id: Optional[int] = Query(None, description="ID del usuario (para verificar permisos)"),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere token
     db: Session = Depends(get_db)
 ):
     """
-    Actualizar propiedad
+    Actualizar propiedad existente (requiere autenticación)
     
-    Todos los campos son opcionales.
+    Solo el dueño de la propiedad o un admin puede actualizarla.
     
     Validaciones:
-    - Solo el dueño puede editar (si se proporciona user_id)
-    - Propiedad debe existir
-    
-    Errores:
-    - 404: Propiedad no encontrada
-    - 403: Sin permisos para editar
-    
-    Nota: Con JWT, user_id se extraerá del token y se validará automáticamente.
+    - Usuario autenticado
+    - Usuario es dueño o admin
     """
-    property_obj = propertyService.update_property(
-        db,
-        property_id,
-        property_data,
-        user_id
-    )
+    # Obtener propiedad
+    property_obj = propertyService.get_property_by_id(db, property_id)
     
     if not property_obj:
         raise HTTPException(
@@ -217,68 +176,79 @@ def update_property(
             detail="Propiedad no encontrada"
         )
     
-    return property_obj
+    # Verificar ownership
+    verify_user_owns_resource(property_obj.submitted_by_user_id, current_user)
+    
+    # Actualizar
+    updated_property = propertyService.update_property(db, property_id, property_data)
+    return updated_property
 
 
 @router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_property(
     property_id: int,
-    user_id: Optional[int] = Query(None, description="ID del usuario (para verificar permisos)"),
+    current_user: User = Depends(get_current_user),  # 🔐 Requiere token
     db: Session = Depends(get_db)
 ):
     """
-    Eliminar propiedad
+    Eliminar propiedad (requiere autenticación)
+    
+    Solo el dueño o admin puede eliminar.
     
     Validaciones:
-    - Solo el dueño puede eliminar (si se proporciona user_id)
-    - Propiedad debe existir
-    
-    Errores:
-    - 404: Propiedad no encontrada
-    - 403: Sin permisos para eliminar
-    
-    Nota: Esta es eliminación permanente.
-    Con JWT, user_id se extraerá del token.
+    - Usuario autenticado
+    - Usuario es dueño o admin
     """
-    success = propertyService.delete_property(db, property_id, user_id)
+    # Obtener propiedad
+    property_obj = propertyService.get_property_by_id(db, property_id)
     
-    if not success:
+    if not property_obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Propiedad no encontrada"
         )
     
+    # Verificar ownership
+    verify_user_owns_resource(property_obj.submitted_by_user_id, current_user)
+    
+    # Eliminar
+    propertyService.delete_property(db, property_id)
     return None
 
 
 # ==========================================
-# SISTEMA DE APROBACIÓN
+# ENDPOINTS SOLO PARA ADVISORS
 # ==========================================
 
 @router.patch("/{property_id}/approve", response_model=PropertyResponse)
 def approve_property(
     property_id: int,
-    advisor_id: int = Query(..., description="ID del asesor que aprueba"),
+    current_user: User = Depends(require_advisor),  # 🔐 Solo advisors
     db: Session = Depends(get_db)
 ):
     """
-    Aprobar propiedad (asesor)
+    Aprobar propiedad (solo advisors)
     
-    Cambia el estado a 'approved' y asigna el asesor.
+    Cambia el status de 'pending' a 'approved'.
+    Asigna el advisor que aprobó la propiedad.
     
-    Validaciones:
-    - Propiedad debe existir
-    - Propiedad debe estar en estado 'pending'
-    - Asesor debe existir
-    
-    Errores:
-    - 404: Propiedad o asesor no encontrado
-    - 400: Propiedad no está pending
-    
-    Nota: Con JWT, solo usuarios con rol 'advisor' podrán usar este endpoint.
-    advisor_id se extraerá del token.
+    Requiere:
+    - Token JWT válido
+    - Rol de advisor
     """
-    property_obj = propertyService.approve_property(db, property_id, advisor_id)
+    # Obtener advisor_id del usuario autenticado
+    if not current_user.advisor:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuario no tiene perfil de advisor"
+        )
+    
+    property_obj = propertyService.approve_property(
+        db,
+        property_id,
+        current_user.advisor.id
+    )
+    
     return property_obj
 
 
@@ -286,254 +256,71 @@ def approve_property(
 def reject_property(
     property_id: int,
     reason: Optional[str] = Query(None, description="Razón del rechazo"),
+    current_user: User = Depends(require_advisor),  # 🔐 Solo advisors
     db: Session = Depends(get_db)
 ):
     """
-    Rechazar propiedad (asesor)
+    Rechazar propiedad (solo advisors)
     
-    Cambia el estado a 'rejected'.
+    Cambia el status de 'pending' a 'rejected'.
+    Opcionalmente se puede proporcionar una razón.
     
-    Validaciones:
-    - Propiedad debe existir
-    - Propiedad debe estar en estado 'pending'
-    
-    Errores:
-    - 404: Propiedad no encontrada
-    - 400: Propiedad no está pending
-    
-    Nota: Con JWT, solo usuarios con rol 'advisor' podrán usar este endpoint.
+    Requiere:
+    - Token JWT válido
+    - Rol de advisor
     """
     property_obj = propertyService.reject_property(db, property_id, reason)
     return property_obj
 
 
-@router.patch("/{property_id}/sold", response_model=PropertyResponse)
-def mark_as_sold(
+@router.patch("/{property_id}/mark-sold", response_model=PropertyResponse)
+def mark_property_sold(
     property_id: int,
+    current_user: User = Depends(require_advisor),  # 🔐 Solo advisors
     db: Session = Depends(get_db)
 ):
     """
-    Marcar propiedad como vendida/rentada
+    Marcar propiedad como vendida (solo advisors)
     
-    Cambia el estado a 'sold'.
+    Cambia el status a 'sold'.
     
-    Validaciones:
-    - Propiedad debe existir
-    - Propiedad debe estar en estado 'approved'
-    
-    Errores:
-    - 404: Propiedad no encontrada
-    - 400: Propiedad no está approved
-    
-    Nota: Con JWT, solo el asesor asignado podrá marcar como vendida.
+    Requiere:
+    - Token JWT válido
+    - Rol de advisor
     """
     property_obj = propertyService.mark_as_sold(db, property_id)
     return property_obj
 
 
 # ==========================================
-# BÚSQUEDAS AVANZADAS
+# ENDPOINTS DE ESTADÍSTICAS
 # ==========================================
 
-@router.post("/search", response_model=PropertyListResponse)
-def search_properties(
-    filters: PropertyFilter,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+@router.get("/stats/summary")
+def get_properties_summary(
+    current_user: User = Depends(require_advisor),  # 🔐 Solo advisors/admin
     db: Session = Depends(get_db)
 ):
     """
-    Búsqueda avanzada de propiedades
+    Obtener resumen de propiedades (solo advisors/admin)
     
-    Body (todos opcionales):
-    - **city**: Ciudad (búsqueda ILIKE)
-    - **property_type**: Tipo de propiedad
-    - **transaction_type**: Tipo de transacción
-    - **min_price**: Precio mínimo
-    - **max_price**: Precio máximo
-    - **bedrooms**: Mínimo de recámaras
-    - **bathrooms**: Mínimo de baños
-    - **min_square_meters**: Metros cuadrados mínimos
-    - **max_square_meters**: Metros cuadrados máximos
-    - **status**: Estado (default: 'approved' para búsqueda pública)
-    
-    Por defecto solo muestra propiedades aprobadas.
-    
-    Retorna:
-    - Propiedades que cumplen los filtros
-    - Total para paginación
-    """
-    properties, total = propertyService.search_properties(
-        db,
-        filters,
-        skip,
-        limit
-    )
-    
-    return {
-        "properties": properties,
-        "total": total,
-        "skip": skip,
-        "limit": limit
-    }
-
-
-@router.get("/search/proximity", response_model=PropertyListResponse)
-def search_by_proximity(
-    latitude: float = Query(..., description="Latitud del punto central"),
-    longitude: float = Query(..., description="Longitud del punto central"),
-    radius_km: float = Query(5.0, ge=0.1, le=50, description="Radio de búsqueda en kilómetros"),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db)
-):
-    """
-    Buscar propiedades por proximidad geográfica
-    
-    Query params:
-    - **latitude**: Latitud del centro de búsqueda
-    - **longitude**: Longitud del centro de búsqueda
-    - **radius_km**: Radio en kilómetros (0.1 - 50)
-    
-    Retorna propiedades dentro del radio especificado.
-    Solo propiedades aprobadas.
-    
-    Usa fórmula de Haversine simplificada.
-    Para búsquedas más precisas, considerar PostGIS.
-    """
-    properties = propertyService.search_by_proximity(
-        db,
-        latitude,
-        longitude,
-        radius_km,
-        skip,
-        limit
-    )
-    
-    # Contar sin skip/limit para total
-    all_properties = propertyService.search_by_proximity(
-        db,
-        latitude,
-        longitude,
-        radius_km,
-        0,
-        999999
-    )
-    
-    return {
-        "properties": properties,
-        "total": len(all_properties),
-        "skip": skip,
-        "limit": limit
-    }
-
-
-# ==========================================
-# GESTIÓN DE IMÁGENES
-# ==========================================
-
-@router.post("/{property_id}/images", response_model=PropertyImageResponse, status_code=status.HTTP_201_CREATED)
-def add_property_image(
-    property_id: int,
-    image_data: PropertyImageCreate,
-    db: Session = Depends(get_db)
-):
-    """
-    Agregar imagen a una propiedad
-    
-    Body:
-    - **image_url**: URL de la imagen
-    - **is_main**: Si es la imagen principal (default: false)
-    
-    Si is_main=true, automáticamente quita el flag de las demás imágenes.
-    
-    Errores:
-    - 404: Propiedad no encontrada
-    """
-    image = propertyService.add_property_image(
-        db,
-        property_id,
-        image_data.image_url,
-        image_data.is_main
-    )
-    return image
-
-
-@router.delete("/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_property_image(
-    image_id: int,
-    db: Session = Depends(get_db)
-):
-    """
-    Eliminar imagen de propiedad
-    
-    Errores:
-    - 404: Imagen no encontrada
-    """
-    success = propertyService.delete_property_image(db, image_id)
-    
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Imagen no encontrada"
-        )
-    
-    return None
-
-
-# ==========================================
-# ESTADÍSTICAS Y CONSULTAS ESPECIALES
-# ==========================================
-
-@router.get("/stats/general")
-def get_property_stats(db: Session = Depends(get_db)):
-    """
-    Obtener estadísticas generales de propiedades
-    
-    Retorna:
-    - Total de propiedades
-    - Totales por estado (approved, pending, rejected, sold)
-    - Precio promedio de propiedades aprobadas
+    Estadísticas generales de todas las propiedades.
     """
     stats = propertyService.get_property_stats(db)
     return stats
 
 
-@router.get("/advisor/{advisor_id}", response_model=PropertyListResponse)
-def get_properties_by_advisor(
-    advisor_id: int,
+@router.get("/pending/list", response_model=PropertyListResponse)
+def get_pending_properties(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(require_advisor),  # 🔐 Solo advisors/admin
     db: Session = Depends(get_db)
 ):
     """
-    Obtener propiedades gestionadas por un asesor
+    Listar propiedades pendientes de aprobación (solo advisors/admin)
     
-    Retorna todas las propiedades que un asesor ha aprobado.
-    
-    Útil para:
-    - Portafolio del asesor
-    - Estadísticas de desempeño
+    Muestra todas las propiedades con status='pending'.
     """
-    properties = propertyService.get_properties_by_advisor(
-        db,
-        advisor_id,
-        skip,
-        limit
-    )
-    
-    # Contar total
-    all_properties = propertyService.get_properties_by_advisor(
-        db,
-        advisor_id,
-        0,
-        999999
-    )
-    
-    return {
-        "properties": properties,
-        "total": len(all_properties),
-        "skip": skip,
-        "limit": limit
-    }
-    
+    result = propertyService.get_pending_properties(db, skip=skip, limit=limit)
+    return result
