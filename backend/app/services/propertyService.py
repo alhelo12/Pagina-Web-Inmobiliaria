@@ -11,7 +11,7 @@ from typing import Optional, List, Tuple
 from fastapi import HTTPException, status
 
 from app.models import Property, PropertyImage, User, Advisor
-from app.schemas import PropertyCreate, PropertyUpdate, PropertyFilter
+from app.schemas import PropertyCreate, PropertyUpdate, PropertySearchFilters, NearbySearchParams
 
 
 # ==========================================
@@ -403,7 +403,8 @@ def get_pending_properties(db: Session, skip: int = 0, limit: int = 20) -> List[
 
 def search_properties(
     db: Session,
-    filters: PropertyFilter,
+    filters: PropertySearchFilters, 
+    proximity_filters: Optional[NearbySearchParams] = None,
     skip: int = 0,
     limit: int = 20
 ) -> Tuple[List[Property], int]:
@@ -452,6 +453,20 @@ def search_properties(
         query = query.filter(Property.square_meters >= filters.min_square_meters)
     if filters.max_square_meters is not None:
         query = query.filter(Property.square_meters <= filters.max_square_meters)
+    
+    #Filtro de proximidad
+    if proximity_filters:
+        lat = proximity_filters.latitude
+        lon = proximity_filters.longitude
+        radius = proximity_filters.radius_km
+        
+        lat_range = radius / 111.0
+        lon_range = radius / (111.0 * func.cos(func.radians(lat)))
+        
+        query = query.filter(
+            Property.latitude.between(lat - lat_range, lat + lat_range),
+            Property.longitude.between(lon - lon_range, lon + lon_range)
+        )    
     
     # Filtro por estado
     if filters.status:

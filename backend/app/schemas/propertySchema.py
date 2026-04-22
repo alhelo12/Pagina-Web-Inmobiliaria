@@ -283,7 +283,7 @@ class PropertyListResponse(BaseModel):
 # SCHEMAS DE FILTROS
 # ==========================================
 
-class PropertyFilter(BaseModel):
+class PropertySearchFilters(BaseModel):
     """
     Schema para filtrar propiedades
     
@@ -312,6 +312,7 @@ class PropertyFilter(BaseModel):
     max_square_meters: Optional[int] = Field(None, ge=0)
     status: Optional[PropertyStatusEnum] = None
     
+class NearbySearchParams(BaseModel):    
     # Búsqueda por proximidad (radio)
     latitude: Optional[float] = Field(None, ge=-90, le=90)
     longitude: Optional[float] = Field(None, ge=-180, le=180)
