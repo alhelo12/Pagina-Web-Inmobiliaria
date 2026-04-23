@@ -3,15 +3,11 @@ FastAPI Main Application
 Sistema Inmobiliario - Backend API
 """
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from app.core.config import settings
 from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection
-from app.models import Property, User, Role
-from app.schemas import PropertyResponse
 
 # ==========================================
 # IMPORTAR ROUTERS
@@ -55,16 +51,12 @@ app.include_router(appointment_router)
 app.include_router(favorite_router)
 
 # ==========================================
-# ENDPOINTS DE PRUEBA
+# ENDPOINTS PÚBLICOS
 # ==========================================
 
 @app.get("/", tags=["Root"])
 def read_root():
-    """
-    Endpoint raíz - Hello World
-    
-    Verifica que la API está funcionando.
-    """
+    """Endpoint raíz — confirma que la API está corriendo."""
     return {
         "message": "Inmobiliaria API",
         "version": "1.0.0",
@@ -75,154 +67,20 @@ def read_root():
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    """
-    Health check básico
-    
-    Verifica que el servidor está funcionando.
-    """
-    return {
-        "status": "healthy",
-        "service": "inmobiliaria-api"
-    }
+    """Health check básico — para balanceadores y monitoreo."""
+    return {"status": "healthy", "service": "inmobiliaria-api"}
 
 
 @app.get("/health/db", tags=["Health"])
 def health_check_database():
-    """
-    Health check con verificación de base de datos
-    
-    Verifica:
-    - Conexión a PostgreSQL
-    - Estado del connection pool
-    """
+    """Health check con verificación de conexión a PostgreSQL."""
     db_connected = test_db_connection()
     pool_stats = get_pool_status() if db_connected else None
-    
     return {
         "status": "healthy" if db_connected else "unhealthy",
-        "database": {
-            "connected": db_connected,
-            "type": "postgresql"
-        },
+        "database": {"connected": db_connected, "type": "postgresql"},
         "connection_pool": pool_stats
     }
-
-
-@app.get("/test/roles", tags=["Test"])
-def test_roles(db: Session = Depends(get_db)):
-    """
-    Endpoint de prueba - Listar roles
-    
-    Verifica:
-    - Conexión a BD
-    - Modelo Role funciona
-    - Query básico funciona
-    """
-    roles = db.query(Role).all()
-    return {
-        "total": len(roles),
-        "roles": [{"id": r.id, "name": r.name} for r in roles]
-    }
-
-
-@app.get("/test/users", tags=["Test"])
-def test_users(db: Session = Depends(get_db)):
-    """
-    Endpoint de prueba - Contar usuarios
-    """
-    total_users = db.query(User).count()
-    users_by_role = db.query(Role.name, func.count(User.id))\
-        .join(User, Role.id == User.role_id, isouter=True)\
-        .group_by(Role.name)\
-        .all()
-    
-    return {
-        "total_users": total_users,
-        "by_role": {role: count for role, count in users_by_role}
-    }
-
-
-@app.get("/test/properties", response_model=list[PropertyResponse], tags=["Test"])
-def test_properties(
-    limit: int = 10,
-    db: Session = Depends(get_db)
-):
-    """
-    Endpoint de prueba - Listar propiedades
-    
-    Verifica:
-    - Modelo Property funciona
-    - Schema PropertyResponse funciona
-    - Serialización funciona
-    - Relaciones (images) se cargan correctamente
-    
-    Query params:
-    - limit: número máximo de propiedades (default: 10)
-    """
-    properties = db.query(Property).limit(limit).all()
-    return properties
-
-
-@app.get("/test/properties/{property_id}", response_model=PropertyResponse, tags=["Test"])
-def test_property_detail(
-    property_id: int,
-    db: Session = Depends(get_db)
-):
-    """
-    Endpoint de prueba - Detalle de propiedad
-    
-    Verifica:
-    - Query por ID funciona
-    - Relaciones se cargan
-    - 404 si no existe
-    """
-    property = db.query(Property).filter(Property.id == property_id).first()
-    
-    if not property:
-        raise HTTPException(status_code=404, detail="Propiedad no encontrada")
-    
-    return property
-
-
-@app.get("/test/stats", tags=["Test"])
-def test_stats(db: Session = Depends(get_db)):
-    """
-    Endpoint de prueba - Estadísticas generales
-    
-    Verifica:
-    - Queries agregadas funcionan
-    - Múltiples modelos funcionan juntos
-    """
-    from app.models import Advisor, Appointment, Favorite
-    
-    stats = {
-        "users": {
-            "total": db.query(User).count(),
-            "active": db.query(User).filter(User.is_active == True).count(),
-            "inactive": db.query(User).filter(User.is_active == False).count()
-        },
-        "advisors": {
-            "total": db.query(Advisor).count()
-        },
-        "properties": {
-            "total": db.query(Property).count(),
-            "approved": db.query(Property).filter(Property.status == 'approved').count(),
-            "pending": db.query(Property).filter(Property.status == 'pending').count(),
-            "rejected": db.query(Property).filter(Property.status == 'rejected').count(),
-            "sold": db.query(Property).filter(Property.status == 'sold').count()
-        },
-        "appointments": {
-            "total": db.query(Appointment).count(),
-            "pending": db.query(Appointment).filter(Appointment.status == 'pending').count(),
-            "confirmed": db.query(Appointment).filter(Appointment.status == 'confirmed').count(),
-            "completed": db.query(Appointment).filter(Appointment.status == 'completed').count()
-        },
-        "favorites": {
-            "total": db.query(Favorite).count()
-        }
-    }
-    
-    return stats
 
 
 # ==========================================
