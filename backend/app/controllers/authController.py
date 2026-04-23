@@ -7,6 +7,7 @@ Endpoints para registro y login de usuarios con JWT.
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from pydantic import BaseModel, EmailStr
 
 from app.dbConfig.databaseSession import get_db
 from app.services import authService, userService
@@ -20,6 +21,14 @@ from app.schemas import (
     PasswordChange
 )
 from app.models import User
+
+
+# ── Schemas locales para los endpoints de validación ────────────────────────
+class EmailCheckRequest(BaseModel):
+    email: EmailStr
+
+class PasswordValidateRequest(BaseModel):
+    password: str
 
 router = APIRouter(
     prefix="/auth",
@@ -226,50 +235,46 @@ def change_password(
 # VALIDACIONES
 # ==========================================
 
-@router.get("/check-email")
+@router.post("/check-email")
 def check_email_available(
-    email: str,
+    body: EmailCheckRequest,
     db: Session = Depends(get_db)
 ):
     """
-    Verificar si un email está disponible
-    
-    Útil para validación en tiempo real en el frontend.
-    
+    Verificar si un email está disponible (registro en tiempo real).
+
+    Body JSON:
     - **email**: Email a verificar
-    
+
     Retorna:
     - available: True si está disponible, False si ya existe
+
+    Se usa POST para que el email no quede expuesto en logs ni en historial del navegador.
     """
-    available = authService.validate_email_available(db, email)
+    available = authService.validate_email_available(db, body.email)
     return {
-        "email": email,
+        "email": body.email,
         "available": available
     }
 
 
-@router.get("/validate-password")
-def validate_password(password: str):
+@router.post("/validate-password")
+def validate_password(body: PasswordValidateRequest):
     """
-    Validar requisitos de contraseña
-    
-    Útil para feedback en tiempo real en el frontend.
-    
+    Validar requisitos de contraseña (feedback en tiempo real).
+
+    Body JSON:
     - **password**: Contraseña a validar
-    
+
     Retorna:
-    - valid: True si cumple requisitos
+    - valid: True si cumple los requisitos
     - errors: Lista de errores si no cumple
+
+    Se usa POST para que la contraseña no quede en logs ni en historial del navegador.
     """
     try:
-        authService.validate_password_strength(password)
-        return {
-            "valid": True,
-            "errors": []
-        }
+        authService.validate_password_strength(body.password)
+        return {"valid": True, "errors": []}
     except HTTPException as e:
-        return {
-            "valid": False,
-            "errors": [e.detail]
-        }
-        
+        return {"valid": False, "errors": [e.detail]}
+    
