@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 backend/venv/
 backend/.env
+frontendProyecto/.env
 
 # Node/Vue
 node_modules/
