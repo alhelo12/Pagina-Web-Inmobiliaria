@@ -312,12 +312,27 @@ class PropertySearchFilters(BaseModel):
     max_square_meters: Optional[int] = Field(None, ge=0)
     status: Optional[PropertyStatusEnum] = None
     
-class NearbySearchParams(BaseModel):    
     # Búsqueda por proximidad (radio)
     latitude: Optional[float] = Field(None, ge=-90, le=90)
     longitude: Optional[float] = Field(None, ge=-180, le=180)
     radius_km: Optional[float] = Field(None, gt=0, le=50, description="Radio de búsqueda en km")
 
+
+
+class NearbySearchParams(BaseModel):
+    """
+    Parámetros para búsqueda de propiedades por proximidad geográfica
+
+    Example:
+        {
+            "latitude": 19.4326,
+            "longitude": -99.1332,
+            "radius_km": 5.0
+        }
+    """
+    latitude: float = Field(..., ge=-90, le=90, description="Latitud del punto de referencia")
+    longitude: float = Field(..., ge=-180, le=180, description="Longitud del punto de referencia")
+    radius_km: float = Field(5.0, gt=0, le=50, description="Radio de búsqueda en kilómetros")
 
 class PropertyStats(BaseModel):
     """
