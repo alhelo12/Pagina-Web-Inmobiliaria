@@ -1,13 +1,13 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
-const api = axios.create({
+const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
   headers: { 'Content-Type': 'application/json' }
 })
 
-// ── Adjunta el token JWT en cada petición ───────────────────────────────────
-api.interceptors.request.use((config) => {
+// ── Request: agrega el token JWT si existe ──────────────────────────────────
+apiClient.interceptors.request.use((config) => {
   const auth = useAuthStore()
   if (auth.token) {
     config.headers.Authorization = `Bearer ${auth.token}`
@@ -15,17 +15,22 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// ── Detecta token expirado (401) y cierra sesión automáticamente ────────────
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
+// ── Response: maneja 401 SOLO fuera del login ────────────────────────────────
+// Si interceptamos el 401 del propio endpoint de login, la página se recarga
+// antes de que el componente pueda mostrar el error al usuario.
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isLoginEndpoint = error.config?.url?.includes('/auth/login')
+
+    if (error.response?.status === 401 && !isLoginEndpoint) {
       const auth = useAuthStore()
       auth.logout()
       window.location.href = '/login'
     }
-    return Promise.reject(err)
+
+    return Promise.reject(error)
   }
 )
 
-export default api
+export default apiClient
