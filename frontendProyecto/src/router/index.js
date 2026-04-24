@@ -1,109 +1,94 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import LoginView from '../views/LoginView.vue'
-import PropertiesView from '../views/PropertiesView.vue'
+import HomeView           from '../views/HomeView.vue'
+import RegisterView       from '../views/RegisterView.vue'
+import LoginView          from '../views/LoginView.vue'
+import PropertiesView     from '../views/PropertiesView.vue'
 import PropertyDetailView from '../views/PropertyDetailView.vue'
-import NosotrosView from '../views/client/NosotrosView.vue'
-import ContactosView from '../views/client/ContactosView.vue'
-import ServicesView from '../views/client/ServicesView.vue'
-
-
+import NosotrosView       from '../views/client/NosotrosView.vue'
+import ContactosView      from '../views/client/ContactosView.vue'
+import ServicesView       from '../views/client/ServicesView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', name: 'home', component: HomeView },
 
-    { path: '/propiedades', name: 'properties', component: PropertiesView },
+    // ── RUTAS PÚBLICAS ───────────────────────────────────────────────────────
+    { path: '/',            name: 'home',            component: HomeView },
+    { path: '/propiedades', name: 'properties',      component: PropertiesView },
+    { path: '/propiedades/:id', name: 'property-detail', component: PropertyDetailView },
+    { path: '/nosotros',    name: 'nosotros',        component: NosotrosView },
+    { path: '/contacto',    name: 'contacto',        component: ContactosView },
+    { path: '/servicios',   name: 'servicios',       component: ServicesView },
+    { path: '/login',       name: 'login',           component: LoginView },
+    { path: '/registro',    name: 'register',        component: RegisterView },
 
-    // 🔥 DETALLE DE PROPIEDAD
+    // ── RUTAS DE CLIENTE ─────────────────────────────────────────────────────
     {
-      path: '/propiedades/:id',
-      name: 'property-detail',
-      component: PropertyDetailView
+      path: '/crear-propiedad',
+      name: 'create-property',
+      component: () => import('@/views/client/CreatePropertyView.vue'),
+      meta: { requiresAuth: true, role: 'client' }
     },
     {
-      path: '/nosotros',
-      name: 'nosotros',
-      component: NosotrosView
+      path: '/favoritos',
+      name: 'favoritos',
+      component: () => import('@/views/client/FavoritesView.vue'),
+      meta: { requiresAuth: true, role: 'client' }
     },
+
+    // ── RUTAS DE ASESOR ──────────────────────────────────────────────────────
     {
-      path: '/contacto',
-      name: 'contacto',
-      component: ContactosView
+      path: '/advisor',
+      component: () => import('@/views/advisor/AdvisorLayout.vue'),
+      meta: { requiresAuth: true, role: 'advisor' },
+      children: [
+        { path: '',      redirect: '/advisor/panel' },
+        { path: 'panel', component: () => import('@/views/advisor/AdvisorPanel.vue') }
+      ]
     },
-        {
-      path: '/servicios',
-      name: 'servicios',
-      component: ServicesView
-    },
+
+    // ── RUTAS DE ADMIN ───────────────────────────────────────────────────────
     {
-  path: '/crear-propiedad',
-  name: 'create-property',
-  component: () => import('@/views/client/CreatePropertyView.vue')
-},
-{
-  path: '/favoritos',
-  name: 'favoritos',
-  component: () => import('@/views/client/FavoritesView.vue'),
-  meta: { requiresAuth: true, role: 'client' }
-},
-{
-  path: '/admin',
-  component: () => import('@/views/admin/AdminLayout.vue'),
-  meta: { requiresAuth: true, role: 'admin' },
-  children: [
-    {
-      path: '',
-      redirect: '/admin/propiedades'
-    },
-    {
-      path: 'propiedades',
-      component: () => import('@/views/admin/PropertiesAdminView.vue')
-    },
-    {
-      path: 'usuarios',
-      component: () => import('@/views/admin/UsersView.vue')
+      path: '/admin',
+      component: () => import('@/views/admin/AdminLayout.vue'),
+      meta: { requiresAuth: true, role: 'admin' },
+      children: [
+        { path: '',            redirect: '/admin/propiedades' },
+        { path: 'propiedades', component: () => import('@/views/admin/PropertiesAdminView.vue') },
+        { path: 'usuarios',    component: () => import('@/views/admin/UsersView.vue') }
+      ]
     }
-  ]
-},
-
-// DASHBOARD (tarjetas)
-{
-  path: '/advisor',
-  component: () => import('@/views/advisor/AdvisorLayout.vue'),
-  children: [
-    {
-      path: 'panel',
-      component: () => import('@/views/advisor/AdvisorPanel.vue')
-    }
-  ]
-}
-,
-
-    { path: '/login', name: 'login', component: LoginView },
-    { path: '/registro', name: 'register', component: RegisterView }
   ]
 })
 
+// ── GUARD DE NAVEGACIÓN ──────────────────────────────────────────────────────
 import { useAuthStore } from '@/stores/authStore'
+
+function isTokenExpired(token) {
+  try {
+    const base64  = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const { exp } = JSON.parse(atob(base64))
+    return exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
 
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
 
-  // requiere login
-  if (to.meta.requiresAuth && !auth.isLogged) {
-    return next('/login')
+  if (to.meta.requiresAuth) {
+    if (!auth.isLogged || !auth.token || isTokenExpired(auth.token)) {
+      auth.logout()
+      return next('/login')
+    }
   }
 
-  // requiere rol específico
   if (to.meta.role && auth.role !== to.meta.role) {
     return next('/')
   }
 
   next()
 })
-
 
 export default router
