@@ -19,14 +19,22 @@ const roleRedirect = {
 }
 
 const submit = async () => {
-  error.value   = ''
+  error.value   = ''     // limpia el error anterior al intentar de nuevo
   loading.value = true
   try {
     const { data } = await authApi.login(email.value, password.value)
     auth.login(data.access_token)
     router.push(roleRedirect[auth.role] ?? '/')
   } catch (err) {
-    error.value = err.response?.data?.detail ?? 'Credenciales incorrectas'
+    if (err.response) {
+      // El servidor respondió con un error (401, 403, etc.)
+      error.value = err.response.data?.detail ?? 'Credenciales incorrectas'
+    } else if (err.request) {
+      // La petición salió pero no hubo respuesta — backend caído o CORS
+      error.value = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.'
+    } else {
+      error.value = 'Ocurrió un error inesperado. Intenta de nuevo.'
+    }
   } finally {
     loading.value = false
   }
@@ -41,18 +49,33 @@ const submit = async () => {
         Acceso para administradores, asesores y clientes registrados
       </p>
 
-      <!-- ERROR -->
-      <div v-if="error" class="alert-error">{{ error }}</div>
+      <!-- ERROR — persiste hasta que el usuario intente de nuevo o lo cierre -->
+      <div v-if="error" class="alert-error">
+        <span>{{ error }}</span>
+        <button class="close-error" @click="error = ''">✕</button>
+      </div>
 
       <form @submit.prevent="submit">
         <div class="field">
           <label>Correo electrónico</label>
-          <input v-model="email" type="email" placeholder="correo@ejemplo.com" required />
+          <input
+            v-model="email"
+            type="email"
+            placeholder="correo@ejemplo.com"
+            autocomplete="email"
+            required
+          />
         </div>
 
         <div class="field">
           <label>Contraseña</label>
-          <input v-model="password" type="password" placeholder="••••••••" required />
+          <input
+            v-model="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          />
         </div>
 
         <button class="login-btn" type="submit" :disabled="loading">
@@ -94,17 +117,34 @@ const submit = async () => {
 .subtitle       { font-size: 14px; color: #777; margin-bottom: 28px; }
 
 .alert-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
   background: #fee2e2;
   color: #991b1b;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: 8px;
   font-size: 13px;
   margin-bottom: 18px;
+  line-height: 1.5;
 }
+
+.close-error {
+  background: none;
+  border: none;
+  color: #991b1b;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: .7;
+}
+.close-error:hover { opacity: 1; }
 
 .field           { margin-bottom: 18px; }
 .field label     { display: block; font-size: 13px; margin-bottom: 6px; color: #444; }
-.field input     { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; }
+.field input     { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; }
 .field input:focus { outline: none; border-color: #f5a623; }
 
 .login-btn {
@@ -118,6 +158,7 @@ const submit = async () => {
   font-size: 15px;
   cursor: pointer;
   transition: background .2s;
+  font-family: inherit;
 }
 .login-btn:hover    { background: #d9941d; }
 .login-btn:disabled { opacity: .6; cursor: not-allowed; }
@@ -139,6 +180,7 @@ const submit = async () => {
   text-align: center;
   text-decoration: none;
   transition: background .2s;
+  box-sizing: border-box;
 }
 .register-btn:hover { background: #000; }
 
