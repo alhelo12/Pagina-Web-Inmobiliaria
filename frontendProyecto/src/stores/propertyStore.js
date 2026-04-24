@@ -1,72 +1,84 @@
+/**
+ * Store: Propiedades
+ * Maneja la lista pública, filtros y acciones de asesor/admin.
+ */
 import { defineStore } from 'pinia'
+import { propertiesApi } from '@/api/properties'
 
 export const usePropertyStore = defineStore('property', {
   state: () => ({
-    properties: [
-       {
-    id: 1,
-    title: 'Casa Moderna en Residencial Cerrado',
-    city: 'Zona Norte',
-    type: 'Casa',
-    price: 2500000,
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
-    status: 'sold',
-    advisor_id: 2
-  },
-  {
-    id: 2,
-    title: 'Departamento en Zona Céntrica',
-    city: 'Centro Histórico',
-    type: 'Departamento',
-    price: 8500,
-    image: 'https://images.unsplash.com/photo-1600585152915-d208bec867a1',
-    status: 'pending',
-    advisor_id: 2
-  },
-  {
-    id: 3,
-    title: 'Local Comercial en Plaza',
-    city: 'Zona Comercial',
-    type: 'Local',
-    price: 3700000,
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be',
-    status: 'rejected',
-    advisor_id: 3
-  },
-
-  // 👇 NUEVA PARA PROBAR BOTÓN VENDIDA
-  {
-    id: 4,
-    title: 'Residencia de lujo con alberca',
-    city: 'Monterrey',
-    type: 'Casa',
-    price: 5200000,
-    image: 'https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4',
-    status: 'approved',
-    advisor_id: 2
-  }
-    ]
+    properties:  [],   // lista actual (filtrada o completa)
+    total:       0,
+    loading:     false,
+    error:       null
   }),
 
+  getters: {
+    approved: (state) => state.properties.filter(p => p.status === 'approved'),
+    pending:  (state) => state.properties.filter(p => p.status === 'pending')
+  },
+
   actions: {
-    fetchProperties() {
-      // luego aquí irá el fetch al backend PHP
-      console.log('Propiedades cargadas')
+    /** Carga propiedades con filtros opcionales */
+    async fetchProperties(params = {}) {
+      this.loading = true
+      this.error   = null
+      try {
+        const { data } = await propertiesApi.getAll(params)
+        // El backend devuelve { items, total } o un array directo
+        this.properties = data.items ?? data
+        this.total      = data.total ?? this.properties.length
+      } catch (err) {
+        this.error = err.response?.data?.detail ?? 'Error al cargar propiedades'
+      } finally {
+        this.loading = false
+      }
     },
 
-    approve(id) {
-      const p = this.properties.find(x => x.id === id)
-      if (p) p.status = 'approved'
+    /** Carga propiedades pendientes (asesor/admin) */
+    async fetchPending() {
+      this.loading = true
+      this.error   = null
+      try {
+        const { data } = await propertiesApi.getPending()
+        this.properties = data.items ?? data
+        this.total      = data.total ?? this.properties.length
+      } catch (err) {
+        this.error = err.response?.data?.detail ?? 'Error al cargar pendientes'
+      } finally {
+        this.loading = false
+      }
     },
 
-    reject(id) {
-      const p = this.properties.find(x => x.id === id)
-      if (p) p.status = 'rejected'
+    /** Aprobar una propiedad y actualizar el estado local */
+    async approve(id) {
+      const { data } = await propertiesApi.approve(id)
+      this._updateLocal(data)
     },
 
-    markSold(id) {
-      const p = this.properties.find(x => x.id === id)
-      if (p) p.status = 'sold'
+    /** Rechazar una propiedad */
+    async reject(id) {
+      const { data } = await propertiesApi.reject(id)
+      this._updateLocal(data)
+    },
+
+    /** Marcar como vendida */
+    async markSold(id) {
+      const { data } = await propertiesApi.markSold(id)
+      this._updateLocal(data)
+    },
+
+    /** Eliminar una propiedad */
+    async remove(id) {
+      await propertiesApi.remove(id)
+      this.properties = this.properties.filter(p => p.id !== id)
+      this.total = Math.max(0, this.total - 1)
+    },
+
+    /** Actualiza el objeto en la lista local sin recargar todo */
+    _updateLocal(updated) {
+      const idx = this.properties.findIndex(p => p.id === updated.id)
+      if (idx !== -1) this.properties[idx] = updated
     }
   }
 })
