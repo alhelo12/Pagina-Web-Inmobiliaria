@@ -1,145 +1,96 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
-import PropertyTable from '@/views/advisor/PropertyTable.vue'
+import PropertyTable from './PropertyTable.vue'
 
+const store = usePropertyStore()
+const { properties, loading, error } = storeToRefs(store)
 
-
-
-const propertyStore = usePropertyStore()
-const { properties } = storeToRefs(propertyStore)
-
-/* ===== FILTRO ACTIVO ===== */
 const current = ref('all')
 
-/* ===== CONTADORES ===== */
 const counts = computed(() => ({
-  all: properties.value.length,
-  pending: properties.value.filter(p => p.status === 'pending').length,
+  all:      properties.value.length,
+  pending:  properties.value.filter(p => p.status === 'pending').length,
   approved: properties.value.filter(p => p.status === 'approved').length,
   rejected: properties.value.filter(p => p.status === 'rejected').length,
-  sold: properties.value.filter(p => p.status === 'sold').length
+  sold:     properties.value.filter(p => p.status === 'sold').length
 }))
 
-/* ===== LISTA FILTRADA ===== */
 const filtered = computed(() => {
   if (current.value === 'all') return properties.value
   return properties.value.filter(p => p.status === current.value)
 })
 
-/* ===== ACCIONES ===== */
-const approve = (p) => propertyStore.approve(p.id)
-const reject = (p) => propertyStore.reject(p.id)
-const markSold = (p) => propertyStore.markSold(p.id)
-
-/* ===== TÍTULOS ===== */
 const titles = {
-  all: 'Todas',
-  pending: 'Pendientes',
+  all:      'Todas',
+  pending:  'Pendientes',
   approved: 'Aprobadas',
   rejected: 'Rechazadas',
-  sold: 'Vendidas'
+  sold:     'Vendidas'
 }
 
+// El asesor ve todas las propiedades asignadas a él
+onMounted(() => store.fetchProperties())
 </script>
-
 
 <template>
   <section class="panel">
-
     <h1>Panel de Propiedades</h1>
 
-    <!-- ===== BOTONES DE FILTRO ===== -->
-<div class="top-filters">
-  <button
-    v-for="(label, key) in titles"
-    :key="key"
-    :class="{ active: current === key }"
-    @click="current = key"
-  >
-    {{ label }} ({{ counts[key] }})
-  </button>
-</div>
+    <!-- FILTROS -->
+    <div class="top-filters">
+      <button
+        v-for="(label, key) in titles"
+        :key="key"
+        :class="{ active: current === key }"
+        @click="current = key"
+      >
+        {{ label }} ({{ counts[key] }})
+      </button>
+    </div>
 
+    <!-- ESTADO -->
+    <div v-if="loading" class="state"><div class="spinner"></div></div>
+    <div v-else-if="error" class="state error-msg">{{ error }}</div>
 
-    <!-- ===== TABLA ===== -->
-<PropertyTable
-  v-if="filtered.length"
-  :items="filtered"
-  @approve="approve"
-  @reject="reject"
-  @sold="markSold"
-/>
-
-<p v-else class="empty">
-  No hay propiedades en esta sección.
-</p>
-
+    <template v-else>
+      <PropertyTable
+        v-if="filtered.length"
+        :items="filtered"
+        @approve="store.approve($event.id)"
+        @reject="store.reject($event.id)"
+        @sold="store.markSold($event.id)"
+      />
+      <p v-else class="empty">No hay propiedades en esta sección.</p>
+    </template>
   </section>
 </template>
 
 <style scoped>
-.panel {
-  padding: 20px;
-}
+.panel { padding: 20px; font-family: 'Poppins', sans-serif; }
+h1     { font-size: 26px; margin-bottom: 20px; }
 
-/* ===== BOTONES ===== */
-.top-filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
+.top-filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 .top-filters button {
-  padding: 10px 14px;
-  border: none;
-  border-radius: 10px;
-  background: #eef2f7;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-  white-space: nowrap;
+  padding: 10px 14px; border: none; border-radius: 10px;
+  background: #eef2f7; cursor: pointer; font-weight: 600;
+  transition: .2s; white-space: nowrap; font-family: inherit;
 }
+.top-filters button.active { background: #0d2c54; color: white; }
 
-.top-filters button.active {
-  background: #0d2c54;
-  color: white;
+.state { display: flex; justify-content: center; padding: 40px; color: #666; }
+.error-msg { color: #991b1b; }
+.spinner {
+  width: 36px; height: 36px; border: 3px solid #f3f3f3;
+  border-top-color: #f59e0b; border-radius: 50%; animation: spin .8s linear infinite;
 }
-.empty {
-  margin-top: 30px;
-  color: #666;
-  font-weight: 500;
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ===== TABLA RESPONSIVE ===== */
+.empty { margin-top: 30px; color: #666; font-weight: 500; }
+
 @media (max-width: 768px) {
-
-  .panel {
-    padding: 10px;
-  }
-
-  .top-filters {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 5px;
-  }
-
-  .top-filters button {
-    flex: 0 0 auto;
-    font-size: 14px;
-  }
-
-  /* tabla en modo tarjetas */
-  :deep(table) {
-    display: none;
-  }
-
-  :deep(.mobile-cards) {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+  .top-filters { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 5px; }
+  .top-filters button { flex: 0 0 auto; font-size: 14px; }
 }
 </style>

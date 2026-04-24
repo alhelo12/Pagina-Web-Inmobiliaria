@@ -1,10 +1,12 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const auth   = useAuthStore()
 
 const logout = () => {
-  // luego conectaremos con auth real
+  auth.logout()
   router.push('/login')
 }
 </script>
@@ -17,7 +19,7 @@ const logout = () => {
 
 <style scoped>
 .advisor-container {
-  padding: 100px 20px 40px; /* espacio para el navbar */
+  padding: 100px 20px 40px;
   max-width: 1200px;
   margin: auto;
 }
