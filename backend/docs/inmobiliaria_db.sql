@@ -1,6 +1,6 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.0.1
+-- Version: 1.0.2
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
 --              con sistema de aprobación de propiedades
 -- ==========================================
@@ -211,6 +211,21 @@ CREATE TRIGGER tr_update_favorites
 -- Insertar roles predeterminados
 INSERT INTO roles (name) VALUES ('admin'), ('advisor'), ('client')
 ON CONFLICT (name) DO NOTHING;
+
+-- ==========================================
+-- USUARIO ADMIN INICIAL
+-- Email:    admin@inmobiliaria.com
+-- Password: Admin123
+-- ==========================================
+INSERT INTO users (full_name, email, password_hash, role_id, is_active)
+VALUES (
+    'Administrador',
+    'admin@inmobiliaria.com',
+    '$2b$12$OwBu/NizswHOVyhOB1Yw..VcDP/1ZyL2YAU9Y9F/vADHtjSzXDy76',
+    (SELECT id FROM roles WHERE name = 'admin'),
+    true
+)
+ON CONFLICT (email) DO NOTHING;
 
 -- ==========================================
 -- 6. COMENTARIOS EN TABLAS (DOCUMENTACIÓN)
