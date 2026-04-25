@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
 
-const store = usePropertyStore()
+const store  = usePropertyStore()
+const router = useRouter()
 const { properties, loading, error } = storeToRefs(store)
 
 const filter = ref('todos')
@@ -30,7 +32,12 @@ onMounted(() => store.fetchProperties())
 
 <template>
   <section class="admin">
-    <h1>Administrar Propiedades</h1>
+    <div class="header">
+      <h1>Administrar Propiedades</h1>
+      <button class="btn-add" @click="router.push('/crear-propiedad')">
+        + Agregar propiedad
+      </button>
+    </div>
 
     <!-- FILTROS -->
     <div class="filters">
@@ -49,12 +56,8 @@ onMounted(() => store.fetchProperties())
     <table v-else>
       <thead>
         <tr>
-          <th>Título</th>
-          <th>Ciudad</th>
-          <th>Precio</th>
-          <th>Tipo</th>
-          <th>Estado</th>
-          <th>Acciones</th>
+          <th>Título</th><th>Ciudad</th><th>Precio</th>
+          <th>Tipo</th><th>Estado</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -69,14 +72,14 @@ onMounted(() => store.fetchProperties())
             </span>
           </td>
           <td class="actions">
-            <button v-if="p.status === 'pending'" class="approve" @click="confirm('approve', p.id)">Aprobar</button>
-            <button v-if="p.status === 'pending'" class="reject"  @click="confirm('reject',  p.id)">Rechazar</button>
-            <button v-if="p.status === 'approved'" class="sold"   @click="confirm('markSold',p.id)">Vendida</button>
+            <button v-if="p.status === 'pending'"   class="approve" @click="confirm('approve',  p.id)">Aprobar</button>
+            <button v-if="p.status === 'pending'"   class="reject"  @click="confirm('reject',   p.id)">Rechazar</button>
+            <button v-if="p.status === 'approved'"  class="sold"    @click="confirm('markSold', p.id)">Vendida</button>
             <button class="delete" @click="confirm('remove', p.id)">Eliminar</button>
           </td>
         </tr>
         <tr v-if="!filtered.length">
-          <td colspan="6" style="text-align:center; color:#999; padding:30px">Sin propiedades</td>
+          <td colspan="6" class="empty">Sin propiedades</td>
         </tr>
       </tbody>
     </table>
@@ -85,7 +88,16 @@ onMounted(() => store.fetchProperties())
 
 <style scoped>
 .admin { padding: 40px; font-family: 'Poppins', sans-serif; }
-h1     { margin-bottom: 20px; font-size: 26px; }
+
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+h1 { font-size: 26px; margin: 0; }
+
+.btn-add {
+  background: #0d2c54; color: white; border: none;
+  padding: 10px 20px; border-radius: 8px; cursor: pointer;
+  font-weight: 600; font-family: inherit; transition: background .2s;
+}
+.btn-add:hover { background: #1e3a5f; }
 
 .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 .filters button {
@@ -94,7 +106,6 @@ h1     { margin-bottom: 20px; font-size: 26px; }
 }
 .filters button.active { background: #f59e0b; color: white; border-color: #f59e0b; }
 
-/* STATE */
 .state { display: flex; justify-content: center; padding: 40px; color: #666; }
 .error-msg { color: #991b1b; }
 .spinner {
@@ -105,9 +116,10 @@ h1     { margin-bottom: 20px; font-size: 26px; }
 
 table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.06); }
 th, td { padding: 14px; text-align: left; font-size: 14px; }
-thead  { background: #f3f4f6; }
+thead { background: #f3f4f6; }
 tbody tr:hover { background: #fafafa; }
 .td-title { font-weight: 600; max-width: 220px; }
+.empty { text-align: center; color: #999; padding: 30px !important; }
 
 .badge { padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; }
 .pendiente { background: #fef3c7; color: #92400e; }
