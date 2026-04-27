@@ -27,7 +27,7 @@ const router = createRouter({
       path: '/crear-propiedad',
       name: 'create-property',
       component: () => import('@/views/client/CreatePropertyView.vue'),
-      meta: { requiresAuth: true, role: 'client' }
+      meta: { requiresAuth: true, role: ['client', 'admin', 'advisor'] }
     },
     {
       path: '/favoritos',
@@ -84,8 +84,12 @@ router.beforeEach((to, from, next) => {
     }
   }
 
-  if (to.meta.role && auth.role !== to.meta.role) {
-    return next('/')
+  // Verifica que el rol coincida (acepta string o array de roles)
+  if (to.meta.role) {
+    const allowed = Array.isArray(to.meta.role) ? to.meta.role : [to.meta.role]
+    if (!allowed.includes(auth.role)) {
+      return next('/')
+    }
   }
 
   next()

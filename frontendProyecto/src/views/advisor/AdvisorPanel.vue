@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
 import PropertyTable from './PropertyTable.vue'
 
 const store = usePropertyStore()
 const { properties, loading, error } = storeToRefs(store)
+const router = useRouter()
 
 const current = ref('all')
 
@@ -36,7 +38,12 @@ onMounted(() => store.fetchProperties())
 
 <template>
   <section class="panel">
-    <h1>Panel de Propiedades</h1>
+    <div class="header">
+      <h1>Panel de Propiedades</h1>
+      <button class="btn-add" @click="router.push('/crear-propiedad')">
+        + Agregar propiedad
+      </button>
+    </div>
 
     <!-- FILTROS -->
     <div class="top-filters">
@@ -69,7 +76,16 @@ onMounted(() => store.fetchProperties())
 
 <style scoped>
 .panel { padding: 20px; font-family: 'Poppins', sans-serif; }
-h1     { font-size: 26px; margin-bottom: 20px; }
+
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+h1 { font-size: 26px; margin: 0; }
+
+.btn-add {
+  background: #0d2c54; color: white; border: none;
+  padding: 10px 20px; border-radius: 8px; cursor: pointer;
+  font-weight: 600; font-family: inherit; transition: background .2s;
+}
+.btn-add:hover { background: #1e3a5f; }
 
 .top-filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 .top-filters button {

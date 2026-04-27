@@ -62,13 +62,14 @@ const openModal = () => {
   showModal.value  = true
 }
 
+const roleMap = { admin: 1, advisor: 2, client: 3 }
+
 const saveUser = async () => {
   modalError.value = ''
   saving.value     = true
   try {
-    // Registrar usando el endpoint general con role_id
-    const roleMap = { admin: 1, advisor: 2, client: 3 }
-    const { data } = await authApi.registerClient({
+    // /auth/register acepta role_id — correcto para admin/advisor/client
+    const { data } = await authApi.register({
       full_name: newUser.value.full_name,
       email:     newUser.value.email,
       password:  newUser.value.password,
