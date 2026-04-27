@@ -22,6 +22,14 @@ export const authApi = {
     return api.post('/auth/register/client', data)
   },
 
+  /**
+   * Registro con rol específico — solo para admin
+   * role_id: 1=admin, 2=advisor, 3=client
+   */
+  register(data) {
+    return api.post('/auth/register', data)
+  },
+
   /** Perfil del usuario autenticado */
   me() {
     return api.get('/auth/me')
