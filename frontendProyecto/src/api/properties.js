@@ -24,6 +24,15 @@ export const propertiesApi = {
     return api.post('/properties', data)
   },
 
+  /** Subir imagen para una propiedad */
+  uploadImage(propertyId, file, isMain = false) {
+    const form = new FormData()
+    form.append('image', file)
+    return api.post(`/properties/${propertyId}/images/upload`, form, {
+      params: { is_main: isMain }
+    })
+  },
+
   /** Actualizar propiedad */
   update(id, data) {
     return api.put(`/properties/${id}`, data)
