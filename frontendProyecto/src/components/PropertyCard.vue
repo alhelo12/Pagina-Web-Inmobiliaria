@@ -1,22 +1,24 @@
-<script setup>
+﻿<script setup>
 import { useAuthStore } from '@/stores/authStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 
 const props = defineProps({
-  id:    Number,
+  id: Number,
   title: String,
-  price: Number,
-  city:  String,
-  type:  String,
+  price: [Number, String],
+  city: String,
+  type: String,
   image: String
 })
 
-const auth     = useAuthStore()
+const auth = useAuthStore()
 const favStore = useFavoritesStore()
 
 const typeLabel = {
-  house: 'Casa', apartment: 'Departamento',
-  land: 'Terreno', commercial: 'Local'
+  house: 'Casa',
+  apartment: 'Departamento',
+  land: 'Terreno',
+  commercial: 'Comercial'
 }
 
 const toggle = async (e) => {
@@ -28,42 +30,147 @@ const toggle = async (e) => {
 </script>
 
 <template>
-  <div class="card">
-    <button
-      v-if="auth.isLogged && auth.role === 'client'"
-      class="fav-btn"
-      :class="{ active: favStore.isFavorite(id) }"
-      @click="toggle"
-    >♥</button>
-
-    <img :src="image" :alt="title" loading="lazy" />
+  <article class="card">
+    <div class="media">
+      <img :src="image" :alt="title" loading="lazy" />
+      <span class="type-pill">{{ typeLabel[type] ?? type }}</span>
+      <button
+        class="fav-btn"
+        :class="{ active: favStore.isFavorite(id) }"
+        aria-label="Guardar favorito"
+        :title="auth.isLogged ? 'Guardar favorito' : 'Inicia sesion para guardar favoritos'"
+        @click="toggle"
+      >♥</button>
+    </div>
 
     <div class="body">
+      <p class="city">{{ city }}</p>
       <h3>{{ title }}</h3>
-      <p>{{ city }} · {{ typeLabel[type] ?? type }}</p>
+      <div class="meta">
+        <span>Verificada</span>
+        <span>Asesor disponible</span>
+      </div>
       <strong>${{ Number(price).toLocaleString('es-MX') }} MXN</strong>
     </div>
-  </div>
+  </article>
 </template>
 
 <style scoped>
 .card {
-  position: relative; background: white; border-radius: 14px;
-  overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,.08);
-  transition: all .25s ease; cursor: pointer;
+  position: relative;
+  background: #fffdf8;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(7, 23, 45, .08);
+  box-shadow: var(--shadow-soft);
+  transition: transform .25s ease, box-shadow .25s ease;
 }
-.card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(0,0,0,.12); }
-.card img   { width: 100%; height: 220px; object-fit: cover; display: block; }
-.body         { padding: 16px; }
-.body h3      { font-size: 16px; margin-bottom: 6px; font-weight: 600; }
-.body p       { font-size: 13px; color: #777; margin-bottom: 8px; }
-.body strong  { font-size: 16px; color: #111; }
+
+.card:hover {
+  transform: translateY(-7px);
+  box-shadow: var(--shadow-strong);
+}
+
+.media {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: #102e4f;
+}
+
+.media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7,23,45,.04), rgba(7,23,45,.56));
+}
+
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .35s ease;
+}
+
+.card:hover .media img {
+  transform: scale(1.06);
+}
+
+.type-pill,
 .fav-btn {
-  position: absolute; top: 10px; right: 10px;
-  background: white; border: none; width: 36px; height: 36px;
-  border-radius: 50%; font-size: 18px; cursor: pointer;
-  transition: .2s; box-shadow: 0 4px 10px rgba(0,0,0,.15);
-  display: flex; align-items: center; justify-content: center; color: #ccc;
+  position: absolute;
+  z-index: 1;
 }
-.fav-btn.active { color: #ef4444; transform: scale(1.15); }
+
+.type-pill {
+  left: 14px;
+  top: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #d6a848;
+  color: #07172d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.fav-btn {
+  right: 14px;
+  top: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.92);
+  color: #87909b;
+  font-size: 18px;
+  box-shadow: 0 10px 22px rgba(7,23,45,.18);
+  transition: transform .2s ease, color .2s ease;
+}
+
+.fav-btn.active {
+  color: #d64545;
+  transform: scale(1.08);
+}
+
+.body {
+  padding: 20px;
+}
+
+.city {
+  color: #d6a848;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin-bottom: 8px;
+}
+
+.body h3 {
+  min-height: 48px;
+  color: #07172d;
+  font-size: 20px;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.meta span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #40566e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.body strong {
+  display: block;
+  color: #07172d;
+  font-size: 21px;
+}
 </style>

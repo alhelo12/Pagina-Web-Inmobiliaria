@@ -5,6 +5,7 @@
  */
 import { defineStore } from 'pinia'
 import { favoritesApi } from '@/api/favorites'
+import { useAuthStore } from '@/stores/authStore'
 
 export const useFavoritesStore = defineStore('favorites', {
   state: () => ({
@@ -21,11 +22,13 @@ export const useFavoritesStore = defineStore('favorites', {
   actions: {
     /** Carga todos los favoritos del usuario autenticado */
     async fetchFavorites() {
+      const auth = useAuthStore()
+      if (!auth.isLogged || !auth.userId) return
       this.loading = true
       this.error   = null
       try {
-        const { data } = await favoritesApi.getAll()
-        this.favorites   = data.items ?? data
+        const { data } = await favoritesApi.getAll(auth.userId)
+        this.favorites   = data.favorites ?? data.items ?? data
         this.favoriteIds = new Set(this.favorites.map(f => f.property_id ?? f.property?.id))
       } catch (err) {
         this.error = err.response?.data?.detail ?? 'Error al cargar favoritos'
@@ -36,8 +39,10 @@ export const useFavoritesStore = defineStore('favorites', {
 
     /** Alterna favorito (agrega o quita) usando el endpoint /toggle */
     async toggleFavorite(propertyId) {
+      const auth = useAuthStore()
+      if (!auth.isLogged || !auth.userId) return
       try {
-        const { data } = await favoritesApi.toggle(propertyId)
+        const { data } = await favoritesApi.toggle(propertyId, auth.userId)
         // El backend devuelve { action: 'added'|'removed', ... }
         if (data.action === 'added') {
           this.favoriteIds.add(propertyId)
