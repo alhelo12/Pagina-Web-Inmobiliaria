@@ -3,8 +3,10 @@ FastAPI Main Application
 Sistema Inmobiliario - Backend API
 """
 
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection
@@ -39,6 +41,11 @@ app.add_middleware(
     allow_methods=settings.CORS_ALLOW_METHODS,  # ← USAR settings
     allow_headers=settings.CORS_ALLOW_HEADERS,  # ← USAR settings
 )
+
+# Servir archivos estaticos (imagenes de propiedades)
+media_dir = Path("media")
+media_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/media", StaticFiles(directory=str(media_dir)), name="media")
 
 # ==========================================
 # INCLUIR ROUTERS
