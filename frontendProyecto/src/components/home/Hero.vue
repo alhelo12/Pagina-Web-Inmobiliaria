@@ -1,24 +1,25 @@
 <template>
   <section class="hero">
-    <div class="overlay"></div>
-
     <div class="hero-content">
-      <h1>JAKEDA INMOBILIARIA</h1>
-      <p>
-        Asesoría integral con respaldo jurídico para compra,
-        venta y renta de inmuebles
+      <p class="eyebrow">Bienes raices con vision corporativa</p>
+      <h1>Elevando tu inversion inmobiliaria</h1>
+      <p class="lead">
+        Compra, venta y renta de propiedades con asesoria estrategica,
+        respaldo juridico y una experiencia clara de principio a fin.
       </p>
 
-      <!-- Lazy SearchBar -->
+      <div class="hero-actions">
+        <RouterLink to="/propiedades" class="primary">Ver propiedades</RouterLink>
+        <RouterLink to="/servicios" class="secondary">Ver servicios</RouterLink>
+      </div>
+
       <Suspense>
         <template #default>
           <SearchBar />
         </template>
 
         <template #fallback>
-          <div class="search-skeleton">
-            Cargando buscador...
-          </div>
+          <div class="search-skeleton">Cargando buscador...</div>
         </template>
       </Suspense>
     </div>
@@ -27,6 +28,7 @@
 
 <script setup>
 import { defineAsyncComponent } from 'vue'
+import { RouterLink } from 'vue-router'
 
 const SearchBar = defineAsyncComponent(() =>
   import('@/components/home/SearchBar.vue')
@@ -37,45 +39,96 @@ const SearchBar = defineAsyncComponent(() =>
 .hero {
   padding-top: 80px;
   position: relative;
-  min-height: 80vh;
-  background-image: url('@/assets/images/fondo.webp'); /* 👉 usa webp */
+  min-height: 720px;
+  background-image:
+    linear-gradient(90deg, rgba(7, 23, 45, .94) 0%, rgba(10, 33, 57, .78) 46%, rgba(7, 23, 45, .48) 100%),
+    linear-gradient(180deg, rgba(7, 23, 45, .18), rgba(7, 23, 45, .86)),
+    url('@/assets/images/fondo.webp');
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
 }
 
-.overlay {
+.hero::after {
+  content: "";
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  inset: auto 0 0;
+  height: 160px;
+  background: linear-gradient(180deg, transparent, #f5f2ec);
 }
 
 .hero-content {
   position: relative;
-  max-width: 1000px;
+  z-index: 1;
+  max-width: 1180px;
   width: 100%;
-  padding: 0 24px;
+  margin: 0 auto;
+  padding: 90px 24px 140px;
   color: white;
-  text-align: center;
+}
+
+.eyebrow {
+  color: #f2c46d;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
 }
 
 .hero-content h1 {
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 16px;
+  max-width: 760px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(44px, 7vw, 82px);
+  line-height: .98;
+  font-weight: 800;
+  margin-bottom: 22px;
 }
 
-.hero-content p {
-  font-size: 18px;
-  max-width: 700px;
-  margin: 0 auto 40px;
+.lead {
+  font-size: 19px;
+  max-width: 650px;
+  color: rgba(255, 255, 255, .82);
   line-height: 1.6;
 }
 
-/* Skeleton */
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 34px 0 32px;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 8px;
+  font-weight: 900;
+  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+}
+
+.primary {
+  background: #2a8cff;
+  box-shadow: 0 14px 30px rgba(42, 140, 255, .28);
+}
+
+.secondary {
+  border: 1px solid rgba(242, 196, 109, .72);
+  color: #f2c46d;
+}
+
+.primary:hover,
+.secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-strong);
+}
+
 .search-skeleton {
   background: rgba(255,255,255,.2);
   padding: 24px;
@@ -83,20 +136,12 @@ const SearchBar = defineAsyncComponent(() =>
   color: white;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
-  .hero-content h1 {
-    font-size: 36px;
-  }
+  .hero { min-height: 680px; }
 }
 
 @media (max-width: 480px) {
-  .hero {
-    min-height: 70vh;
-  }
-
-  .hero-content h1 {
-    font-size: 28px;
-  }
+  .hero { min-height: 720px; }
+  .hero-actions { align-items: stretch; flex-direction: column; }
 }
 </style>
