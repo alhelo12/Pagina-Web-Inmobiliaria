@@ -142,6 +142,9 @@ def create_property(
             detail="Usuario no encontrado"
         )
     
+    # Admin publica directamente como approved para que sea visible en listado publico.
+    initial_status = 'approved' if user.is_admin() else 'pending'
+
     # Crear propiedad
     db_property = Property(
         title=property_data.title,
@@ -156,7 +159,7 @@ def create_property(
         bedrooms=property_data.bedrooms,
         bathrooms=property_data.bathrooms,
         square_meters=property_data.square_meters,
-        status='pending',  # Siempre empieza como pending
+        status=initial_status,
         submitted_by_user_id=user_id
     )
     
@@ -249,7 +252,7 @@ def delete_property(db: Session, property_id: int, user_id: Optional[int] = None
 # SISTEMA DE APROBACIÓN
 # ==========================================
 
-def approve_property(db: Session, property_id: int, advisor_id: int) -> Property:
+def approve_property(db: Session, property_id: int, advisor_id: Optional[int] = None) -> Property:
     """
     Aprobar propiedad (asesor)
     
@@ -281,13 +284,14 @@ def approve_property(db: Session, property_id: int, advisor_id: int) -> Property
             detail=f"Solo se pueden aprobar propiedades pendientes (estado actual: {db_property.status})"
         )
     
-    # Verificar que el asesor existe
-    advisor = db.query(Advisor).filter(Advisor.id == advisor_id).first()
-    if not advisor:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Asesor no encontrado"
-        )
+    # Si se pasa advisor_id, verificar que exista
+    if advisor_id is not None:
+        advisor = db.query(Advisor).filter(Advisor.id == advisor_id).first()
+        if not advisor:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Asesor no encontrado"
+            )
     
     # Aprobar
     db_property.status = 'approved'
