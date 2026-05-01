@@ -4,17 +4,21 @@ import { RouterLink } from 'vue-router'
 import FiltersBar from '@/components/properties/FiltersBar.vue'
 import PropertyCard from '@/components/PropertyCard.vue'
 import { propertiesApi } from '@/api/properties'
+import { useAuthStore } from '@/stores/authStore'
+import { useFavoritesStore } from '@/stores/favoritesStore'
 
 const properties = ref([])
 const loading    = ref(false)
 const error      = ref('')
+const auth = useAuthStore()
+const favStore = useFavoritesStore()
 
 const load = async (filters = {}) => {
   loading.value = true
   error.value   = ''
   try {
     const { data } = await propertiesApi.getAll({ status: 'approved', ...filters })
-    properties.value = data.items ?? data
+    properties.value = data.properties ?? data.items ?? data
   } catch {
     error.value = 'No se pudieron cargar las propiedades'
   } finally {
@@ -22,7 +26,12 @@ const load = async (filters = {}) => {
   }
 }
 
-onMounted(() => load())
+onMounted(async () => {
+  await load()
+  if (auth.isLogged && auth.role === 'client') {
+    await favStore.fetchFavorites()
+  }
+})
 </script>
 
 <template>

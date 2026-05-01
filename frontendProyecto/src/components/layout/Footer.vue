@@ -1,180 +1,104 @@
 <template>
   <footer class="footer">
     <div class="footer-container">
-
-      <!-- BRAND -->
       <div class="brand">
         <h3>JAKEDA Inmobiliaria</h3>
         <p>
-          Asesoría integral con respaldo jurídico para compra, venta y renta
-          de inmuebles.
+          Plataforma inmobiliaria con enfoque profesional para compra, venta,
+          renta y administracion de propiedades.
         </p>
-
-        <!-- REDES -->
-        <div class="socials">
-          <a href="https://facebook.com" target="_blank" aria-label="Facebook">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-          <a href="https://instagram.com" target="_blank" aria-label="Instagram">
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a href="https://wa.me/5210000000000" target="_blank" aria-label="WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-          </a>
-          <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn">
-            <i class="fab fa-linkedin-in"></i>
-          </a>
-        </div>
       </div>
 
-      <!-- LINKS -->
-      <div class="links">
-        <h4>Enlaces</h4>
-        <ul>
-          <li>Inicio</li>
-          <li>Propiedades</li>
-          <li>Servicios</li>
-          <li>Contacto</li>
-        </ul>
+      <div>
+        <h4>Explorar</h4>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/servicios">Servicios</RouterLink>
+        <RouterLink to="/propiedades">Proyectos</RouterLink>
+        <RouterLink to="/contacto">Contacto</RouterLink>
       </div>
 
-      <!-- CONTACTO -->
-      <div class="contact">
+      <div>
         <h4>Contacto</h4>
-        <p><i class="fas fa-location-dot"></i> México</p>
-        <p><i class="fas fa-phone"></i> 55 0000 0000</p>
-        <p><i class="fas fa-envelope"></i> contacto@jakeda.com</p>
+        <p>Mexico</p>
+        <p>55 0000 0000</p>
+        <p>contacto@jakeda.com</p>
       </div>
-
     </div>
 
     <div class="footer-bottom">
-      © 2025 JAKEDA Inmobiliaria
+      <span>© 2026 JAKEDA Inmobiliaria</span>
+      <span>Diseno corporativo moderno</span>
     </div>
   </footer>
 </template>
 
+<script setup>
+import { RouterLink } from 'vue-router'
+</script>
+
 <style scoped>
 .footer {
-  background: #0f2a44;
+  background:
+    linear-gradient(90deg, rgba(7,23,45,.98), rgba(16,46,79,.96)),
+    #07172d;
   color: white;
-  padding: 3rem 1.5rem 1.5rem;
+  padding: 64px 24px 24px;
 }
 
-/* GRID CONTAINER */
 .footer-container {
-  max-width: 1200px;
+  max-width: 1180px;
   margin: auto;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 40px;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 42px;
 }
 
-/* ANIMACIÓN */
-.footer-container > div {
-  opacity: 0;
-  transform: translateY(30px);
-  animation: fadeUp 0.8s ease forwards;
+.brand h3,
+h4 {
+  color: #f2c46d;
+  margin-bottom: 14px;
 }
 
-.footer-container > div:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.footer-container > div:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* BRAND */
 .brand h3 {
-  color: #facc15;
-  margin-bottom: 0.5rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
 }
 
-.brand p {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  opacity: 0.9;
+p,
+a {
+  display: block;
+  color: rgba(255,255,255,.74);
+  line-height: 1.8;
+  font-size: 14px;
 }
 
-/* LINKS & CONTACT */
-.links h4,
-.contact h4 {
-  color: #facc15;
-  margin-bottom: 0.6rem;
+a {
+  transition: color .2s ease, transform .2s ease;
 }
 
-.links ul {
-  list-style: none;
-  padding: 0;
+a:hover {
+  color: #f2c46d;
+  transform: translateX(3px);
 }
 
-.links li {
-  margin-bottom: 0.4rem;
-  font-size: 0.9rem;
-}
-
-.contact p {
-  font-size: 0.9rem;
-  margin-bottom: 0.4rem;
-}
-
-/* REDES SOCIALES */
-.socials {
-  display: flex;
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.socials a {
-  width: 40px;
-  height: 40px;
-  background: #1e3a5f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: white;
-  font-size: 16px;
-  transition: transform 0.2s, background 0.2s;
-}
-
-.socials a:hover {
-  transform: translateY(-3px);
-  background: #f59e0b;
-}
-
-/* FOOTER BOTTOM */
 .footer-bottom {
-  text-align: center;
-  margin-top: 2rem;
-  font-size: 0.8rem;
-  opacity: 0.7;
-  border-top: 1px solid rgba(255,255,255,.15);
-  padding-top: 1rem;
+  max-width: 1180px;
+  margin: 42px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,.13);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: rgba(255,255,255,.58);
+  font-size: 13px;
 }
 
-/* 💻 DESKTOP */
-@media (min-width: 768px) {
+@media (max-width: 760px) {
   .footer-container {
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 1fr;
   }
-}
-
-/* 📱 MOBILE */
-@media (max-width: 768px) {
-  .footer-container {
-    text-align: center;
-  }
-
-  .socials {
-    justify-content: center;
+  .footer-bottom {
+    flex-direction: column;
   }
 }
 </style>

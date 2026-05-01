@@ -55,7 +55,8 @@ const router = createRouter({
       children: [
         { path: '',            redirect: '/admin/propiedades' },
         { path: 'propiedades', component: () => import('@/views/admin/PropertiesAdminView.vue') },
-        { path: 'usuarios',    component: () => import('@/views/admin/UsersView.vue') }
+        { path: 'usuarios',    component: () => import('@/views/admin/UsersView.vue') },
+        { path: 'nuevapropiedad', component: () => import('@/views/client/CreatePropertyView.vue') }
       ]
     }
   ]
