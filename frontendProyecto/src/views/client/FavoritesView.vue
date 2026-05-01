@@ -2,86 +2,340 @@
 import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useFavoritesStore } from '@/stores/favoritesStore'
-import PropertyCard from '@/components/PropertyCard.vue'
 
 const favStore = useFavoritesStore()
+
+const propertyOf = (fav) => fav.favorited_property ?? fav.property ?? fav
+const idOf = (fav) => propertyOf(fav)?.id ?? fav.property_id
+const imageOf = (fav) => propertyOf(fav)?.images?.[0]?.image_url ?? propertyOf(fav)?.main_image_url ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c'
 
 onMounted(() => favStore.fetchFavorites())
 </script>
 
 <template>
-  <section class="favorites">
-    <h1>Mis Favoritos ❤️</h1>
+  <div class="dashboard">
+    <aside class="dash-sidebar">
+      <RouterLink to="/" class="brand"><span>J</span><strong>JAKEDA</strong></RouterLink>
+      <nav>
+        <RouterLink to="/">Inicio</RouterLink>
+        <RouterLink to="/favoritos">Favoritos</RouterLink>
+        <RouterLink to="/propiedades">Explorar</RouterLink>
+        <RouterLink to="/crear-propiedad">Publicar</RouterLink>
+        <RouterLink to="/contacto">Configuracion</RouterLink>
+      </nav>
+    </aside>
 
-    <div v-if="favStore.loading" class="state">
-      <div class="spinner"></div>
-    </div>
+    <main class="favorites">
+      <section class="hero-panel">
+        <p>Dashboard personal</p>
+        <h1>Mis favoritos</h1>
+        <span>Propiedades guardadas con una vista clara para comparar opciones.</span>
+      </section>
 
-    <div v-else-if="favStore.error" class="state error-msg">
-      {{ favStore.error }}
-    </div>
+      <div v-if="favStore.loading" class="state">
+        <div class="spinner"></div>
+      </div>
 
-    <div v-else-if="!favStore.favorites.length" class="state">
-      <p>Aún no tienes propiedades favoritas.</p>
-      <RouterLink to="/propiedades" class="btn">Ver propiedades</RouterLink>
-    </div>
+      <div v-else-if="favStore.error" class="state error-msg">
+        {{ favStore.error }}
+      </div>
 
-    <div v-else class="grid">
-      <RouterLink
-        v-for="fav in favStore.favorites"
-        :key="fav.id"
-        :to="`/propiedades/${fav.property?.id ?? fav.property_id}`"
-        class="card-link"
-      >
-        <PropertyCard
-          :id="fav.property?.id ?? fav.property_id"
-          :title="fav.property?.title"
-          :price="fav.property?.price"
-          :city="fav.property?.city"
-          :type="fav.property?.property_type"
-          :image="fav.property?.images?.[0]?.image_url ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c'"
-        />
-      </RouterLink>
-    </div>
-  </section>
+      <div v-else-if="!favStore.favorites.length" class="empty-state">
+        <h2>Aun no tienes propiedades favoritas</h2>
+        <p>Explora el catalogo y guarda las propiedades que quieras revisar despues.</p>
+        <RouterLink to="/propiedades" class="btn">Ver propiedades</RouterLink>
+      </div>
+
+      <div v-else class="grid">
+        <RouterLink
+          v-for="fav in favStore.favorites"
+          :key="fav.id"
+          :to="`/propiedades/${idOf(fav)}`"
+          class="fav-card"
+        >
+          <div class="media">
+            <img :src="imageOf(fav)" :alt="propertyOf(fav)?.title" />
+            <span>Guardada</span>
+          </div>
+          <div class="body">
+            <p>{{ propertyOf(fav)?.city }}</p>
+            <h3>{{ propertyOf(fav)?.title }}</h3>
+            <strong>${{ Number(propertyOf(fav)?.price ?? 0).toLocaleString('es-MX') }} MXN</strong>
+            <div class="chips">
+              <span>{{ propertyOf(fav)?.property_type }}</span>
+              <span>{{ propertyOf(fav)?.transaction_type }}</span>
+            </div>
+          </div>
+        </RouterLink>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style scoped>
+.dashboard {
+  display: flex;
+  min-height: calc(100vh - 60px);
+  background:
+    radial-gradient(circle at 30% 0%, rgba(42,140,255,.12), transparent 28%),
+    #f5f2ec;
+}
+
+.dash-sidebar {
+  position: sticky;
+  top: 82px;
+  height: calc(100vh - 82px);
+  width: 260px;
+  flex: 0 0 260px;
+  padding: 24px;
+  background: linear-gradient(180deg, #07172d, #102e4f);
+  box-shadow: var(--shadow-strong);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  margin-bottom: 28px;
+}
+
+.brand span {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #d6a848;
+  color: #07172d;
+  font-weight: 900;
+}
+
+.brand strong {
+  letter-spacing: .12em;
+}
+
+nav {
+  display: grid;
+  gap: 8px;
+}
+
+nav a {
+  padding: 13px 14px;
+  border-radius: 10px;
+  color: rgba(255,255,255,.78);
+  font-weight: 800;
+}
+
+nav a.router-link-active,
+nav a:hover {
+  background: rgba(214,168,72,.16);
+  color: #f2c46d;
+}
+
 .favorites {
-  padding: 60px 20px; max-width: 1200px;
-  margin: auto; text-align: center;
-  font-family: 'Poppins', sans-serif;
+  flex: 1;
+  min-width: 0;
+  padding: 34px;
 }
 
-h1 { font-size: 32px; margin-bottom: 40px; }
-
-.state {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 16px; padding: 60px 20px; color: #666;
+.hero-panel {
+  padding: 32px;
+  border-radius: 16px;
+  color: white;
+  background:
+    linear-gradient(90deg, rgba(7,23,45,.96), rgba(16,46,79,.7)),
+    url('@/assets/images/fondo.webp') center/cover;
+  box-shadow: var(--shadow-strong);
+  margin-bottom: 24px;
 }
+
+.hero-panel p {
+  color: #f2c46d;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.hero-panel h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(36px, 5vw, 58px);
+  margin-bottom: 10px;
+}
+
+.hero-panel span {
+  color: rgba(255,255,255,.78);
+}
+
+.state,
+.empty-state {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 16px;
+  min-height: 330px;
+  color: #65717e;
+  background: #fffdf8;
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  padding: 34px;
+}
+
+.empty-state h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #07172d;
+  font-size: 32px;
+}
+
 .error-msg { color: #991b1b; }
-
 .spinner {
-  width: 40px; height: 40px;
-  border: 3px solid #f3f3f3; border-top-color: #f59e0b;
-  border-radius: 50%; animation: spin .8s linear infinite;
+  width: 42px;
+  height: 42px;
+  border: 3px solid #eadfcf;
+  border-top-color: #d6a848;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .btn {
-  display: inline-block; margin-top: 8px;
-  background: #f59e0b; color: white;
-  padding: 10px 24px; border-radius: 8px; font-weight: 600;
-  text-decoration: none;
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  padding: 0 22px;
+  border-radius: 8px;
+  background: #d6a848;
+  color: #07172d;
+  font-weight: 900;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px; text-align: left;
+  gap: 22px;
 }
-.card-link { text-decoration: none; color: inherit; }
 
-@media (max-width: 1024px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 640px)  { .grid { grid-template-columns: 1fr; } }
+.fav-card {
+  background: #fffdf8;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  transition: transform .24s ease, box-shadow .24s ease;
+}
+
+.fav-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-strong);
+}
+
+.media {
+  position: relative;
+  height: 210px;
+  background: #102e4f;
+  overflow: hidden;
+}
+
+.media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(7,23,45,.62));
+}
+
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .35s ease;
+}
+
+.fav-card:hover img {
+  transform: scale(1.06);
+}
+
+.media span {
+  position: absolute;
+  z-index: 1;
+  top: 14px;
+  left: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #d6a848;
+  color: #07172d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.body {
+  padding: 20px;
+}
+
+.body p {
+  color: #d6a848;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.body h3 {
+  min-height: 48px;
+  color: #07172d;
+  font-size: 20px;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.body strong {
+  color: #07172d;
+  font-size: 22px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.chips span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #40566e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@media (max-width: 1040px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 820px) {
+  .dashboard {
+    flex-direction: column;
+  }
+  .dash-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    flex: none;
+  }
+  nav {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .favorites {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

@@ -1,274 +1,282 @@
+﻿<script setup>
+import { reactive } from 'vue'
+
+const form = reactive({
+  email: '',
+  phone: '',
+  name: '',
+  service: '',
+  message: ''
+})
+
+const newsletter = reactive({ email: '' })
+
+const contactCards = [
+  { title: 'Telefono', value: '(+52) 33 1234 5678', note: 'Atencion de lunes a sabado' },
+  { title: 'Correo', value: 'info@jakedainmobiliaria.com', note: 'Respuesta en horario laboral' },
+  { title: 'Oficina', value: 'Guadalajara, Jalisco', note: 'Agenda previa para visitas' }
+]
+
+const submitForm = () => {
+  alert('Solicitud enviada correctamente')
+}
+
+const submitNewsletter = () => {
+  alert('Suscripcion realizada')
+}
+</script>
+
 <template>
-  <section class="contact-section">
-    <!-- Encabezado -->
-    <div class="header fade-down">
-      <h1>Contáctanos</h1>
-      <p>Estamos aquí para brindarte asesoría integral con respaldo jurídico</p>
-    </div>
-
-    <div class="contact-container">
-      <!-- Información -->
-      <div class="contact-info fade-left">
-        <div class="info-item" v-for="item in info" :key="item.title">
-          <div class="icon">{{ item.icon }}</div>
-          <div>
-            <h4>{{ item.title }}</h4>
-            <p v-for="line in item.lines" :key="line">{{ line }}</p>
-          </div>
-        </div>
+  <section class="contact-page">
+    <header class="hero">
+      <div class="hero-inner">
+        <p>Contacto</p>
+        <h1>Contact Us</h1>
+        <span>Estamos listos para ayudarte con asesoria inmobiliaria y respaldo juridico.</span>
       </div>
+    </header>
 
-      <!-- Formulario -->
-      <div class="contact-form fade-right">
-        <form @submit.prevent="submitForm">
-          <div class="form-group">
-            <label>Nombre Completo</label>
-            <input v-model="form.nombre" type="text" />
+    <section class="content-wrap">
+      <div class="form-area">
+        <form class="main-form" @submit.prevent="submitForm">
+          <div class="row two">
+            <input v-model="form.email" type="email" placeholder="Email" required />
+            <input v-model="form.phone" type="tel" placeholder="Phone" required />
           </div>
 
-          <div class="form-group">
-            <label>Email</label>
-            <input v-model="form.email" type="email" />
+          <div class="row">
+            <input v-model="form.name" type="text" placeholder="Name" required />
           </div>
 
-          <div class="form-group">
-            <label>Teléfono</label>
-            <input v-model="form.telefono" type="tel" />
-          </div>
-
-          <div class="form-group">
-            <label>Servicio de Interés</label>
-            <select v-model="form.servicio">
-              <option value="">Selecciona un servicio</option>
+          <div class="row">
+            <select v-model="form.service" required>
+              <option disabled value="">Servicio de interes</option>
               <option>Compra de propiedad</option>
               <option>Venta de propiedad</option>
               <option>Renta de propiedad</option>
-              <option>Trámites notariales</option>
-              <option>Asesoría Jurídica</option>
-              <option>Regularización</option>
-              <option>Otros</option>
-
-
+              <option>Asesoria juridica</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label>Mensaje</label>
-            <textarea id="message" class="form-control" required placeholder="Describe tu consulta o necesidad..."></textarea>
+          <div class="row">
+            <textarea v-model="form.message" rows="5" placeholder="Message" required></textarea>
           </div>
 
-          <button class="btn-submit">Solicitar Asesoría</button>
+          <button type="submit">Enviar solicitud</button>
         </form>
+
+        <aside class="newsletter">
+          <h3>Our Newsletters</h3>
+          <p>Recibe oportunidades y novedades del mercado inmobiliario.</p>
+          <form @submit.prevent="submitNewsletter">
+            <input v-model="newsletter.email" type="email" placeholder="Email" required />
+            <button type="submit">Suscribirme</button>
+          </form>
+        </aside>
       </div>
-    </div>
+
+      <div class="cards">
+        <article v-for="card in contactCards" :key="card.title" class="card">
+          <h4>{{ card.title }}</h4>
+          <strong>{{ card.value }}</strong>
+          <p>{{ card.note }}</p>
+        </article>
+      </div>
+
+      <div class="map-wrap">
+        <iframe
+          title="Mapa"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://maps.google.com/maps?q=Guadalajara%20Jalisco&t=&z=11&ie=UTF8&iwloc=&output=embed"
+        ></iframe>
+      </div>
+    </section>
   </section>
 </template>
 
-<script>
-export default {
-  name: "ContactosView",
-  data() {
-    return {
-      form: {
-        nombre: "",
-        email: "",
-        telefono: "",
-        servicio: "",
-        mensaje: "",
-      },
-      info: [
-        {
-          icon: "📍",
-          title: "Oficina Principal",
-          lines: ["Próximamente en ubicación céntrica"],
-        },
-        {
-          icon: "📞",
-          title: "Teléfono",
-          lines: ["+52 1 33 1234 5678"],
-        },
-        {
-          icon: "✉️",
-          title: "Email",
-          lines: ["info@jakedainmobiliaria.com"],
-        },
-        {
-          icon: "⏰",
-          title: "Horario de Atención",
-          lines: [
-            "Lunes - Viernes: 9:00 AM - 6:00 PM",
-            "Sábados: 10:00 AM - 2:00 PM",
-          ],
-        },
-      ],
-    };
-  },
-  methods: {
-    submitForm() {
-      alert("Formulario enviado correctamente");
-    },
-  },
-};
-</script>
-
 <style scoped>
-/* ---------- BASE ---------- */
-.contact-section {
-  padding: 60px 8%;
-  font-family: "Segoe UI", sans-serif;
-  background: #fff;
+.contact-page {
+  font-family: 'Poppins', sans-serif;
+  background: #ffffff;
+  color: #0f172a;
 }
 
-.header {
+.hero {
+  background: #d9e9f1;
+  padding: 110px 22px 94px;
   text-align: center;
-  margin-bottom: 50px;
 }
 
-.header h1 {
-  font-size: 42px;
-  color: #0b2c5d;
-}
-
-.header p {
-  font-size: 15px;
-  color: #6b7280;
-}
-
-/* ---------- LAYOUT ---------- */
-.contact-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 50px;
-}
-
-/* ---------- INFO ---------- */
-.contact-info {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.info-item {
-  display: flex;
-  gap: 15px;
-}
-
-.icon {
-  width: 50px;
-  height: 50px;
-  background: #0b2c5d;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.info-item h4 {
+.hero-inner p {
   margin: 0;
-  color: #0b2c5d;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #2f6f86;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.info-item p {
-  margin: 4px 0;
-  font-size: 14px;
-  color: #374151;
+.hero-inner h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(38px, 5vw, 72px);
+  color: #0e2238;
 }
 
-/* ---------- FORM ---------- */
-.contact-form {
-  background: #f9fafb;
-  padding: 35px;
-  border-radius: 12px;
+.hero-inner span {
+  color: #4d6177;
 }
 
-.form-group {
-  margin-bottom: 18px;
-  display: flex;
-  flex-direction: column;
+.content-wrap {
+  max-width: 1180px;
+  margin: -52px auto 56px;
+  padding: 0 22px;
+  display: grid;
+  gap: 24px;
 }
 
-label {
-  font-size: 14px;
-  margin-bottom: 6px;
+.form-area {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
 }
+
+.main-form {
+  background: #f7fcff;
+  border: 1px solid #dcebf1;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.row { margin-bottom: 12px; }
+.row.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
 input,
 select,
 textarea {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  width: 100%;
+  border: 1px solid #cce0ea;
+  background: #e8f4fa;
+  border-radius: 999px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+
+textarea {
+  border-radius: 16px;
+  resize: vertical;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: none;
-  border-color: #0b2c5d;
+  border-color: #6ca4bb;
+  box-shadow: 0 0 0 3px rgba(108, 164, 187, 0.18);
 }
 
-.btn-submit {
-  width: 100%;
-  background: #d4a72c;
-  padding: 12px;
+.main-form button,
+.newsletter button {
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
+  border-radius: 999px;
+  padding: 12px 18px;
+  background: linear-gradient(120deg, #1b4b5e, #2f7186);
+  color: #fff;
+  font-weight: 700;
   cursor: pointer;
+  transition: all .3s ease;
 }
 
-/* ---------- ANIMACIONES ---------- */
-.fade-down {
-  animation: fadeDown 0.8s ease forwards;
+.main-form button:hover,
+.newsletter button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(47, 113, 134, 0.28);
 }
 
-.fade-left {
-  animation: fadeLeft 1s ease forwards;
+.newsletter {
+  background:
+    linear-gradient(140deg, rgba(33, 91, 109, .94), rgba(30, 77, 94, .92)),
+    url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=70') center/cover;
+  border-radius: 18px;
+  color: #fff;
+  padding: 20px;
 }
 
-.fade-right {
-  animation: fadeRight 1s ease forwards;
+.newsletter h3 {
+  margin: 0;
+  font-size: 26px;
 }
 
-@keyframes fadeDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.newsletter p {
+  color: rgba(255, 255, 255, 0.82);
 }
 
-@keyframes fadeLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.newsletter input {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: transparent;
+  margin-bottom: 10px;
 }
 
-@keyframes fadeRight {
-  from {
-    opacity: 0;
-    transform: translateX(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 900px) {
-  .contact-container {
+.card {
+  border: 1px solid #e4edf2;
+  border-radius: 14px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+}
+
+.card h4 {
+  margin: 0;
+  color: #2f7186;
+}
+
+.card strong {
+  display: block;
+  margin-top: 10px;
+  color: #0f172a;
+}
+
+.card p {
+  margin: 8px 0 0;
+  color: #607387;
+  font-size: 13px;
+}
+
+.map-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #dce7ee;
+}
+
+.map-wrap iframe {
+  width: 100%;
+  min-height: 300px;
+  border: 0;
+}
+
+@media (max-width: 980px) {
+  .form-area {
     grid-template-columns: 1fr;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .row.two {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding-top: 98px;
   }
 }
 </style>
