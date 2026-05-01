@@ -3,29 +3,26 @@ import { ref, computed, onMounted } from 'vue'
 import { usersApi } from '@/api/users'
 import { authApi } from '@/api/auth'
 
-const users   = ref([])
+const users = ref([])
 const loading = ref(false)
-const error   = ref('')
-const filter  = ref('all')
-
-// Modal nuevo usuario
-const showModal  = ref(false)
-const saving     = ref(false)
+const error = ref('')
+const filter = ref('all')
+const showModal = ref(false)
+const saving = ref(false)
 const modalError = ref('')
 const newUser = ref({ full_name: '', email: '', password: '', phone: '', role_name: 'advisor' })
 
 const filtered = computed(() => {
-  if (filter.value === 'active')   return users.value.filter(u => u.is_active)
+  if (filter.value === 'active') return users.value.filter(u => u.is_active)
   if (filter.value === 'inactive') return users.value.filter(u => !u.is_active)
   return users.value
 })
 
 const load = async () => {
   loading.value = true
-  error.value   = ''
+  error.value = ''
   try {
     const { data } = await usersApi.getAll()
-    // El backend devuelve { total, page, per_page, users: [...] }
     users.value = data.users ?? data.items ?? data
   } catch {
     error.value = 'Error al cargar usuarios'
@@ -47,7 +44,7 @@ const toggleActive = async (user) => {
 }
 
 const deleteUser = async (id) => {
-  if (!window.confirm('¿Eliminar este usuario permanentemente?')) return
+  if (!window.confirm('Eliminar este usuario permanentemente?')) return
   try {
     await usersApi.remove(id)
     users.value = users.value.filter(u => u.id !== id)
@@ -57,27 +54,25 @@ const deleteUser = async (id) => {
 }
 
 const openModal = () => {
-  newUser.value  = { full_name: '', email: '', password: '', phone: '', role_name: 'advisor' }
+  newUser.value = { full_name: '', email: '', password: '', phone: '', role_name: 'advisor' }
   modalError.value = ''
-  showModal.value  = true
+  showModal.value = true
 }
 
 const roleMap = { admin: 1, advisor: 2, client: 3 }
+const roleLabel = { admin: 'Admin', advisor: 'Asesor', client: 'Cliente' }
 
 const saveUser = async () => {
   modalError.value = ''
-  saving.value     = true
+  saving.value = true
   try {
-    // /auth/register acepta role_id — correcto para admin/advisor/client
     const { data } = await authApi.register({
       full_name: newUser.value.full_name,
-      email:     newUser.value.email,
-      password:  newUser.value.password,
-      phone:     newUser.value.phone || undefined,
-      role_id:   roleMap[newUser.value.role_name]
+      email: newUser.value.email,
+      password: newUser.value.password,
+      phone: newUser.value.phone || undefined,
+      role_id: roleMap[newUser.value.role_name]
     })
-    // Nota: register/client siempre asigna rol client; para admin/advisor
-    // el backend tiene /auth/register que acepta role_id
     users.value.push(data)
     showModal.value = false
   } catch (err) {
@@ -87,21 +82,22 @@ const saveUser = async () => {
   }
 }
 
-const roleLabel = { admin: 'Admin', advisor: 'Asesor', client: 'Cliente' }
-
 onMounted(load)
 </script>
 
 <template>
   <section class="admin-users">
     <div class="header">
-      <h1>Usuarios</h1>
-      <button class="btn-add" @click="openModal">+ Agregar usuario</button>
+      <div>
+        <p>Equipo y clientes</p>
+        <h1>Usuarios</h1>
+      </div>
+      <button class="btn-add" @click="openModal">Agregar usuario</button>
     </div>
 
     <div class="filters">
-      <button :class="{ active: filter==='all' }"      @click="filter='all'">Todos</button>
-      <button :class="{ active: filter==='active' }"   @click="filter='active'">Activos</button>
+      <button :class="{ active: filter==='all' }" @click="filter='all'">Todos</button>
+      <button :class="{ active: filter==='active' }" @click="filter='active'">Activos</button>
       <button :class="{ active: filter==='inactive' }" @click="filter='inactive'">Inactivos</button>
     </div>
 
@@ -112,7 +108,7 @@ onMounted(load)
       <table>
         <thead>
           <tr>
-            <th>Nombre</th><th>Email</th><th>Teléfono</th>
+            <th>Nombre</th><th>Email</th><th>Telefono</th>
             <th>Rol</th><th>Estado</th><th>Acciones</th>
           </tr>
         </thead>
@@ -120,7 +116,7 @@ onMounted(load)
           <tr v-for="u in filtered" :key="u.id">
             <td class="td-name">{{ u.full_name }}</td>
             <td>{{ u.email }}</td>
-            <td>{{ u.phone ?? '—' }}</td>
+            <td>{{ u.phone ?? '-' }}</td>
             <td><span class="role-badge">{{ roleLabel[u.role?.name] ?? u.role?.name }}</span></td>
             <td>
               <span :class="['status', u.is_active ? 'on' : 'off']">
@@ -141,26 +137,21 @@ onMounted(load)
       </table>
     </div>
 
-    <!-- MODAL NUEVO USUARIO -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal">
         <h2>Agregar usuario</h2>
-
         <div v-if="modalError" class="alert-error">{{ modalError }}</div>
-
         <div class="form">
           <input v-model="newUser.full_name" placeholder="Nombre completo" required />
-          <input v-model="newUser.email"     type="email" placeholder="Correo electrónico" required />
-          <input v-model="newUser.phone"     type="tel"   placeholder="Teléfono (opcional)" />
-          <input v-model="newUser.password"  type="password" placeholder="Contraseña" required />
-
+          <input v-model="newUser.email" type="email" placeholder="Correo electronico" required />
+          <input v-model="newUser.phone" type="tel" placeholder="Telefono opcional" />
+          <input v-model="newUser.password" type="password" placeholder="Contrasena" required />
           <select v-model="newUser.role_name">
             <option value="client">Cliente</option>
             <option value="advisor">Asesor</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
-
         <div class="modal-actions">
           <button class="btn-cancel" @click="showModal = false">Cancelar</button>
           <button class="btn-save" :disabled="saving" @click="saveUser">
@@ -173,85 +164,227 @@ onMounted(load)
 </template>
 
 <style scoped>
-.admin-users { padding: 40px; font-family: 'Poppins', sans-serif; }
-
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h1 { font-size: 26px; margin: 0; }
-
-.btn-add {
-  background: #0d2c54; color: white; border: none;
-  padding: 10px 20px; border-radius: 8px; cursor: pointer;
-  font-weight: 600; font-family: inherit; transition: background .2s;
+.admin-users {
+  display: grid;
+  gap: 22px;
 }
-.btn-add:hover { background: #1e3a5f; }
 
-.filters { display: flex; gap: 10px; margin-bottom: 20px; }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 28px;
+  border-radius: 16px;
+  background: #fffdf8;
+  box-shadow: var(--shadow-soft);
+}
+
+.header p {
+  color: #d6a848;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+h1,
+h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #07172d;
+}
+
+h1 {
+  font-size: 42px;
+}
+
+.btn-add,
+.btn-save {
+  min-height: 44px;
+  padding: 0 18px;
+  background: #d6a848;
+  color: #07172d;
+  border-radius: 8px;
+  font-weight: 900;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .filters button {
-  padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd;
-  background: white; cursor: pointer; font-family: inherit; transition: .2s;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(7,23,45,.12);
+  background: white;
+  color: #40566e;
+  font-weight: 800;
 }
-.filters button.active { background: #111; color: white; border-color: #111; }
 
-.state { display: flex; justify-content: center; padding: 40px; color: #666; }
+.filters button.active {
+  background: #07172d;
+  color: white;
+}
+
+.state {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+  color: #65717e;
+}
 .error-msg { color: #991b1b; }
 .spinner {
-  width: 36px; height: 36px; border: 3px solid #f3f3f3;
-  border-top-color: #f59e0b; border-radius: 50%; animation: spin .8s linear infinite;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #eadfcf;
+  border-top-color: #d6a848;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.table-container { background: white; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,.06); overflow: hidden; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 14px 16px; text-align: left; font-size: 14px; }
-thead { background: #f9fafb; }
-tr:not(:last-child) { border-bottom: 1px solid #eee; }
-.td-name { font-weight: 600; }
-.empty { text-align: center; color: #999; padding: 30px !important; }
+.table-container {
+  background: #fffdf8;
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  overflow-x: auto;
+}
 
-.role-badge { background: #f3f4f6; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-.status { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-.status.on  { background: #dcfce7; color: #166534; }
+th, td {
+  padding: 15px 16px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #eee7dc;
+}
+
+th {
+  color: #65717e;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.td-name {
+  font-weight: 900;
+  color: #07172d;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 30px !important;
+}
+
+.role-badge,
+.status {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.role-badge { background: #eef4fb; color: #40566e; }
+.status.on { background: #dff7e9; color: #166534; }
 .status.off { background: #fee2e2; color: #991b1b; }
 
-.actions { display: flex; gap: 8px; }
-.actions button { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; }
-.toggle { background: #e5e7eb; }
-.delete { background: #ef4444; color: white; }
+.actions {
+  display: flex;
+  gap: 8px;
+}
+.actions button {
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-weight: 900;
+}
+.toggle { background: #eef4fb; color: #102e4f; }
+.delete { background: #07172d; color: white; }
 
-/* MODAL */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.45);
-  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  position: fixed;
+  inset: 0;
+  background: rgba(7,23,45,.56);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
 }
+
 .modal {
-  background: white; border-radius: 16px; padding: 32px;
-  width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  background: #fffdf8;
+  border-radius: 16px;
+  padding: 30px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: var(--shadow-strong);
 }
-.modal h2 { font-size: 20px; margin-bottom: 20px; }
+
+.modal h2 {
+  font-size: 26px;
+  margin-bottom: 18px;
+}
 
 .alert-error {
-  background: #fee2e2; color: #991b1b;
-  padding: 10px 14px; border-radius: 8px;
-  font-size: 13px; margin-bottom: 14px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
 }
 
-.form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
-.form input, .form select {
-  padding: 11px 12px; border-radius: 8px; border: 1px solid #ddd;
-  font-size: 14px; font-family: inherit;
+.form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
 }
-.form input:focus, .form select:focus { outline: none; border-color: #f59e0b; }
 
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.form input,
+.form select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d9d2c5;
+  background: white;
+  font: inherit;
+}
+
+.form input:focus,
+.form select:focus {
+  outline: none;
+  border-color: #d6a848;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .btn-cancel {
-  padding: 10px 18px; background: #f3f4f6; border: none;
-  border-radius: 8px; cursor: pointer; font-family: inherit;
+  padding: 0 18px;
+  min-height: 44px;
+  background: #eee7dc;
+  border-radius: 8px;
+  color: #40566e;
+  font-weight: 900;
 }
-.btn-save {
-  padding: 10px 20px; background: #f59e0b; color: white;
-  border: none; border-radius: 8px; cursor: pointer;
-  font-weight: 600; font-family: inherit;
+
+.btn-save:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }
-.btn-save:disabled { opacity: .6; cursor: not-allowed; }
+
+@media (max-width: 680px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
 </style>
