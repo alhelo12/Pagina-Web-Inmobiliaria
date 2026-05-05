@@ -5,7 +5,7 @@ Lógica de negocio para gestión de propiedades.
 Incluye CRUD, sistema de aprobación y filtros avanzados.
 """
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, and_, or_
 from typing import Optional, List, Tuple
 from fastapi import HTTPException, status
@@ -29,7 +29,12 @@ def get_property_by_id(db: Session, property_id: int) -> Optional[Property]:
     Returns:
         Property o None si no existe
     """
-    return db.query(Property).filter(Property.id == property_id).first()
+    return (
+        db.query(Property)
+        .options(selectinload(Property.images))
+        .filter(Property.id == property_id)
+        .first()
+    )
 
 
 def get_properties(
@@ -52,7 +57,7 @@ def get_properties(
     Returns:
         Lista de propiedades
     """
-    query = db.query(Property)
+    query = db.query(Property).options(selectinload(Property.images))
     
     if status:
         query = query.filter(Property.status == status)
@@ -79,11 +84,14 @@ def get_approved_properties(
     Returns:
         Lista de propiedades aprobadas
     """
-    return db.query(Property)\
-        .filter(Property.status == 'approved')\
-        .offset(skip)\
-        .limit(limit)\
+    return (
+        db.query(Property)
+        .options(selectinload(Property.images))
+        .filter(Property.status == 'approved')
+        .offset(skip)
+        .limit(limit)
         .all()
+    )
 
 
 def count_properties(
@@ -165,7 +173,14 @@ def create_property(
     
     db.add(db_property)
     db.commit()
-    db.refresh(db_property)
+
+    # Recargar con relaciones para evitar lazy loading error al serializar
+    db_property = (
+        db.query(Property)
+        .options(selectinload(Property.images))
+        .filter(Property.id == db_property.id)
+        .first()
+    )
     
     return db_property
 
@@ -394,11 +409,14 @@ def get_pending_properties(db: Session, skip: int = 0, limit: int = 20) -> List[
     Returns:
         Lista de propiedades pendientes
     """
-    return db.query(Property)\
-        .filter(Property.status == 'pending')\
-        .offset(skip)\
-        .limit(limit)\
+    return (
+        db.query(Property)
+        .options(selectinload(Property.images))
+        .filter(Property.status == 'pending')
+        .offset(skip)
+        .limit(limit)
         .all()
+    )
 
 
 # ==========================================
@@ -423,7 +441,7 @@ def search_properties(
     Returns:
         Tupla (lista de propiedades, total)
     """
-    query = db.query(Property)
+    query = db.query(Property).options(selectinload(Property.images))
     
     # Filtro por ciudad
     if filters.city:
@@ -502,15 +520,18 @@ def search_by_proximity(
     lat_range = radius_km / 111.0
     lon_range = radius_km / (111.0 * func.cos(func.radians(latitude)))
     
-    return db.query(Property)\
-        .filter(Property.status == 'approved')\
+    return (
+        db.query(Property)
+        .options(selectinload(Property.images))
+        .filter(Property.status == 'approved')
         .filter(and_(
             Property.latitude.between(latitude - lat_range, latitude + lat_range),
             Property.longitude.between(longitude - lon_range, longitude + lon_range)
-        ))\
-        .offset(skip)\
-        .limit(limit)\
+        ))
+        .offset(skip)
+        .limit(limit)
         .all()
+    )
 
 
 # ==========================================
@@ -643,9 +664,12 @@ def get_properties_by_advisor(
     Returns:
         Lista de propiedades del asesor
     """
-    return db.query(Property)\
-        .filter(Property.advisor_id == advisor_id)\
-        .offset(skip)\
-        .limit(limit)\
+    return (
+        db.query(Property)
+        .options(selectinload(Property.images))
+        .filter(Property.advisor_id == advisor_id)
+        .offset(skip)
+        .limit(limit)
         .all()
-        
+    )
+    
