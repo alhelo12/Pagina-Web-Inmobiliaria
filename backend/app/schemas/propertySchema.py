@@ -241,6 +241,7 @@ class PropertyResponse(PropertyBase):
     status: PropertyStatusEnum
     submitted_by_user_id: int
     advisor_id: Optional[int] = None
+    owner: Optional[PropertyOwnerResponse] = None
     images: List[PropertyImageResponse] = []
     created_at: datetime
     updated_at: datetime
