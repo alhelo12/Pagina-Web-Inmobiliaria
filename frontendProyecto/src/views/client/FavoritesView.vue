@@ -2,12 +2,13 @@
 import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useFavoritesStore } from '@/stores/favoritesStore'
+import { getPropertyImage } from '@/utils/propertyImages'
 
 const favStore = useFavoritesStore()
 
 const propertyOf = (fav) => fav.favorited_property ?? fav.property ?? fav
 const idOf = (fav) => propertyOf(fav)?.id ?? fav.property_id
-const imageOf = (fav) => propertyOf(fav)?.images?.[0]?.image_url ?? propertyOf(fav)?.main_image_url ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c'
+const imageOf = (fav) => getPropertyImage(propertyOf(fav))
 
 onMounted(() => favStore.fetchFavorites())
 </script>

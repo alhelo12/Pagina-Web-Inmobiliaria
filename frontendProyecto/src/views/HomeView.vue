@@ -1,10 +1,11 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import Hero from '../components/home/Hero.vue'
 import PropertyCard from '@/components/PropertyCard.vue'
 import { propertiesApi } from '@/api/properties'
 import { favoritesApi } from '@/api/favorites'
+import { getPropertyImage } from '@/utils/propertyImages'
 
 const loading = ref(true)
 const popularProperties = ref([])
@@ -27,11 +28,6 @@ const highlights = [
 
 const allCount = computed(() => popularProperties.value.length + featuredProperties.value.length)
 
-const normalizeImage = (url) => {
-  if (!url) return 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'
-  if (url.startsWith('/media')) return `http://localhost:8000${url}`
-  return url
-}
 
 onMounted(async () => {
   loading.value = true
@@ -52,7 +48,7 @@ onMounted(async () => {
         return {
           ...property,
           favoritesCount,
-          image: normalizeImage(property.images?.[0]?.image_url)
+          image: getPropertyImage(property)
         }
       })
     )

@@ -29,7 +29,8 @@ export const propertiesApi = {
     const form = new FormData()
     form.append('image', file)
     return api.post(`/properties/${propertyId}/images/upload`, form, {
-      params: { is_main: isMain }
+      params: { is_main: isMain },
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
 

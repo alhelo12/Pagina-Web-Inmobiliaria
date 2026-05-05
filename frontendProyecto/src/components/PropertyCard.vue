@@ -1,6 +1,7 @@
-﻿<script setup>
+<script setup>
 import { useAuthStore } from '@/stores/authStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
+import { FALLBACK_PROPERTY_IMAGE } from '@/utils/propertyImages'
 
 const props = defineProps({
   id: Number,
@@ -27,12 +28,18 @@ const toggle = async (e) => {
   if (!auth.isLogged || auth.role !== 'client') return
   await favStore.toggleFavorite(props.id)
 }
+
+const handleImageError = (event) => {
+  if (event.target.src !== FALLBACK_PROPERTY_IMAGE) {
+    event.target.src = FALLBACK_PROPERTY_IMAGE
+  }
+}
 </script>
 
 <template>
   <article class="card">
     <div class="media">
-      <img :src="image" :alt="title" loading="lazy" />
+      <img :src="image || FALLBACK_PROPERTY_IMAGE" :alt="title" loading="lazy" @error="handleImageError" />
       <span class="type-pill">{{ typeLabel[type] ?? type }}</span>
       <button
         class="fav-btn"
