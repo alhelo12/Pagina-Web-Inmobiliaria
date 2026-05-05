@@ -119,13 +119,13 @@ class Property(BaseModel):
     
     latitude = Column(
         Float,
-        nullable=False,
+        nullable=True,
         comment="Coordenada latitud para el mapa"
     )
     
     longitude = Column(
         Float,
-        nullable=False,
+        nullable=True,
         comment="Coordenada longitud para el mapa"
     )
     

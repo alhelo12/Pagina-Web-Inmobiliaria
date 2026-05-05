@@ -69,8 +69,8 @@ CREATE TABLE IF NOT EXISTS properties (
     -- Ubicación
     address TEXT NOT NULL,
     city VARCHAR(100) NOT NULL,
-    latitude DOUBLE PRECISION NOT NULL,
-    longitude DOUBLE PRECISION NOT NULL,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
     
     -- Características
     bedrooms INT DEFAULT 0,
