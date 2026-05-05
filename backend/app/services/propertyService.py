@@ -542,7 +542,10 @@ def add_property_image(
     db: Session,
     property_id: int,
     image_url: str,
-    is_main: bool = False
+    is_main: bool = False,
+    label: Optional[str] = None,
+    is_extra: bool = False,
+    image_type: str = "general"
 ) -> PropertyImage:
     """
     Agregar imagen a una propiedad
@@ -552,6 +555,9 @@ def add_property_image(
         property_id: ID de la propiedad
         image_url: URL de la imagen
         is_main: Si es la imagen principal
+        label: Nombre visible del extra, por ejemplo Cocina o Patio
+        is_extra: Si la imagen pertenece al apartado de extras
+        image_type: Tipo de imagen: general, extra, bedroom o bathroom
         
     Returns:
         PropertyImage creada
@@ -567,8 +573,55 @@ def add_property_image(
             detail="Propiedad no encontrada"
         )
     
-    # Si es principal, quitar el flag de las demás
-    if is_main:
+    normalized_image_type = (image_type or "general").lower()
+    if is_extra:
+        normalized_image_type = "extra"
+
+    if normalized_image_type not in {"general", "extra", "bedroom", "bathroom"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tipo de imagen no permitido"
+        )
+
+    if normalized_image_type == "bedroom":
+        allowed = db_property.bedrooms or 0
+        current = db.query(PropertyImage).filter(
+            PropertyImage.property_id == property_id,
+            PropertyImage.image_type == "bedroom"
+        ).count()
+        if allowed <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La propiedad no tiene habitaciones registradas"
+            )
+        if current >= allowed:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Solo se permiten {allowed} foto(s) de habitaciones"
+            )
+
+    if normalized_image_type == "bathroom":
+        allowed = db_property.bathrooms or 0
+        current = db.query(PropertyImage).filter(
+            PropertyImage.property_id == property_id,
+            PropertyImage.image_type == "bathroom"
+        ).count()
+        if allowed <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La propiedad no tiene banos registrados"
+            )
+        if current >= allowed:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Solo se permiten {allowed} foto(s) de banos"
+            )
+
+    effective_is_extra = normalized_image_type == "extra"
+    effective_is_main = False if normalized_image_type != "general" else is_main
+
+    # Si es principal, quitar el flag de las demas
+    if effective_is_main:
         db.query(PropertyImage)\
             .filter(PropertyImage.property_id == property_id)\
             .update({"is_main": False})
@@ -577,7 +630,10 @@ def add_property_image(
     db_image = PropertyImage(
         property_id=property_id,
         image_url=image_url,
-        is_main=is_main
+        label=label,
+        image_type=normalized_image_type,
+        is_extra=effective_is_extra,
+        is_main=effective_is_main
     )
     
     db.add(db_image)

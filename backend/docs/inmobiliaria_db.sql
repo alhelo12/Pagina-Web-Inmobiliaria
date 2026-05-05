@@ -1,6 +1,6 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.0.2
+-- Version: 1.0.3
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
 --              con sistema de aprobación de propiedades
 -- ==========================================
@@ -92,6 +92,9 @@ CREATE TABLE IF NOT EXISTS property_images (
     id SERIAL PRIMARY KEY,
     property_id INT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
+    label VARCHAR(100),
+    image_type VARCHAR(50) DEFAULT 'general' NOT NULL,
+    is_extra BOOLEAN DEFAULT FALSE NOT NULL,
     is_main BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
@@ -147,6 +150,8 @@ CREATE INDEX IF NOT EXISTS idx_properties_advisor_id ON properties(advisor_id);
 -- Índices en property_images
 CREATE INDEX IF NOT EXISTS idx_property_images_property_id ON property_images(property_id);
 CREATE INDEX IF NOT EXISTS idx_property_images_is_main ON property_images(is_main);
+CREATE INDEX IF NOT EXISTS idx_property_images_is_extra ON property_images(is_extra);
+CREATE INDEX IF NOT EXISTS idx_property_images_image_type ON property_images(image_type);
 
 -- Índices en favorites
 CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites(user_id);

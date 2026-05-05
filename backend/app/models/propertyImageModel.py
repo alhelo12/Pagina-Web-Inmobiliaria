@@ -25,6 +25,9 @@ class PropertyImage(BaseModel):
         id (int): ID único de la imagen (heredado)
         property_id (int): FK a properties
         image_url (str): URL o ruta de la imagen
+        label (str): Nombre visible del extra, como Cocina o Patio
+        image_type (str): Tipo de imagen: general, extra, bedroom o bathroom
+        is_extra (bool): Si la imagen pertenece al apartado de extras
         is_main (bool): Si es la imagen principal
         created_at (datetime): Fecha de creación (heredado)
         updated_at (datetime): Última actualización (heredado)
@@ -55,7 +58,28 @@ class PropertyImage(BaseModel):
         nullable=False,
         comment="URL o ruta del archivo de imagen"
     )
-    
+
+    label = Column(
+        String(100),
+        comment="Nombre visible del extra, por ejemplo Cocina o Patio"
+    )
+
+    image_type = Column(
+        String(50),
+        default="general",
+        nullable=False,
+        index=True,
+        comment="Tipo de imagen: general, extra, bedroom o bathroom"
+    )
+
+    is_extra = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+        comment="Si la imagen pertenece al apartado de extras"
+    )
+
     is_main = Column(
         Boolean,
         default=False,
@@ -76,7 +100,9 @@ class PropertyImage(BaseModel):
     def __repr__(self):
         """Representación de la imagen para debugging"""
         main_text = " [MAIN]" if self.is_main else ""
-        return f"<PropertyImage(id={self.id}, property_id={self.property_id}{main_text})>"
+        type_text = f" [{self.image_type}]" if self.image_type else ""
+        extra_text = f" [EXTRA: {self.label}]" if self.is_extra else ""
+        return f"<PropertyImage(id={self.id}, property_id={self.property_id}{main_text}{type_text}{extra_text})>"
     
     def set_as_main(self):
         """
