@@ -31,7 +31,7 @@ def get_property_by_id(db: Session, property_id: int) -> Optional[Property]:
     """
     return (
         db.query(Property)
-        .options(selectinload(Property.images))
+        .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.id == property_id)
         .first()
     )
@@ -57,7 +57,7 @@ def get_properties(
     Returns:
         Lista de propiedades
     """
-    query = db.query(Property).options(selectinload(Property.images))
+    query = db.query(Property).options(selectinload(Property.images), selectinload(Property.owner))
     
     if status:
         query = query.filter(Property.status == status)
@@ -86,7 +86,7 @@ def get_approved_properties(
     """
     return (
         db.query(Property)
-        .options(selectinload(Property.images))
+        .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.status == 'approved')
         .offset(skip)
         .limit(limit)
@@ -177,7 +177,7 @@ def create_property(
     # Recargar con relaciones para evitar lazy loading error al serializar
     db_property = (
         db.query(Property)
-        .options(selectinload(Property.images))
+        .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.id == db_property.id)
         .first()
     )
@@ -411,7 +411,7 @@ def get_pending_properties(db: Session, skip: int = 0, limit: int = 20) -> List[
     """
     return (
         db.query(Property)
-        .options(selectinload(Property.images))
+        .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.status == 'pending')
         .offset(skip)
         .limit(limit)
@@ -441,7 +441,7 @@ def search_properties(
     Returns:
         Tupla (lista de propiedades, total)
     """
-    query = db.query(Property).options(selectinload(Property.images))
+    query = db.query(Property).options(selectinload(Property.images), selectinload(Property.owner))
     
     # Filtro por ciudad
     if filters.city:
@@ -522,7 +522,7 @@ def search_by_proximity(
     
     return (
         db.query(Property)
-        .options(selectinload(Property.images))
+        .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.status == 'approved')
         .filter(and_(
             Property.latitude.between(latitude - lat_range, latitude + lat_range),
@@ -666,7 +666,7 @@ def get_properties_by_advisor(
     """
     return (
         db.query(Property)
-        .options(selectinload(Property.images))
+        .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.advisor_id == advisor_id)
         .offset(skip)
         .limit(limit)

@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -58,6 +58,16 @@ const filtered = computed(() => {
 
 const recent = computed(() => [...properties.value].sort((a, b) => b.id - a.id).slice(0, 5))
 
+const ownerName = (property) => property.owner?.full_name || `Usuario #${property.submitted_by_user_id}`
+const ownerEmail = (property) => property.owner?.email || 'Sin email'
+const formatRegisteredAt = (value) => {
+  if (!value) return 'Sin fecha'
+  return new Intl.DateTimeFormat('es-MX', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }).format(new Date(value))
+}
+
 const confirm = async (action, id) => {
   if (!window.confirm('Confirmas esta accion?')) return
   await store[action](id)
@@ -113,12 +123,17 @@ onMounted(() => store.fetchProperties({ user_id: auth.userId }))
           <table>
             <thead>
               <tr>
-                <th>Titulo</th><th>Ciudad</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+                <th>Titulo</th><th>Registrado por</th><th>Registrada</th><th>Ciudad</th><th>Precio</th><th>Estado</th><th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="p in filtered" :key="p.id">
                 <td class="td-title">{{ p.title }}</td>
+                <td>
+                  <span class="owner-name">{{ ownerName(p) }}</span>
+                  <small class="owner-email">{{ ownerEmail(p) }}</small>
+                </td>
+                <td class="registered-at">{{ formatRegisteredAt(p.created_at) }}</td>
                 <td>{{ p.city }}</td>
                 <td>${{ Number(p.price).toLocaleString('es-MX') }}</td>
                 <td><span :class="['badge', statusMap[p.status]?.cls]">{{ statusMap[p.status]?.label ?? p.status }}</span></td>
@@ -130,7 +145,7 @@ onMounted(() => store.fetchProperties({ user_id: auth.userId }))
                 </td>
               </tr>
               <tr v-if="!filtered.length">
-                <td colspan="5" class="empty">Sin propiedades</td>
+                <td colspan="7" class="empty">Sin propiedades</td>
               </tr>
             </tbody>
           </table>
@@ -153,6 +168,9 @@ table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; border-bottom: 1px solid #edf2fb; font-size: 14px; text-align: left; }
 th { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
 .td-title { color: #0f172a; font-weight: 700; }
+.owner-name { display: block; color: #0f172a; font-weight: 700; }
+.owner-email { display: block; color: #64748b; font-size: 12px; margin-top: 2px; }
+.registered-at { color: #475569; font-weight: 700; white-space: nowrap; }
 .badge { padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; }
 .pendiente { background: #fff3ce; color: #8a5a00; }
 .aprobada { background: #dff7e9; color: #166534; }

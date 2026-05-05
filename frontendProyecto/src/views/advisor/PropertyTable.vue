@@ -3,6 +3,16 @@ defineProps({ items: Array })
 const emit = defineEmits(['approve', 'reject', 'sold'])
 
 const typeLabel = { house: 'Casa', apartment: 'Depto.', land: 'Terreno', commercial: 'Local' }
+
+const ownerName = (property) => property.owner?.full_name || `Usuario #${property.submitted_by_user_id}`
+const ownerEmail = (property) => property.owner?.email || 'Sin email'
+const formatRegisteredAt = (value) => {
+  if (!value) return 'Sin fecha'
+  return new Intl.DateTimeFormat('es-MX', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }).format(new Date(value))
+}
 </script>
 
 <template>
@@ -11,12 +21,17 @@ const typeLabel = { house: 'Casa', apartment: 'Depto.', land: 'Terreno', commerc
     <table class="table">
       <thead>
         <tr>
-          <th>Propiedad</th><th>Ciudad</th><th>Precio</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
+          <th>Propiedad</th><th>Registrado por</th><th>Registrada</th><th>Ciudad</th><th>Precio</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="p in items" :key="p.id">
           <td class="title">{{ p.title }}</td>
+          <td>
+            <span class="owner-name">{{ ownerName(p) }}</span>
+            <small class="owner-email">{{ ownerEmail(p) }}</small>
+          </td>
+          <td class="registered-at">{{ formatRegisteredAt(p.created_at) }}</td>
           <td>{{ p.city }}</td>
           <td class="price">${{ Number(p.price).toLocaleString('es-MX') }}</td>
           <td>{{ typeLabel[p.property_type] ?? p.property_type }}</td>
@@ -40,6 +55,9 @@ const typeLabel = { house: 'Casa', apartment: 'Depto.', land: 'Terreno', commerc
   <div class="mobile-cards">
     <div v-for="p in items" :key="p.id" class="card">
       <h3>{{ p.title }}</h3>
+      <p><strong>Registrado por:</strong> {{ ownerName(p) }}</p>
+      <p class="owner-email">{{ ownerEmail(p) }}</p>
+      <p><strong>Registrada:</strong> {{ formatRegisteredAt(p.created_at) }}</p>
       <p><strong>Ciudad:</strong> {{ p.city }}</p>
       <p><strong>Precio:</strong> ${{ Number(p.price).toLocaleString('es-MX') }}</p>
       <span class="badge" :class="p.status">{{ p.status }}</span>
@@ -66,6 +84,9 @@ th { background: #0d2c54; color: white; text-align: left; padding: 14px; font-si
 td { padding: 14px; border-bottom: 1px solid #eee; font-size: 14px; }
 .title { font-weight: 600; }
 .price { font-weight: bold; color: #0d2c54; }
+.owner-name { display: block; font-weight: 600; color: #1f2937; }
+.owner-email { display: block; color: #64748b; font-size: 12px; margin-top: 2px; }
+.registered-at { color: #475569; font-weight: 600; white-space: nowrap; }
 
 .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: capitalize; }
 .pending  { background: #fff3cd; color: #856404; }
