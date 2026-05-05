@@ -97,8 +97,8 @@ class PropertyBase(BaseModel):
     # Ubicación
     address: str = Field(..., min_length=10, max_length=500, description="Dirección completa")
     city: str = Field(..., min_length=2, max_length=100, description="Ciudad")
-    latitude: float = Field(..., ge=-90, le=90, description="Latitud")
-    longitude: float = Field(..., ge=-180, le=180, description="Longitud")
+    latitude: Optional[float] = Field(None, ge=-90, le=90, description="Latitud")
+    longitude: Optional[float] = Field(None, ge=-180, le=180, description="Longitud")
     
     # Características
     bedrooms: int = Field(default=0, ge=0, description="Número de recámaras")

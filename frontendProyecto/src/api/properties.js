@@ -25,11 +25,16 @@ export const propertiesApi = {
   },
 
   /** Subir imagen para una propiedad */
-  uploadImage(propertyId, file, isMain = false) {
+  uploadImage(propertyId, file, isMain = false, options = {}) {
     const form = new FormData()
     form.append('image', file)
     return api.post(`/properties/${propertyId}/images/upload`, form, {
-      params: { is_main: isMain },
+      params: {
+        is_main: isMain,
+        label: options.label,
+        is_extra: options.is_extra ?? false,
+        image_type: options.image_type ?? 'general'
+      },
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
