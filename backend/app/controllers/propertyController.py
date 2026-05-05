@@ -188,6 +188,9 @@ async def upload_property_image(
     property_id: int,
     image: UploadFile = File(...),
     is_main: bool = Query(False),
+    label: Optional[str] = Query(None, max_length=100),
+    is_extra: bool = Query(False),
+    image_type: str = Query("general"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -196,6 +199,16 @@ async def upload_property_image(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Propiedad no encontrada")
 
     verify_user_owns_resource(prop.submitted_by_user_id, current_user)
+
+    clean_label = label.strip() if label else None
+    normalized_image_type = (image_type or "general").lower()
+    if is_extra:
+        normalized_image_type = "extra"
+    if normalized_image_type == "extra" and not clean_label:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El extra necesita un nombre"
+        )
 
     ext = Path(image.filename or "").suffix.lower()
     if ext not in settings.ALLOWED_IMAGE_EXTENSIONS:
@@ -223,6 +236,17 @@ async def upload_property_image(
         db=db,
         property_id=property_id,
         image_url=image_url,
-        is_main=is_main
+        is_main=is_main,
+        label=clean_label,
+        is_extra=is_extra,
+        image_type=normalized_image_type
     )
-    return {"id": created.id, "property_id": created.property_id, "image_url": created.image_url, "is_main": created.is_main}
+    return {
+        "id": created.id,
+        "property_id": created.property_id,
+        "image_url": created.image_url,
+        "label": created.label,
+        "image_type": created.image_type,
+        "is_extra": created.is_extra,
+        "is_main": created.is_main
+    }

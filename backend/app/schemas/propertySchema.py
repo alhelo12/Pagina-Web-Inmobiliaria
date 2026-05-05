@@ -43,6 +43,9 @@ class PropertyStatusEnum(str, Enum):
 class PropertyImageBase(BaseModel):
     """Schema base de imagen"""
     image_url: str = Field(..., description="URL de la imagen")
+    label: Optional[str] = Field(default=None, max_length=100, description="Nombre visible del extra")
+    image_type: str = Field(default="general", description="Tipo de imagen: general, extra, bedroom o bathroom")
+    is_extra: bool = Field(default=False, description="Si la imagen pertenece al apartado de extras")
     is_main: bool = Field(default=False, description="Si es la imagen principal")
 
 
