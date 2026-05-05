@@ -4,6 +4,7 @@ import { useRoute, RouterLink } from 'vue-router'
 import { propertiesApi } from '@/api/properties'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { useAuthStore } from '@/stores/authStore'
+import { FALLBACK_PROPERTY_IMAGE, normalizeImageUrl } from '@/utils/propertyImages'
 
 const route    = useRoute()
 const favStore = useFavoritesStore()
@@ -29,9 +30,12 @@ onMounted(async () => {
 
 const images = computed(() => {
   if (!property.value?.images?.length) {
-    return [{ id: 0, image_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200' }]
+    return [{ id: 0, image_url: FALLBACK_PROPERTY_IMAGE }]
   }
-  return property.value.images
+  return property.value.images.map((img) => ({
+    ...img,
+    image_url: normalizeImageUrl(img.image_url)
+  }))
 })
 
 const goTo = (index) => {

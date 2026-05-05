@@ -6,6 +6,7 @@ import PropertyCard from '@/components/PropertyCard.vue'
 import { propertiesApi } from '@/api/properties'
 import { useAuthStore } from '@/stores/authStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
+import { getPropertyImage } from '@/utils/propertyImages'
 
 const properties = ref([])
 const loading    = ref(false)
@@ -67,7 +68,7 @@ onMounted(async () => {
           :price="p.price"
           :city="p.city"
           :type="p.property_type"
-          :image="p.images?.[0]?.image_url ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c'"
+          :image="getPropertyImage(p)"
         />
       </RouterLink>
     </div>
