@@ -91,6 +91,7 @@ onUnmounted(() => {
           <transition name="dropdown">
             <div v-if="dropdownOpen" class="dropdown">
               <button type="button" @click="goDashboard">Dashboard</button>
+              <button v-if="auth.role === 'client'" type="button" @click="() => { router.push('/favoritos'); closeAll() }">Mis favoritos</button>
               <button type="button" @click="logout">Cerrar sesion</button>
             </div>
           </transition>
