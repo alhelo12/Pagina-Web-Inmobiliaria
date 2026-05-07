@@ -337,54 +337,74 @@ const submit = async () => {
 <template>
   <section class="create">
     <div class="container">
-      <header class="hero">
-        <p class="kicker">Panel admin</p>
-        <h1>Nueva propiedad</h1>
-        <p class="subtitle">Completa la publicacion paso a paso.</p>
+
+      <header class="page-header">
+        <div>
+          <span class="kicker">Panel Admin</span>
+          <h1>Nueva propiedad</h1>
+          <p class="subtitle">Completa la publicacion paso a paso.</p>
+        </div>
+        <div class="header-step-indicator">
+          <span class="step-count">{{ currentStep + 1 }}/{{ steps.length }}</span>
+          <span class="step-name">{{ steps[currentStep] }}</span>
+        </div>
       </header>
 
-      <div v-if="success" class="alert alert-success">
-        Propiedad enviada correctamente. Quedara en estado pendiente hasta ser aprobada por un asesor.
+      <div v-if="success" class="success-card">
+        <div class="success-icon">✓</div>
+        <h2>Propiedad publicada</h2>
+        <p>Quedara pendiente hasta ser aprobada. Redirigiendo...</p>
       </div>
 
       <template v-else>
-        <div class="wizard-head">
-          <div class="steps">
-            <button
-              v-for="(step, index) in steps"
-              :key="step"
-              type="button"
-              class="step"
-              :class="{ active: currentStep === index, done: currentStep > index }"
-              @click="index < currentStep && (currentStep = index)"
-            >
-              <span>{{ index + 1 }}</span>
-              {{ step }}
-            </button>
-          </div>
-          <div class="progress">
-            <div :style="{ width: progress }"></div>
-          </div>
+
+        <div class="wizard-nav">
+          <button
+            v-for="(step, index) in steps"
+            :key="step"
+            type="button"
+            class="step-btn"
+            :class="{ active: currentStep === index, done: currentStep > index }"
+            @click="index < currentStep && (currentStep = index)"
+          >
+            <span class="step-circle">
+              <span v-if="currentStep > index">✓</span>
+              <span v-else>{{ index + 1 }}</span>
+            </span>
+            <span class="step-label">{{ step }}</span>
+          </button>
         </div>
 
-        <div v-if="error" class="alert alert-error">{{ error }}</div>
-        <div v-if="warning" class="alert alert-warning">{{ warning }}</div>
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: progress }"></div>
+        </div>
+
+        <div v-if="error" class="alert alert-error">⚠ {{ error }}</div>
+        <div v-if="warning" class="alert alert-warning">⚡ {{ warning }}</div>
 
         <form @submit.prevent="submit" class="form">
-          <fieldset v-if="currentStep === 0" class="step-panel">
-            <legend>Informacion general</legend>
-            <div class="grid-2">
+
+          <!-- STEP 1 -->
+          <div v-if="currentStep === 0" class="step-panel">
+            <div class="panel-header">
+              <span class="panel-icon">📋</span>
+              <div><h2>Informacion general</h2><p>Datos basicos de la propiedad</p></div>
+            </div>
+            <div class="fields-grid">
               <div class="field">
                 <label>Titulo <span class="req">*</span></label>
-                <input v-model="form.title" type="text" placeholder="Casa en fraccionamiento Las Palmas" required />
+                <input v-model="form.title" type="text" placeholder="Casa en fraccionamiento Las Palmas" />
               </div>
               <div class="field">
                 <label>Precio (MXN) <span class="req">*</span></label>
-                <input v-model="form.price" type="number" min="0" placeholder="1500000" required />
+                <div class="input-prefix">
+                  <span>$</span>
+                  <input v-model="form.price" type="number" min="0" placeholder="1500000" />
+                </div>
               </div>
               <div class="field">
                 <label>Tipo de propiedad <span class="req">*</span></label>
-                <select v-model="form.property_type" required>
+                <select v-model="form.property_type">
                   <option value="" disabled>Selecciona un tipo</option>
                   <option value="house">Casa</option>
                   <option value="apartment">Departamento</option>
@@ -392,148 +412,158 @@ const submit = async () => {
               </div>
               <div class="field">
                 <label>Operacion <span class="req">*</span></label>
-                <select v-model="form.transaction_type">
-                  <option value="sale">Venta</option>
-                  <option value="rent">Renta</option>
-                </select>
+                <div class="toggle-group">
+                  <button type="button" :class="['toggle-btn', { active: form.transaction_type === 'sale' }]" @click="form.transaction_type = 'sale'">Venta</button>
+                  <button type="button" :class="['toggle-btn', { active: form.transaction_type === 'rent' }]" @click="form.transaction_type = 'rent'">Renta</button>
+                </div>
               </div>
             </div>
-          </fieldset>
+          </div>
 
-          <fieldset v-if="currentStep === 1" class="step-panel">
-            <legend>Fotos generales</legend>
-            <div class="field">
-              <label>Fotos de la propiedad <span class="req">*</span></label>
+          <!-- STEP 2 -->
+          <div v-if="currentStep === 1" class="step-panel">
+            <div class="panel-header">
+              <span class="panel-icon">📷</span>
+              <div><h2>Fotos generales</h2><p>La primera imagen sera la principal</p></div>
+            </div>
+            <label class="upload-zone">
               <input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onGeneralFilesChange" />
-              <small class="help">Formatos: JPG, PNG, WEBP. La primera imagen sera la principal.</small>
-            </div>
+              <div class="upload-content">
+                <div class="upload-icon">🖼</div>
+                <strong>Arrastra tus fotos aqui</strong>
+                <span>o haz clic para seleccionar</span>
+                <small>JPG, PNG, WEBP · Max {{ MAX_GENERAL_FILES }} fotos · {{ MAX_SIZE_MB }}MB c/u</small>
+              </div>
+            </label>
             <div v-if="generalPreviews.length" class="preview-grid">
-              <img v-for="(src, idx) in generalPreviews" :key="idx" :src="src" :alt="`preview-${idx}`" />
+              <div v-for="(src, idx) in generalPreviews" :key="idx" class="preview-item">
+                <img :src="src" :alt="`preview-${idx}`" />
+                <span v-if="idx === 0" class="main-badge">Principal</span>
+              </div>
             </div>
-          </fieldset>
+          </div>
 
-          <fieldset v-if="currentStep === 2" class="step-panel">
-            <legend>Ubicacion</legend>
+          <!-- STEP 3 -->
+          <div v-if="currentStep === 2" class="step-panel">
+            <div class="panel-header">
+              <span class="panel-icon">📍</span>
+              <div><h2>Ubicacion</h2><p>Donde se encuentra la propiedad</p></div>
+            </div>
             <div class="location-layout">
               <div class="location-fields">
                 <div class="field">
                   <label>Ciudad <span class="req">*</span></label>
-                  <input v-model="form.city" type="text" placeholder="Tuxtla Gutierrez" required />
+                  <input v-model="form.city" type="text" placeholder="Tuxtla Gutierrez" />
                 </div>
                 <div class="field">
                   <label>Direccion <span class="req">*</span></label>
-                  <input v-model="form.address" type="text" placeholder="Calle Reforma 123, Col. Centro" required />
+                  <input v-model="form.address" type="text" placeholder="Calle Reforma 123, Col. Centro" />
                 </div>
-                <div class="grid-2 compact">
-                  <div class="field">
-                    <label>Latitud</label>
-                    <input v-model="form.latitude" type="number" step="any" placeholder="16.7521" />
-                  </div>
-                  <div class="field">
-                    <label>Longitud</label>
-                    <input v-model="form.longitude" type="number" step="any" placeholder="-93.1147" />
-                  </div>
+                <div class="grid-2">
+                  <div class="field"><label>Latitud</label><input v-model="form.latitude" type="number" step="any" placeholder="16.7521" /></div>
+                  <div class="field"><label>Longitud</label><input v-model="form.longitude" type="number" step="any" placeholder="-93.1147" /></div>
                 </div>
               </div>
               <div class="map-slot">
-                <div class="map-pin"></div>
+                <div class="map-pin-icon">📍</div>
                 <strong>Mapa de ubicacion</strong>
-                <small>Leaflet Maps</small>
+                <small>Ingresa lat/lng para previsualizar</small>
               </div>
             </div>
-          </fieldset>
+          </div>
 
-          <fieldset v-if="currentStep === 3" class="step-panel">
-            <legend>Caracteristicas y descripcion</legend>
-            <div class="grid-3">
-              <div class="field">
+          <!-- STEP 4 -->
+          <div v-if="currentStep === 3" class="step-panel">
+            <div class="panel-header">
+              <span class="panel-icon">🏠</span>
+              <div><h2>Caracteristicas</h2><p>Detalles fisicos de la propiedad</p></div>
+            </div>
+            <div class="features-cards">
+              <div class="feature-card">
+                <span class="feature-emoji">🛏</span>
                 <label>Recamaras</label>
-                <input v-model="form.bedrooms" type="number" min="0" placeholder="3" />
+                <input v-model="form.bedrooms" type="number" min="0" placeholder="0" />
               </div>
-              <div class="field">
+              <div class="feature-card">
+                <span class="feature-emoji">🛁</span>
                 <label>Banos</label>
-                <input v-model="form.bathrooms" type="number" min="0" placeholder="2" />
+                <input v-model="form.bathrooms" type="number" min="0" placeholder="0" />
               </div>
-              <div class="field">
-                <label>Superficie (m2)</label>
-                <input v-model="form.square_meters" type="number" min="0" placeholder="120" />
+              <div class="feature-card">
+                <span class="feature-emoji">📐</span>
+                <label>Superficie m²</label>
+                <input v-model="form.square_meters" type="number" min="0" placeholder="0" />
               </div>
             </div>
             <div class="field">
-              <label>Detalles de la propiedad</label>
-              <textarea
-                v-model="form.description"
-                rows="6"
-                placeholder="Amenidades, estado del inmueble, orientacion, entorno y plusvalia."
-              />
+              <label>Descripcion de la propiedad</label>
+              <textarea v-model="form.description" rows="5" placeholder="Amenidades, estado del inmueble, orientacion, entorno y plusvalia..." />
             </div>
-          </fieldset>
+          </div>
 
-          <fieldset v-if="currentStep === 4" class="step-panel">
-            <legend>Fotos por apartados</legend>
+          <!-- STEP 5 -->
+          <div v-if="currentStep === 4" class="step-panel">
+            <div class="panel-header">
+              <span class="panel-icon">🖼</span>
+              <div><h2>Fotos por apartados</h2><p>Agrega fotos especificas de cada espacio</p></div>
+            </div>
 
-            <section v-if="bedroomsCount" class="section-block">
-              <header>
-                <h2>Recamaras</h2>
-                <span>{{ bedroomsCount }} foto(s)</span>
-              </header>
+            <div v-if="bedroomsCount" class="section-block">
+              <div class="section-block-header">
+                <span>🛏 Recamaras</span>
+                <span class="count-badge">{{ bedroomsCount }} foto(s)</span>
+              </div>
               <div class="slot-grid">
                 <label v-for="index in bedroomsCount" :key="`bed-${index}`" class="photo-slot">
                   <img v-if="bedroomPhotos[index - 1]?.preview" :src="bedroomPhotos[index - 1].preview" :alt="`Recamara ${index}`" />
-                  <span v-else>Recamara {{ index }}</span>
+                  <div v-else class="slot-empty"><span>+</span><small>Recamara {{ index }}</small></div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bedroomPhotos, index - 1)" />
                 </label>
               </div>
-            </section>
+            </div>
 
-            <section v-if="bathroomsCount" class="section-block">
-              <header>
-                <h2>Banos</h2>
-                <span>{{ bathroomsCount }} foto(s)</span>
-              </header>
+            <div v-if="bathroomsCount" class="section-block">
+              <div class="section-block-header">
+                <span>🛁 Banos</span>
+                <span class="count-badge">{{ bathroomsCount }} foto(s)</span>
+              </div>
               <div class="slot-grid">
                 <label v-for="index in bathroomsCount" :key="`bath-${index}`" class="photo-slot">
                   <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`Bano ${index}`" />
-                  <span v-else>Bano {{ index }}</span>
+                  <div v-else class="slot-empty"><span>+</span><small>Bano {{ index }}</small></div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bathroomPhotos, index - 1)" />
                 </label>
               </div>
-            </section>
+            </div>
 
-            <section class="section-block">
-              <header>
-                <h2>Extras</h2>
-                <button type="button" class="link-btn" @click="addExtra">Agregar extra</button>
-              </header>
-
+            <div class="section-block">
+              <div class="section-block-header">
+                <span>✨ Extras</span>
+                <button type="button" class="add-extra-btn" @click="addExtra">+ Agregar espacio</button>
+              </div>
               <div v-for="(extra, index) in extras" :key="index" class="extra-row">
-                <div class="field">
-                  <label>Nombre del extra</label>
-                  <input v-model="extra.label" type="text" placeholder="Cocina, patio, sala..." />
-                </div>
-                <div class="field">
-                  <label>Fotos del extra</label>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onExtraFilesChange($event, index)" />
-                </div>
-                <button type="button" class="remove-btn" @click="removeExtra(index)">Quitar</button>
+                <div class="field"><label>Nombre del espacio</label><input v-model="extra.label" type="text" placeholder="Cocina, patio, sala..." /></div>
+                <div class="field"><label>Fotos</label><input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onExtraFilesChange($event, index)" /></div>
+                <button type="button" class="remove-btn" @click="removeExtra(index)">✕ Quitar</button>
                 <div v-if="extra.previews.length" class="preview-grid extra-preview">
-                  <img v-for="(src, imgIndex) in extra.previews" :key="imgIndex" :src="src" :alt="`${extra.label || 'Extra'} ${imgIndex + 1}`" />
+                  <div v-for="(src, imgIndex) in extra.previews" :key="imgIndex" class="preview-item">
+                    <img :src="src" :alt="`${extra.label || 'Extra'} ${imgIndex + 1}`" />
+                  </div>
                 </div>
               </div>
-            </section>
-          </fieldset>
-
-          <div class="actions">
-            <button v-if="currentStep > 0" class="ghost" type="button" :disabled="loading" @click="prevStep">
-              Atras
-            </button>
-            <button v-if="!isLastStep" class="submit" type="button" :disabled="loading" @click="nextStep">
-              Siguiente
-            </button>
-            <button v-else class="submit" type="submit" :disabled="loading">
-              {{ loading ? 'Publicando...' : 'Publicar propiedad' }}
-            </button>
+            </div>
           </div>
+
+          <!-- ACTIONS -->
+          <div class="actions">
+            <button v-if="currentStep > 0" class="btn-back" type="button" :disabled="loading" @click="prevStep">← Atras</button>
+            <div class="actions-right">
+              <span class="step-hint">Paso {{ currentStep + 1 }} de {{ steps.length }}</span>
+              <button v-if="!isLastStep" class="btn-next" type="button" :disabled="loading" @click="nextStep">Siguiente →</button>
+              <button v-else class="btn-next btn-publish" type="submit" :disabled="loading">{{ loading ? "Publicando..." : "✓ Publicar propiedad" }}</button>
+            </div>
+          </div>
+
         </form>
       </template>
     </div>
@@ -541,476 +571,174 @@ const submit = async () => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+* { box-sizing: border-box; }
+
 .create {
-  --ink: #111827;
-  --muted: #566074;
-  --line: #dde3ed;
-  --soft: #f6f8fb;
-  --brand: #0d9488;
-  --brand-deep: #0f766e;
+  --gold: #d4a34a;
+  --gold-light: #f0c36f;
+  --navy: #07172d;
+  --navy-mid: #0f2a45;
+  --cream: #f5f2ec;
+  --white: #ffffff;
+  --muted: #65717e;
+  --line: #e5e0d6;
+  --error: #991b1b;
+  --error-bg: #fef2f2;
   min-height: 100vh;
   padding: 48px 20px 72px;
-  background: #f4f7fb;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--cream);
+  font-family: "Poppins", sans-serif;
 }
+.container { max-width: 960px; margin: 0 auto; }
 
-.container {
-  max-width: 980px;
-  margin: auto;
+/* HEADER */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; }
+.kicker { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+h1 { font-size: 36px; font-weight: 800; color: var(--navy); margin: 0 0 6px; line-height: 1.1; }
+.subtitle { font-size: 14px; color: var(--muted); margin: 0; }
+.header-step-indicator { text-align: right; flex-shrink: 0; }
+.step-count { display: block; font-size: 28px; font-weight: 800; color: var(--navy); line-height: 1; }
+.step-name { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+/* WIZARD NAV */
+.wizard-nav { display: flex; gap: 8px; background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 0; box-shadow: 0 2px 12px rgba(7,23,45,0.06); }
+.step-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 8px; border: 1.5px solid var(--line); border-radius: 10px; background: #faf9f6; color: var(--muted); font-size: 12px; font-weight: 600; font-family: "Poppins", sans-serif; cursor: default; transition: all 0.2s; }
+.step-btn.done { cursor: pointer; }
+.step-btn.active { border-color: var(--gold); background: #fdf8ee; color: var(--navy); }
+.step-btn.done { border-color: rgba(212,163,74,0.4); background: #fdf8ee; color: var(--navy); }
+.step-circle { width: 24px; height: 24px; border-radius: 50%; background: var(--line); color: var(--muted); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; transition: all 0.2s; }
+.step-btn.active .step-circle, .step-btn.done .step-circle { background: var(--gold); color: var(--navy); }
+.step-label { display: none; }
+@media (min-width: 640px) { .step-label { display: block; } }
+
+/* PROGRESS */
+.progress-bar { height: 4px; background: var(--line); border-radius: 0 0 8px 8px; overflow: hidden; margin-bottom: 24px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); transition: width 0.3s ease; }
+
+/* ALERTS */
+.alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+.alert-error { background: var(--error-bg); color: var(--error); border: 1px solid #fecaca; }
+.alert-warning { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; }
+
+/* STEP PANEL */
+.step-panel { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 28px; box-shadow: 0 2px 16px rgba(7,23,45,0.06); display: flex; flex-direction: column; gap: 24px; }
+.panel-header { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.panel-icon { font-size: 28px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.panel-header h2 { font-size: 18px; font-weight: 700; color: var(--navy); margin: 0 0 4px; }
+.panel-header p { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* FIELDS */
+.fields-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 13px; font-weight: 600; color: var(--navy); }
+.req { color: var(--gold); }
+
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px;
+  background: #faf9f6; color: var(--navy); font-size: 14px; font-family: "Poppins", sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s; outline: none;
 }
+input:focus, select:focus, textarea:focus { border-color: var(--gold); background: var(--white); box-shadow: 0 0 0 3px rgba(212,163,74,0.15); }
+input::placeholder, textarea::placeholder { color: #b5ae9f; }
 
-.hero {
-  margin-bottom: 22px;
-}
+.input-prefix { display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 10px; background: #faf9f6; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+.input-prefix:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,163,74,0.15); }
+.input-prefix span { padding: 11px 12px; font-size: 14px; font-weight: 600; color: var(--muted); background: #f0ece4; border-right: 1px solid var(--line); }
+.input-prefix input { border: none; border-radius: 0; background: transparent; box-shadow: none !important; }
 
-.kicker {
-  margin: 0 0 8px;
-  color: var(--brand-deep);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 12px;
-}
+.toggle-group { display: flex; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; }
+.toggle-btn { flex: 1; padding: 11px; border: none; background: #faf9f6; color: var(--muted); font-size: 14px; font-weight: 600; font-family: "Poppins", sans-serif; cursor: pointer; transition: all 0.2s; }
+.toggle-btn:first-child { border-right: 1px solid var(--line); }
+.toggle-btn.active { background: var(--gold); color: var(--navy); }
 
-h1 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 38px;
-  line-height: 1.1;
-}
+/* UPLOAD */
+.upload-zone { display: block; cursor: pointer; position: relative; }
+.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-content { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 40px 20px; border: 2px dashed var(--line); border-radius: 14px; background: #faf9f6; text-align: center; transition: border-color 0.2s, background 0.2s; }
+.upload-zone:hover .upload-content { border-color: var(--gold); background: #fdf8ee; }
+.upload-icon { font-size: 36px; margin-bottom: 4px; }
+.upload-content strong { font-size: 15px; color: var(--navy); font-weight: 700; }
+.upload-content span { font-size: 13px; color: var(--muted); }
+.upload-content small { font-size: 12px; color: #b5ae9f; }
 
-.subtitle {
-  margin: 10px 0 0;
-  color: var(--muted);
-  font-size: 15px;
-}
+/* PREVIEW */
+.preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.preview-item { position: relative; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--line); aspect-ratio: 4/3; }
+.preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.main-badge { position: absolute; top: 6px; left: 6px; background: var(--gold); color: var(--navy); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
 
-.wizard-head,
-.step-panel {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
-}
+/* LOCATION */
+.location-layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; }
+.location-fields { display: flex; flex-direction: column; gap: 14px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.map-slot { min-height: 220px; border: 2px dashed var(--line); border-radius: 14px; background: linear-gradient(#f0ece4 1px, transparent 1px), linear-gradient(90deg, #f0ece4 1px, transparent 1px), #faf9f6; background-size: 28px 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); text-align: center; }
+.map-pin-icon { font-size: 32px; }
+.map-slot strong { font-size: 14px; color: var(--navy); font-weight: 600; }
+.map-slot small { font-size: 12px; }
 
-.wizard-head {
-  padding: 16px;
-  margin-bottom: 16px;
-}
+/* FEATURES */
+.features-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.feature-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 16px; background: #faf9f6; border: 1.5px solid var(--line); border-radius: 14px; text-align: center; }
+.feature-emoji { font-size: 28px; }
+.feature-card label { font-size: 13px; font-weight: 600; color: var(--navy); }
+.feature-card input { text-align: center; font-size: 18px; font-weight: 700; padding: 8px; max-width: 100px; }
 
-.steps {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-}
+/* SECTION BLOCKS */
+.section-block { border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; }
+.section-block-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #faf9f6; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 700; color: var(--navy); }
+.count-badge { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--line); padding: 3px 10px; border-radius: 20px; }
+.add-extra-btn { background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; }
+.add-extra-btn:hover { background: var(--gold-light); }
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding: 16px; }
+.photo-slot { position: relative; aspect-ratio: 4/3; border: 2px dashed #d4c9b8; border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color 0.2s; }
+.photo-slot:hover { border-color: var(--gold); }
+.photo-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+.slot-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 4px; color: var(--muted); }
+.slot-empty span { font-size: 24px; font-weight: 300; color: var(--gold); }
+.slot-empty small { font-size: 11px; font-weight: 600; }
+.extra-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; padding: 16px; border-bottom: 1px solid var(--line); }
+.extra-row:last-child { border-bottom: none; }
+.extra-preview { grid-column: 1/-1; }
+.remove-btn { padding: 10px 14px; border: 1.5px solid #fecaca; border-radius: 10px; background: #fef2f2; color: var(--error); font-size: 12px; font-weight: 700; font-family: "Poppins", sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.remove-btn:hover { background: #fee2e2; }
 
-.step {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  border: 1px solid #e1e7f0;
-  border-radius: 10px;
-  background: #f9fbff;
-  color: #4b5563;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: default;
-}
+/* ACTIONS */
+.form { display: flex; flex-direction: column; gap: 16px; }
+.actions { display: flex; align-items: center; justify-content: space-between; background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; box-shadow: 0 2px 12px rgba(7,23,45,0.06); }
+.actions-right { display: flex; align-items: center; gap: 14px; }
+.step-hint { font-size: 12px; color: var(--muted); font-weight: 500; }
+.btn-back { padding: 11px 22px; border: 1.5px solid var(--line); border-radius: 10px; background: transparent; color: var(--navy); font-size: 14px; font-weight: 600; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; }
+.btn-back:hover { background: #f0ece4; }
+.btn-back:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-next { padding: 11px 28px; border: none; border-radius: 10px; background: var(--navy); color: var(--white); font-size: 14px; font-weight: 700; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s, box-shadow 0.2s; box-shadow: 0 4px 14px rgba(7,23,45,0.2); }
+.btn-next:hover { background: var(--navy-mid); }
+.btn-next:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.btn-publish { background: var(--gold); color: var(--navy); box-shadow: 0 4px 14px rgba(212,163,74,0.35); }
+.btn-publish:hover { background: var(--gold-light); }
 
-.step span {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #e8eef7;
-  color: #334155;
-  font-size: 12px;
-}
+/* SUCCESS */
+.success-card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 60px 40px; text-align: center; box-shadow: 0 4px 24px rgba(7,23,45,0.08); }
+.success-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: var(--navy); margin: 0 auto 20px; }
+.success-card h2 { font-size: 24px; color: var(--navy); margin: 0 0 8px; }
+.success-card p { color: var(--muted); font-size: 15px; margin: 0; }
 
-.step.done {
-  cursor: pointer;
-}
-
-.step.active,
-.step.done {
-  border-color: rgba(13, 148, 136, 0.38);
-  color: var(--brand-deep);
-  background: #eefdfa;
-}
-
-.step.active span,
-.step.done span {
-  background: var(--brand);
-  color: #fff;
-}
-
-.progress {
-  height: 5px;
-  margin-top: 14px;
-  border-radius: 999px;
-  background: #e5eaf2;
-  overflow: hidden;
-}
-
-.progress div {
-  height: 100%;
-  background: var(--brand);
-  transition: width .25s ease;
-}
-
-.form {
-  display: grid;
-  gap: 16px;
-}
-
-.step-panel {
-  display: grid;
-  gap: 18px;
-  padding: 24px;
-  margin: 0;
-}
-
-legend {
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0 8px;
-}
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.compact {
-  gap: 10px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field label {
-  font-size: 13px;
-  color: #374151;
-  font-weight: 700;
-}
-
-.req {
-  color: #dc2626;
-}
-
-.help {
-  color: #667085;
-  font-size: 12px;
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 11px 12px;
-  border-radius: 10px;
-  border: 1px solid #d3dae5;
-  background: #fff;
-  color: #0f172a;
-  font-size: 14px;
-  font-family: inherit;
-  transition: border-color .2s ease, box-shadow .2s ease;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.16);
-}
-
-.location-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 18px;
-  align-items: stretch;
-}
-
-.location-fields {
-  display: grid;
-  gap: 14px;
-}
-
-.map-slot {
-  min-height: 255px;
-  border: 1px dashed #b8c5d6;
-  border-radius: 14px;
-  background:
-    linear-gradient(#eef3f9 1px, transparent 1px),
-    linear-gradient(90deg, #eef3f9 1px, transparent 1px),
-    #f8fafc;
-  background-size: 28px 28px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 8px;
-  color: #526173;
-}
-
-.map-pin {
-  width: 26px;
-  height: 26px;
-  border-radius: 50% 50% 50% 0;
-  background: var(--brand);
-  transform: rotate(-45deg);
-  position: relative;
-}
-
-.map-pin::after {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #fff;
-  left: 8px;
-  top: 8px;
-}
-
-.map-slot strong,
-.map-slot small {
-  transform: none;
-}
-
-.preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-}
-
-.preview-grid img {
-  width: 100%;
-  height: 92px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid #dbe3f0;
-}
-
-.section-block {
-  display: grid;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid #e1e7f0;
-  border-radius: 14px;
-  background: #fbfcff;
-}
-
-.section-block header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.section-block h2 {
-  margin: 0;
-  font-size: 16px;
-  color: var(--ink);
-}
-
-.section-block span {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.slot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-  gap: 10px;
-}
-
-.photo-slot {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-height: 120px;
-  border: 1px dashed #b8c5d6;
-  border-radius: 12px;
-  background: #fff;
-  color: #526173;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.photo-slot input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.photo-slot img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.extra-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: end;
-  padding: 14px;
-  border: 1px solid #e5eaf2;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.extra-preview {
-  grid-column: 1 / -1;
-}
-
-.link-btn,
-.remove-btn,
-.ghost,
-.submit {
-  border: none;
-  font-family: inherit;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.link-btn {
-  color: var(--brand-deep);
-  background: transparent;
-  padding: 8px 0;
-}
-
-.remove-btn {
-  min-height: 40px;
-  padding: 0 12px;
-  border-radius: 10px;
-  color: #9f1239;
-  background: #fff1f2;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.ghost,
-.submit {
-  min-height: 44px;
-  padding: 0 20px;
-  border-radius: 12px;
-  font-size: 14px;
-}
-
-.ghost {
-  color: #334155;
-  background: #e8eef7;
-}
-
-.submit {
-  color: #fff;
-  background: var(--brand-deep);
-  box-shadow: 0 12px 24px rgba(15, 118, 110, 0.22);
-}
-
-.submit:hover {
-  background: var(--brand);
-}
-
-.submit:disabled,
-.ghost:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.alert {
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.alert-success {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
-}
-
-.alert-error {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
-}
-
-.alert-warning {
-  background: #fff7ed;
-  color: #9a3412;
-  border: 1px solid #fdba74;
-}
-
+/* RESPONSIVE */
 @media (max-width: 860px) {
-  .steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .location-layout,
-  .grid-2,
-  .grid-3,
-  .extra-row {
-    grid-template-columns: 1fr;
-  }
-
-  .map-slot {
-    min-height: 220px;
-  }
+  .fields-grid, .location-layout, .grid-2 { grid-template-columns: 1fr; }
+  .wizard-nav { flex-wrap: wrap; }
+  .step-btn { flex: 1 1 calc(50% - 4px); }
 }
-
 @media (max-width: 560px) {
-  .create {
-    padding: 34px 14px 56px;
-  }
-
-  h1 {
-    font-size: 30px;
-  }
-
-  .step-panel,
-  .wizard-head {
-    border-radius: 12px;
-    padding: 16px;
-  }
-
-  .steps {
-    grid-template-columns: 1fr;
-  }
-
-  .actions {
-    flex-direction: column-reverse;
-  }
+  .create { padding: 32px 14px 56px; }
+  h1 { font-size: 28px; }
+  .step-panel { padding: 18px; }
+  .features-cards { grid-template-columns: 1fr; }
+  .extra-row { grid-template-columns: 1fr; }
+  .actions { flex-direction: column; gap: 10px; }
+  .actions-right { width: 100%; justify-content: flex-end; }
+  .page-header { flex-direction: column; gap: 8px; }
 }
 </style>
