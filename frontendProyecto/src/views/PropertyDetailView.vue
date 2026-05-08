@@ -16,6 +16,7 @@ const error     = ref('')
 const activeImg = ref(0)
 const toggling  = ref(false)
 const isAnimating = ref(false)
+const lightboxOpen = ref(false)
 
 onMounted(async () => {
   try {
@@ -50,8 +51,14 @@ const next = () => goTo(activeImg.value + 1)
 
 // Keyboard navigation
 const onKey = (e) => {
-  if (e.key === 'ArrowLeft') prev()
-  if (e.key === 'ArrowRight') next()
+  if (lightboxOpen.value) {
+    if (e.key === 'ArrowLeft') prev()
+    if (e.key === 'ArrowRight') next()
+    if (e.key === 'Escape') lightboxOpen.value = false
+  } else {
+    if (e.key === 'ArrowLeft') prev()
+    if (e.key === 'ArrowRight') next()
+  }
 }
 onMounted(() => window.addEventListener('keydown', onKey))
 onUnmounted(() => window.removeEventListener('keydown', onKey))
@@ -96,7 +103,15 @@ const txLabel   = { sale: 'En Venta', rent: 'En Renta' }
           :src="images[activeImg]?.image_url"
           :alt="property.title"
           class="carousel-img"
+          style="cursor:zoom-in"
+          @click="lightboxOpen = true"
         />
+
+        <!-- Hint ver en grande -->
+        <div class="zoom-hint" @click="lightboxOpen = true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          Ver en grande
+        </div>
 
         <!-- Overlay degradado -->
         <div class="carousel-overlay"></div>
@@ -223,6 +238,43 @@ const txLabel   = { sale: 'En Venta', rent: 'En Renta' }
       </div>
 
     </div>
+
+    <!-- LIGHTBOX -->
+    <Teleport to="body">
+      <Transition name="lb">
+        <div v-if="lightboxOpen" class="lb-backdrop" @click.self="lightboxOpen = false">
+          <div class="lb-panel">
+            <div class="lb-header">
+              <span class="lb-counter">{{ activeImg + 1 }} / {{ images.length }}</span>
+              <span class="lb-label">{{ images[activeImg]?.label || property.title }}</span>
+              <button class="lb-close" @click="lightboxOpen = false">✕</button>
+            </div>
+            <div class="lb-img-wrap">
+              <button v-if="images.length > 1" class="lb-arrow lb-prev" @click.stop="prev">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <Transition name="img-fade" mode="out-in">
+                <img :key="activeImg" :src="images[activeImg]?.image_url" :alt="images[activeImg]?.label || property.title" class="lb-img" />
+              </Transition>
+              <button v-if="images.length > 1" class="lb-arrow lb-next" @click.stop="next">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+            <div v-if="images.length > 1" class="lb-thumbs">
+              <button
+                v-for="(img, i) in images"
+                :key="i"
+                :class="['lb-thumb', { active: activeImg === i }]"
+                @click.stop="goTo(i)"
+              >
+                <img :src="img.image_url" :alt="`thumb-${i}`" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
   </div>
 </template>
 
@@ -601,4 +653,60 @@ const txLabel   = { sale: 'En Venta', rent: 'En Renta' }
   .thumb-btn { width: 80px; height: 54px; }
   .price { font-size: 26px; }
 }
+
+/* ── ZOOM HINT ── */
+.zoom-hint {
+  position: absolute;
+  bottom: 100px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+}
+.zoom-hint:hover { background: rgba(212,163,74,0.8); }
+
+/* ── LIGHTBOX ── */
+.lb-backdrop {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(7,23,45,0.94);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; backdrop-filter: blur(8px);
+}
+.lb-panel { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 12px; max-height: 92vh; }
+.lb-header { display: flex; align-items: center; gap: 12px; color: white; }
+.lb-panel { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 12px; max-height: 92vh; font-family: 'Poppins', sans-serif; }
+.lb-label { font-size: 14px; color: rgba(255,255,255,0.7); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-close { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.12); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+.lb-close:hover { background: rgba(255,255,255,0.25); }
+.lb-img-wrap { position: relative; display: flex; align-items: center; justify-content: center; border-radius: 14px; overflow: hidden; background: rgba(0,0,0,0.3); max-height: 68vh; }
+.lb-img { width: 100%; max-height: 68vh; object-fit: contain; display: block; }
+.lb-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; width: 44px; height: 44px; border: none; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.2s; }
+.lb-arrow:hover { background: rgba(212,163,74,0.75); transform: translateY(-50%) scale(1.08); }
+.lb-prev { left: 14px; }
+.lb-next { right: 14px; }
+.lb-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: thin; scrollbar-color: #d4a34a transparent; }
+.lb-thumb { flex-shrink: 0; width: 72px; height: 50px; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; padding: 0; background: none; opacity: 0.55; transition: opacity 0.2s, border-color 0.2s, transform 0.2s; }
+.lb-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.lb-thumb.active { border-color: #d4a34a; opacity: 1; transform: scale(1.06); }
+.lb-thumb:hover { opacity: 0.85; }
+.lb-enter-active, .lb-leave-active { transition: opacity 0.25s ease; }
+.lb-enter-from, .lb-leave-to { opacity: 0; }
+.img-fade-enter-active, .img-fade-leave-active { transition: opacity 0.18s ease; }
+.img-fade-enter-from, .img-fade-leave-to { opacity: 0; }
+@media (max-width: 600px) {
+  .lb-thumb { width: 56px; height: 40px; }
+  .lb-arrow { width: 36px; height: 36px; }
+  .zoom-hint { display: none; }
+}
+
 </style>
