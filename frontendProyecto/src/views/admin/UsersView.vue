@@ -108,7 +108,7 @@ onMounted(load)
       <table>
         <thead>
           <tr>
-            <th>Nombre</th><th>Email</th><th>Telefono</th>
+            <th>Nombre</th><th>Email</th><th>Teléfono</th>
             <th>Rol</th><th>Estado</th><th>Acciones</th>
           </tr>
         </thead>
@@ -143,9 +143,9 @@ onMounted(load)
         <div v-if="modalError" class="alert-error">{{ modalError }}</div>
         <div class="form">
           <input v-model="newUser.full_name" placeholder="Nombre completo" required />
-          <input v-model="newUser.email" type="email" placeholder="Correo electronico" required />
-          <input v-model="newUser.phone" type="tel" placeholder="Telefono opcional" />
-          <input v-model="newUser.password" type="password" placeholder="Contrasena" required />
+          <input v-model="newUser.email" type="email" placeholder="Correo electrónico" required />
+          <input v-model="newUser.phone" type="tel" placeholder="Teléfono opcional" />
+          <input v-model="newUser.password" type="password" placeholder="Contraseña" required />
           <select v-model="newUser.role_name">
             <option value="client">Cliente</option>
             <option value="advisor">Asesor</option>
@@ -166,7 +166,7 @@ onMounted(load)
 <style scoped>
 .admin-users {
   display: grid;
-  gap: 22px;
+  gap: 18px;
 }
 
 .header {
@@ -175,7 +175,7 @@ onMounted(load)
   align-items: center;
   gap: 18px;
   padding: 28px;
-  border-radius: 16px;
+  border-radius: 12px;
   background: #fffdf8;
   box-shadow: var(--shadow-soft);
 }
@@ -190,7 +190,7 @@ onMounted(load)
 
 h1,
 h2 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Poppins', sans-serif;
   color: #07172d;
 }
 
@@ -247,7 +247,7 @@ h1 {
 
 .table-container {
   background: #fffdf8;
-  border-radius: 16px;
+  border-radius: 10px;
   box-shadow: var(--shadow-soft);
   overflow-x: auto;
 }
@@ -319,7 +319,7 @@ th {
 
 .modal {
   background: #fffdf8;
-  border-radius: 16px;
+  border-radius: 10px;
   padding: 30px;
   width: 100%;
   max-width: 460px;

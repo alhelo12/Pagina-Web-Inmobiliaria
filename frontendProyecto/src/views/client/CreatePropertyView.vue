@@ -1,9 +1,13 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { propertiesApi } from '@/api/properties'
+import { normalizeImageUrl } from '@/utils/propertyImages'
 
 const router = useRouter()
+const route = useRoute()
+const propertyId = computed(() => route.params.id)
+const isEdit = computed(() => Boolean(propertyId.value))
 
 const steps = [
   'Informacion',
@@ -30,6 +34,7 @@ const form = ref({
 
 const currentStep = ref(0)
 const loading = ref(false)
+const initialLoading = ref(false)
 const success = ref(false)
 const warning = ref('')
 const error = ref('')
@@ -45,6 +50,7 @@ const MAX_EXTRA_FILES = 8
 const MAX_SIZE_MB = 10
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
+const returnPath = computed(() => (route.path.startsWith('/admin') ? '/admin/propiedades' : '/propiedades'))
 const bedroomsCount = computed(() => Math.max(0, Number(form.value.bedrooms) || 0))
 const bathroomsCount = computed(() => Math.max(0, Number(form.value.bathrooms) || 0))
 const progress = computed(() => `${((currentStep.value + 1) / steps.length) * 100}%`)
@@ -200,7 +206,7 @@ const validateStep = () => {
     }
   }
 
-  if (currentStep.value === 1 && !generalFiles.value.length) {
+  if (currentStep.value === 1 && !isEdit.value && !generalFiles.value.length) {
     error.value = 'Agrega al menos una foto general de la propiedad'
     return false
   }
@@ -310,6 +316,37 @@ const uploadPropertyImages = async (propertyId) => {
   return uploadErrors
 }
 
+const loadProperty = async () => {
+  if (!isEdit.value) return
+
+  initialLoading.value = true
+  error.value = ''
+  try {
+    const { data } = await propertiesApi.getById(propertyId.value)
+    form.value = {
+      title: data.title ?? '',
+      description: data.description ?? '',
+      price: data.price ?? '',
+      property_type: data.property_type ?? '',
+      transaction_type: data.transaction_type ?? 'sale',
+      address: data.address ?? '',
+      city: data.city ?? '',
+      bedrooms: data.bedrooms ?? '',
+      bathrooms: data.bathrooms ?? '',
+      square_meters: data.square_meters ?? '',
+      latitude: data.latitude ?? '',
+      longitude: data.longitude ?? ''
+    }
+    generalPreviews.value = (data.images ?? [])
+      .filter((image) => image.image_type === 'general' || image.is_main)
+      .map((image) => normalizeImageUrl(image.image_url))
+  } catch (err) {
+    error.value = err.response?.data?.detail ?? 'No se pudo cargar la propiedad'
+  } finally {
+    initialLoading.value = false
+  }
+}
+
 const submit = async () => {
   if (!validateStep()) return
 
@@ -317,32 +354,36 @@ const submit = async () => {
   warning.value = ''
   loading.value = true
   try {
-    const { data: created } = await propertiesApi.create(buildPayload())
-    const uploadErrors = await uploadPropertyImages(created.id)
+    const { data: saved } = isEdit.value
+      ? await propertiesApi.update(propertyId.value, buildPayload())
+      : await propertiesApi.create(buildPayload())
+
+    const uploadErrors = await uploadPropertyImages(saved.id)
 
     if (uploadErrors > 0) {
-      warning.value = `La propiedad se publico, pero ${uploadErrors} imagen(es) no se pudieron subir.`
+      warning.value = `La propiedad se guardó, pero ${uploadErrors} imagen(es) no se pudieron subir.`
     }
 
     success.value = true
-    setTimeout(() => router.push('/propiedades'), 2500)
+    setTimeout(() => router.push(returnPath.value), 1800)
   } catch (err) {
-    error.value = err.response?.data?.detail ?? 'Error al publicar la propiedad'
+    error.value = err.response?.data?.detail ?? 'Error al guardar la propiedad'
   } finally {
     loading.value = false
   }
 }
+
+onMounted(loadProperty)
 </script>
 
 <template>
   <section class="create">
     <div class="container">
-
       <header class="page-header">
         <div>
           <span class="kicker">Panel Admin</span>
-          <h1>Nueva propiedad</h1>
-          <p class="subtitle">Completa la publicacion paso a paso.</p>
+          <h1>{{ isEdit ? 'Editar propiedad' : 'Nueva propiedad' }}</h1>
+          <p class="subtitle">{{ isEdit ? 'Actualiza la informacion principal de la propiedad.' : 'Completa la publicacion paso a paso.' }}</p>
         </div>
         <div class="header-step-indicator">
           <span class="step-count">{{ currentStep + 1 }}/{{ steps.length }}</span>
@@ -352,11 +393,15 @@ const submit = async () => {
 
       <div v-if="success" class="success-card">
         <div class="success-icon">✓</div>
-        <h2>Propiedad publicada</h2>
-        <p>Quedara pendiente hasta ser aprobada. Redirigiendo...</p>
+        <h2>{{ isEdit ? 'Propiedad actualizada' : 'Propiedad publicada' }}</h2>
+        <p>{{ isEdit ? 'Los cambios se guardaron correctamente. Redirigiendo...' : 'Quedara pendiente hasta ser aprobada. Redirigiendo...' }}</p>
       </div>
 
-      <template v-else>
+      <div v-if="!success && initialLoading" class="alert alert-warning">
+        Cargando propiedad...
+      </div>
+
+      <template v-else-if="!success">
 
         <div class="wizard-nav">
           <button
@@ -430,9 +475,9 @@ const submit = async () => {
               <input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onGeneralFilesChange" />
               <div class="upload-content">
                 <div class="upload-icon">🖼</div>
-                <strong>Arrastra tus fotos aqui</strong>
+                <strong>{{ isEdit ? 'Agrega nuevas fotos' : 'Arrastra tus fotos aqui' }}</strong>
                 <span>o haz clic para seleccionar</span>
-                <small>JPG, PNG, WEBP · Max {{ MAX_GENERAL_FILES }} fotos · {{ MAX_SIZE_MB }}MB c/u</small>
+                <small>{{ isEdit ? 'Las fotos actuales se conservan' : `JPG, PNG, WEBP � Max ${MAX_GENERAL_FILES} fotos � ${MAX_SIZE_MB}MB c/u` }}</small>
               </div>
             </label>
             <div v-if="generalPreviews.length" class="preview-grid">
@@ -560,7 +605,7 @@ const submit = async () => {
             <div class="actions-right">
               <span class="step-hint">Paso {{ currentStep + 1 }} de {{ steps.length }}</span>
               <button v-if="!isLastStep" class="btn-next" type="button" :disabled="loading" @click="nextStep">Siguiente →</button>
-              <button v-else class="btn-next btn-publish" type="submit" :disabled="loading">{{ loading ? "Publicando..." : "✓ Publicar propiedad" }}</button>
+              <button v-else class="btn-next btn-publish" type="submit" :disabled="loading">{{ loading ? "Guardando..." : (isEdit ? "✓ Guardar cambios" : "✓ Publicar propiedad") }}</button>
             </div>
           </div>
 

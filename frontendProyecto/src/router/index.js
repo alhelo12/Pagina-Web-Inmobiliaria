@@ -53,8 +53,10 @@ const router = createRouter({
       component: () => import('@/views/admin/AdminLayout.vue'),
       meta: { requiresAuth: true, role: 'admin' },
       children: [
-        { path: '',            redirect: '/admin/propiedades' },
+        { path: '',            redirect: '/admin/dashboard' },
+        { path: 'dashboard',   component: () => import('@/views/admin/DashboardView.vue') },
         { path: 'propiedades', component: () => import('@/views/admin/PropertiesAdminView.vue') },
+        { path: 'propiedades/:id/editar', component: () => import('@/views/client/CreatePropertyView.vue') },
         { path: 'usuarios',    component: () => import('@/views/admin/UsersView.vue') },
         { path: 'nuevapropiedad', component: () => import('@/views/client/CreatePropertyView.vue') }
       ]
