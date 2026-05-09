@@ -130,7 +130,7 @@ const formatRelativeTime = (timestamp) => {
         <button class="qa-btn" @click="router.push('/admin/propiedades')">
           <span>📋</span> Ver todas las propiedades
         </button>
-        <button class="qa-btn" @click="router.push('/admin/usuarios')">
+        <button class="qa-btn" @click="router.push('/admin/usuarios?role=advisor')">
           <span>🏢</span> Ver asesores
         </button>
       </div>

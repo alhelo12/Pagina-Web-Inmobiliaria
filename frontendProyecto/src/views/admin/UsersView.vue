@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { usersApi } from '@/api/users'
 import { authApi } from '@/api/auth'
 import { advisorsApi } from '@/api/advisors'
@@ -8,11 +9,13 @@ import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHea
 import Toast from '@/components/shared/Toast.vue'
 
 const auth = useAuthStore()
+const route = useRoute()
 
 const users = ref([])
 const loading = ref(false)
 const error = ref('')
-const filter = ref('all')
+const filterRole = ref('all')
+const filterStatus = ref('all')
 const search = ref('')
 const debouncedSearch = ref('')
 let searchTimeout = null
@@ -32,10 +35,7 @@ const confirmModal = ref({ show: false, type: '', user: null })
 const toastState = ref({ show: false, message: '', type: 'success' })
 let toastTimeout = null
 
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+const roleMap = { admin: 1, advisor: 2, client: 3 }
 const roleLabel = { admin: 'Admin', advisor: 'Asesor', client: 'Cliente' }
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / perPage.value)))
@@ -64,20 +64,28 @@ const load = async () => {
   error.value = ''
   try {
     const params = { skip: (page.value - 1) * perPage.value, limit: perPage.value }
-    if (filter.value === 'active') params.is_active = true
-    else if (filter.value === 'inactive') params.is_active = false
+    if (filterRole.value !== 'all') params.role_name = filterRole.value
+    if (filterStatus.value === 'active') params.is_active = true
+    else if (filterStatus.value === 'inactive') params.is_active = false
     const { data } = await usersApi.getAll(params)
     users.value = data.users ?? data.items ?? data
     totalItems.value = data.total ?? users.value.length
-  } catch {
-    error.value = 'Error al cargar usuarios'
+  } catch (err) {
+    console.error('[UsersView] load error:', err)
+    error.value = err.response?.data?.detail ?? 'Error al cargar usuarios'
   } finally {
     loading.value = false
   }
 }
 
-const changeFilter = (f) => {
-  filter.value = f
+const changeFilterRole = (f) => {
+  filterRole.value = f
+  page.value = 1
+  load()
+}
+
+const changeFilterStatus = (f) => {
+  filterStatus.value = f
   page.value = 1
   load()
 }
@@ -86,6 +94,11 @@ const goToPage = (p) => {
   if (p < 1 || p > totalPages.value) return
   page.value = p
   load()
+}
+
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 const openModal = (user = null) => {
@@ -193,8 +206,13 @@ const executeConfirm = async () => {
     showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
   }
 }
+onMounted(() => {
+  if (route.query.role) {
+    filterRole.value = route.query.role
+  }
+  load()
+})
 
-onMounted(load)
 onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 </script>
 
@@ -212,10 +230,22 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       @add="openModal()"
     />
 
-    <div class="filters">
-      <button :class="{ active: filter === 'all' }" @click="changeFilter('all')">Todos</button>
-      <button :class="{ active: filter === 'active' }" @click="changeFilter('active')">Activos</button>
-      <button :class="{ active: filter === 'inactive' }" @click="changeFilter('inactive')">Inactivos</button>
+    <div class="filters-group">
+      <div class="filter-label">Rol:</div>
+      <div class="filters">
+        <button :class="{ active: filterRole === 'all' }" @click="changeFilterRole('all')">Todos</button>
+        <button :class="{ active: filterRole === 'admin' }" @click="changeFilterRole('admin')">Administradores</button>
+        <button :class="{ active: filterRole === 'advisor' }" @click="changeFilterRole('advisor')">Asesores</button>
+        <button :class="{ active: filterRole === 'client' }" @click="changeFilterRole('client')">Clientes</button>
+      </div>
+    </div>
+    <div class="filters-group">
+      <div class="filter-label">Estado:</div>
+      <div class="filters">
+        <button :class="{ active: filterStatus === 'all' }" @click="changeFilterStatus('all')">Todos</button>
+        <button :class="{ active: filterStatus === 'active' }" @click="changeFilterStatus('active')">Activos</button>
+        <button :class="{ active: filterStatus === 'inactive' }" @click="changeFilterStatus('inactive')">Inactivos</button>
+      </div>
     </div>
 
     <div v-if="loading" class="state"><div class="spinner"></div></div>
@@ -317,6 +347,8 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 <style scoped>
 .admin-users { display: grid; gap: 18px; }
 
+.filters-group { display: flex; align-items: center; gap: 10px; }
+.filter-label { font-size: 13px; font-weight: 700; color: #65717e; }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; }
 .filters button { padding: 9px 14px; border-radius: 999px; border: 1px solid rgba(7,23,45,.12); background: white; color: #40566e; font-weight: 800; cursor: pointer; transition: .3s ease; }
 .filters button.active { background: #07172d; color: white; }
