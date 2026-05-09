@@ -120,21 +120,6 @@ const formatRelativeTime = (timestamp) => {
     <template v-else>
       <AdminMetricCards :metrics="metrics" />
 
-      <div class="quick-actions">
-        <button class="qa-btn" @click="router.push('/admin/usuarios')">
-          <span>👤</span> Agregar usuario
-        </button>
-        <button class="qa-btn" @click="router.push('/crear-propiedad')">
-          <span>+🏠</span> Nueva propiedad
-        </button>
-        <button class="qa-btn" @click="router.push('/admin/propiedades')">
-          <span>📋</span> Ver todas las propiedades
-        </button>
-        <button class="qa-btn" @click="router.push('/admin/usuarios?role=advisor')">
-          <span>🏢</span> Ver asesores
-        </button>
-      </div>
-
       <div class="middle-grid">
         <AdminStatusChart :dataset="chartData" />
         <AdminRightPanel :sold="summary.sold" :rejected="summary.rejected" :avg-price="avgPrice" />
@@ -223,10 +208,6 @@ const formatRelativeTime = (timestamp) => {
 .review-thumb { width: 100%; height: 100%; object-fit: cover; }
 .review-row small { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; }
 .empty { margin: 0; color: var(--color-muted); }
-.quick-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.qa-btn { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; background: var(--color-card); border: 1.5px solid var(--color-line); color: var(--color-navy); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(7,23,45,0.06); }
-.qa-btn:hover { border-color: var(--color-gold); background: #fdf8ee; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(7,23,45,0.1); }
-.qa-btn span { font-size: 16px; }
 @media (max-width: 1050px) {
   .middle-grid,
   .overview-grid { grid-template-columns: 1fr 1fr; }
