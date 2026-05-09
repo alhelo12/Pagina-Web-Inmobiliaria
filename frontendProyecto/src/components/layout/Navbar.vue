@@ -12,7 +12,7 @@ const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 
 const dashboardPath = computed(() => {
-  if (auth.role === 'admin') return '/admin/propiedades'
+  if (auth.role === 'admin') return '/admin/dashboard'
   if (auth.role === 'advisor') return '/advisor/panel'
   return '/crear-propiedad'
 })

@@ -21,12 +21,13 @@ defineProps({ items: { type: Array, default: () => [] } })
 </script>
 
 <style scoped>
-.recent { background: #fff; border: 1px solid #e6edf8; border-radius: 14px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07); padding: 18px; }
-h3 { margin: 0 0 12px; }
+.recent { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
+h3 { margin: 0 0 12px; color: var(--color-navy); font-weight: 700; }
 .list { display: grid; gap: 10px; }
-.row { display: flex; justify-content: space-between; gap: 10px; align-items: center; border: 1px solid #edf2fb; border-radius: 10px; padding: 10px 12px; }
-.row p { margin: 4px 0 0; color: #64748b; font-size: 12px; }
+.row { display: flex; justify-content: space-between; gap: 10px; align-items: center; border: 1px solid var(--color-line); border-radius: 10px; padding: 10px 12px; background: #fff; }
+.row strong { color: var(--color-navy); }
+.row p { margin: 4px 0 0; color: var(--color-muted); font-size: 12px; }
 .right { text-align: right; }
-.right span { display: block; font-weight: 700; color: #0f172a; }
-.right small { text-transform: capitalize; color: #2563eb; }
+.right span { display: block; font-weight: 700; color: var(--color-navy); }
+.right small { text-transform: capitalize; color: var(--color-gold); font-weight: 700; }
 </style>

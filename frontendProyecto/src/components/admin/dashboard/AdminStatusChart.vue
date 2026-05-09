@@ -27,13 +27,13 @@ const points = computed(() => {
 </script>
 
 <style scoped>
-.chart-card { background: #fff; border: 1px solid #e6edf8; border-radius: 14px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07); padding: 18px; }
-h3 { margin: 0 0 16px; color: #0f172a; }
+.chart-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
+h3 { margin: 0 0 16px; color: var(--color-navy); font-weight: 700; }
 .bars { height: 240px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: end; }
 .bar-item { text-align: center; }
 .bar-wrap { height: 180px; display: flex; align-items: flex-end; justify-content: center; }
-.bar { width: 36px; border-radius: 10px 10px 6px 6px; background: linear-gradient(180deg, #60a5fa, #2563eb); transition: .2s; }
+.bar { width: 36px; border-radius: 10px 10px 6px 6px; background: var(--color-gold); transition: .2s; }
 .bar:hover { filter: brightness(1.08); }
-small { display: block; margin-top: 8px; color: #64748b; }
-strong { color: #0f172a; font-size: 13px; }
+small { display: block; margin-top: 8px; color: var(--color-muted); }
+strong { color: var(--color-navy); font-size: 13px; }
 </style>
