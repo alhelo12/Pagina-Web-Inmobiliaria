@@ -65,8 +65,8 @@ export const propertiesApi = {
   },
 
   /** Propiedades pendientes (para el asesor) */
-  getPending() {
-    return api.get('/properties/pending/list')
+  getPending(params = {}) {
+    return api.get('/properties/pending/list', { params })
   },
 
   /** Resumen de estadísticas */
