@@ -1,8 +1,11 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, onUnmounted, ref, nextTick, watch } from 'vue'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import L from 'leaflet'
 import { propertiesApi } from '@/api/properties'
 import { normalizeImageUrl } from '@/utils/propertyImages'
+import { formatPropertyTitle } from '@/utils/titleFormatter'
+import Toast from '@/components/shared/Toast.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -17,6 +20,68 @@ const steps = [
   'Apartados'
 ]
 
+const MEXICO_CITIES = [
+  'Acapulco', 'Aguascalientes', 'Almoloya de Alquisellas', 'Alvaro Obregon',
+  'Amecameca', 'Apizaco', 'Ario de Rosales',
+  'Baja California', 'Baja California Sur',
+  'Benito Juarez', 'Cabo San Lucas', 'Cadereyta de Montes', 'Calvillo',
+  'Campeche', 'Cancun', 'Celaya', 'Chapala', 'Chihuahua', 'Chilpancingo',
+  'Chiapa de Corzo', 'Ciudad Acuna', 'Ciudad del Carmen', 'Ciudad Juarez',
+  'Ciudad Lopez Mateos', 'Ciudad Madero', 'Ciudad Nezahualcoyotl', 'Ciudad Obregon',
+  'Ciudad Satelite', 'Ciudad Valles', 'Coatepec', 'Colima', 'Comitan de Dominguez',
+  'Cordoba', 'Cosoleacaque', 'Cuauhtemoc', 'Cuernavaca', 'Culiacan',
+  'Distrito Federal',
+  'Ecatepec de Morelos', 'El Marques', 'Empalme', 'Ensenada', 'Erongaricuaro',
+  'Fresnillo', 'Gomez Palacio', 'Guadalajara', 'Guanajuato', 'Guaymas',
+  'Hermosillo', 'Huejutla de Reyes', 'Huixtla', 'Irapuato', 'Istapa',
+  'Ixtapaluca', 'Ixtlahuaca',
+  'Jalapa', 'Jesus Maria',
+  'La Paz', 'La Trinitaria', 'Lagos de Moreno', 'Leon', 'Loreto', 'Los Cabos',
+  'Los Reyes de Salgado', 'Manzanillo', 'Matehuala', 'Mazatlan',
+  'Merida', 'Mexicali', 'Mexico City', 'Miraflores', 'Monclova',
+  'Monterrey', 'Morelia', 'Motozintla de Mendoza',
+  'Naucalpan de Juarez', 'Nogales', 'Nuevo Laredo',
+  'Oaxaca de Juarez', 'Ocosingo', 'Orizaba',
+  'Palenque', 'Patzcuaro', 'Piedras Negras', 'Poza Rica de Hidalgo',
+  'Puebla', 'Puerto Escondido', 'Puerto Vallarta',
+  'Queretaro', 'Queretaro City',
+  'Reynosa', 'Rosarito',
+  'Salamanca', 'San Andres Cholula', 'San Cristobal de las Casas',
+  'San Juan del Rio', 'San Luis Potosi', 'San Miguel de Allende',
+  'San Nicolas de los Garza', 'San Pedro Garza Garcia', 'Santa Catarina',
+  'Santiago Ixcuintla', 'Santiago Papasquiaro', 'Santo Tomas Ajoloapan',
+  'Tampico', 'Tapachula', 'Taxco de Alarcon', 'Tecate', 'Tecamac',
+  'Texcoco de Mora', 'Tijuana', 'Tlaxcala', 'Toluca', 'Tonalá', 'Torreon',
+  'Tuxtla Gutierrez',
+  'Uruapan', 'Uriu',
+  'Valladolid', 'Veracruz', 'Villahermosa', 'Xalapa', 'Zamora', 'Zihuatanejo',
+].filter((v, i, a) => a.indexOf(v) === i).sort()
+
+const citySearch = ref('')
+const showCityDropdown = ref(false)
+
+const filteredCities = computed(() => {
+  const q = citySearch.value.toLowerCase()
+  return MEXICO_CITIES.filter((c) => c.toLowerCase().includes(q)).slice(0, 20)
+})
+
+const selectCity = (city) => {
+  form.value.city = city
+  citySearch.value = ''
+  showCityDropdown.value = false
+}
+
+const onCityInput = () => {
+  showCityDropdown.value = true
+}
+
+const onCityBlur = () => {
+  setTimeout(() => { showCityDropdown.value = false }, 200)
+  if (form.value.city && !MEXICO_CITIES.includes(form.value.city)) {
+    form.value.city = MEXICO_CITIES.find((c) => c.toLowerCase() === form.value.city.toLowerCase()) || ''
+  }
+}
+
 const form = ref({
   title: '',
   description: '',
@@ -24,7 +89,7 @@ const form = ref({
   property_type: '',
   transaction_type: 'sale',
   address: '',
-  city: '',
+  city: 'Tuxtla Gutierrez',
   bedrooms: '',
   bathrooms: '',
   square_meters: '',
@@ -49,6 +114,23 @@ const MAX_GENERAL_FILES = 8
 const MAX_EXTRA_FILES = 8
 const MAX_SIZE_MB = 10
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+let mapInstance = null
+let mapMarker = null
+const mapContainer = ref(null)
+
+const toastState = ref({ show: false, message: '', type: 'success' })
+let toastTimeout = null
+
+const showToast = (message, type = 'success') => {
+  clearTimeout(toastTimeout)
+  toastState.value = { show: true, message, type }
+  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
+}
+
+const isDirty = ref(false)
+const markDirty = () => { isDirty.value = true }
+const formWatcher = watch(form.value, () => { isDirty.value = true }, { deep: true })
 
 const returnPath = computed(() => (route.path.startsWith('/admin') ? '/admin/propiedades' : '/propiedades'))
 const bedroomsCount = computed(() => Math.max(0, Number(form.value.bedrooms) || 0))
@@ -186,6 +268,102 @@ const onExtraFilesChange = async (event, index) => {
   }
 }
 
+const initMap = () => {
+  nextTick(() => {
+    if (!mapContainer.value) return
+    if (mapInstance) mapInstance.remove()
+
+    const lat = Number(form.value.latitude) || 16.7521
+    const lng = Number(form.value.longitude) || -93.1147
+
+    mapInstance = L.map(mapContainer.value, { zoomControl: true }).setView([lat, lng], 15)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap'
+    }).addTo(mapInstance)
+
+    mapMarker = L.marker([lat, lng], { draggable: true }).addTo(mapInstance)
+
+    mapMarker.on('dragend', () => {
+      const pos = mapMarker.getLatLng()
+      form.value.latitude = pos.lat.toFixed(6)
+      form.value.longitude = pos.lng.toFixed(6)
+    })
+
+    mapInstance.on('click', (e) => {
+      mapMarker.setLatLng(e.latlng)
+      form.value.latitude = e.latlng.lat.toFixed(6)
+      form.value.longitude = e.latlng.lng.toFixed(6)
+    })
+
+    setTimeout(() => mapInstance.invalidateSize(), 100)
+  })
+}
+
+const destroyMap = () => {
+  if (mapInstance) { mapInstance.remove(); mapInstance = null; mapMarker = null }
+}
+
+const moveMarker = () => {
+  const lat = Number(form.value.latitude)
+  const lng = Number(form.value.longitude)
+  if (mapMarker && lat && lng && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+    mapMarker.setLatLng([lat, lng])
+    if (mapInstance) mapInstance.setView([lat, lng], mapInstance.getZoom())
+  }
+}
+
+const STREET_PREFIXES = /^(calle|av|avenida|blvd|boulevard|privada|cerrada|andador|prolongacion|pasaje|circuito|periferico|carretera|camino)\b\.?\s*/i
+const sanitizeAddress = (addr) => addr.replace(STREET_PREFIXES, '').replace(/#/g, ' ').replace(/\s+/g, ' ').trim()
+const fixCity = (city) => (city || '').replace(/\s+/g, ' ').trim().replace(/guitierre?z/gi, 'Gutierrez').replace(/tuxtla\s*guit/i, 'Tuxtla Guit') || 'Tuxtla Gutierrez'
+
+const searchAddress = async () => {
+  const rawAddr = form.value.address?.trim()
+  const city = form.value.city?.trim()
+  if (!rawAddr || rawAddr.length < 5) {
+    error.value = 'Escribe una direccion para buscar'
+    return
+  }
+  loading.value = true
+  error.value = ''
+  try {
+    const addr = sanitizeAddress(rawAddr)
+    const cityInput = form.value.city?.trim()
+    const city = fixCity(cityInput)
+    const parts = [addr, city, 'Chiapas', 'Mexico'].filter(Boolean)
+    const q = parts.join(', ')
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(q)}`
+    console.log('[searchAddress] URL:', url)
+    const res = await fetch(url, {
+      headers: { 'Accept-Language': 'es' }
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    console.log('[searchAddress] Resultados:', data.length)
+    if (data.length) {
+      form.value.latitude = parseFloat(data[0].lat).toFixed(6)
+      form.value.longitude = parseFloat(data[0].lon).toFixed(6)
+      moveMarker()
+    } else {
+      error.value = 'No se encontro la direccion. Prueba con un nombre de calle mas general.'
+    }
+  } catch (err) {
+    console.error('[searchAddress] Error:', err)
+    error.value = 'Error al buscar la direccion: ' + err.message
+  } finally {
+    loading.value = false
+  }
+}
+
+const removeBedroomPhoto = (index) => {
+  if (bedroomPhotos.value[index]?.preview) URL.revokeObjectURL(bedroomPhotos.value[index].preview)
+  bedroomPhotos.value[index] = null
+}
+
+const removeBathroomPhoto = (index) => {
+  if (bathroomPhotos.value[index]?.preview) URL.revokeObjectURL(bathroomPhotos.value[index].preview)
+  bathroomPhotos.value[index] = null
+}
+
 const hasValue = (value) => String(value ?? '').trim() !== ''
 
 const validateStep = () => {
@@ -230,7 +408,31 @@ const validateStep = () => {
     }
   }
 
+  if (currentStep.value === 3 && !hasValue(form.value.description)) {
+    error.value = 'Agrega una descripcion de la propiedad'
+    return false
+  }
+
   return true
+}
+
+onBeforeRouteLeave((to, from, next) => {
+  if (isDirty.value && !success.value) {
+    const answer = window.confirm('Tienes cambios sin guardar. ¿Salir de todas formas?')
+    if (!answer) return next(false)
+  }
+  next()
+})
+
+watch(currentStep, (step) => {
+  if (step === 2) initMap()
+  else if (mapInstance) destroyMap()
+})
+
+watch([() => form.value.latitude, () => form.value.longitude], moveMarker)
+
+const formatTitle = () => {
+  form.value.title = formatPropertyTitle(form.value.title)
 }
 
 const nextStep = () => {
@@ -244,7 +446,7 @@ const prevStep = () => {
 }
 
 const buildPayload = () => ({
-  title: form.value.title,
+  title: formatPropertyTitle(form.value.title),
   description: form.value.description,
   price: Number(form.value.price),
   property_type: form.value.property_type,
@@ -289,7 +491,7 @@ const uploadPropertyImages = async (propertyId) => {
     if (!photo?.file) continue
     try {
       await propertiesApi.uploadImage(propertyId, photo.file, false, {
-        label: `Bano ${i + 1}`,
+        label: `Baño ${i + 1}`,
         image_type: 'bathroom'
       })
     } catch {
@@ -337,9 +539,32 @@ const loadProperty = async () => {
       latitude: data.latitude ?? '',
       longitude: data.longitude ?? ''
     }
-    generalPreviews.value = (data.images ?? [])
-      .filter((image) => image.image_type === 'general' || image.is_main)
-      .map((image) => normalizeImageUrl(image.image_url))
+    const images = data.images ?? []
+
+    generalPreviews.value = images
+      .filter((img) => img.image_type === 'general' || img.is_main)
+      .map((img) => normalizeImageUrl(img.image_url))
+
+    images.filter((img) => img.image_type === 'bedroom').forEach((img) => {
+      const idx = parseInt(img.label?.match(/\d+/)?.[0] || '1') - 1
+      bedroomPhotos.value[idx] = { preview: normalizeImageUrl(img.image_url) }
+    })
+
+    images.filter((img) => img.image_type === 'bathroom').forEach((img) => {
+      const idx = parseInt(img.label?.match(/\d+/)?.[0] || '1') - 1
+      bathroomPhotos.value[idx] = { preview: normalizeImageUrl(img.image_url) }
+    })
+
+    const extrasFromApi = images.filter((img) => img.is_extra)
+    if (extrasFromApi.length) {
+      const groups = {}
+      extrasFromApi.forEach((img) => {
+        const label = img.label || 'Extra'
+        if (!groups[label]) groups[label] = { label, files: [], previews: [] }
+        groups[label].previews.push(normalizeImageUrl(img.image_url))
+      })
+      extras.value = Object.values(groups)
+    }
   } catch (err) {
     error.value = err.response?.data?.detail ?? 'No se pudo cargar la propiedad'
   } finally {
@@ -364,6 +589,8 @@ const submit = async () => {
       warning.value = `La propiedad se guardó, pero ${uploadErrors} imagen(es) no se pudieron subir.`
     }
 
+    const msg = isEdit.value ? 'Propiedad actualizada correctamente' : 'Propiedad publicada correctamente'
+    showToast(msg)
     success.value = true
     setTimeout(() => router.push(returnPath.value), 1800)
   } catch (err) {
@@ -374,6 +601,7 @@ const submit = async () => {
 }
 
 onMounted(loadProperty)
+onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
 </script>
 
 <template>
@@ -438,7 +666,7 @@ onMounted(loadProperty)
             <div class="fields-grid">
               <div class="field">
                 <label>Titulo <span class="req">*</span></label>
-                <input v-model="form.title" type="text" placeholder="Casa en fraccionamiento Las Palmas" />
+                <input v-model="form.title" type="text" placeholder="Casa en Fraccionamiento Las Palmas" @blur="formatTitle" />
               </div>
               <div class="field">
                 <label>Precio (MXN) <span class="req">*</span></label>
@@ -477,7 +705,7 @@ onMounted(loadProperty)
                 <div class="upload-icon">🖼</div>
                 <strong>{{ isEdit ? 'Agrega nuevas fotos' : 'Arrastra tus fotos aqui' }}</strong>
                 <span>o haz clic para seleccionar</span>
-                <small>{{ isEdit ? 'Las fotos actuales se conservan' : `JPG, PNG, WEBP � Max ${MAX_GENERAL_FILES} fotos � ${MAX_SIZE_MB}MB c/u` }}</small>
+                <small>{{ isEdit ? 'Las fotos actuales se conservan' : `JPG, PNG, WEBP � Max ${MAX_GENERAL_FILES} fotos � ${MAX_SIZE_MB}MB c/u` }}</small>
               </div>
             </label>
             <div v-if="generalPreviews.length" class="preview-grid">
@@ -498,22 +726,45 @@ onMounted(loadProperty)
               <div class="location-fields">
                 <div class="field">
                   <label>Ciudad <span class="req">*</span></label>
-                  <input v-model="form.city" type="text" placeholder="Tuxtla Gutierrez" />
+                  <div class="city-select-wrapper">
+                    <div class="city-display" @click="showCityDropdown = !showCityDropdown">
+                      <span>{{ form.city || 'Selecciona una ciudad' }}</span>
+                      <span class="city-arrow">{{ showCityDropdown ? '▲' : '▼' }}</span>
+                    </div>
+                    <div v-if="showCityDropdown" class="city-dropdown">
+                      <input
+                        v-model="citySearch"
+                        type="text"
+                        placeholder="Buscar ciudad..."
+                        class="city-search-input"
+                        @click.stop
+                      />
+                      <div class="city-list">
+                        <div
+                          v-for="city in filteredCities"
+                          :key="city"
+                          class="city-option"
+                          :class="{ active: form.city === city }"
+                          @click="selectCity(city)"
+                        >{{ city }}</div>
+                        <div v-if="!filteredCities.length" class="city-no-results">Sin resultados</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="field">
                   <label>Direccion <span class="req">*</span></label>
-                  <input v-model="form.address" type="text" placeholder="Calle Reforma 123, Col. Centro" />
+                  <div class="input-row">
+                    <input v-model="form.address" type="text" placeholder="Calle Reforma 123, Col. Centro" @keyup.enter="searchAddress" />
+                    <button type="button" class="btn-search-map" :disabled="loading" @click="searchAddress">Buscar en mapa</button>
+                  </div>
                 </div>
                 <div class="grid-2">
                   <div class="field"><label>Latitud</label><input v-model="form.latitude" type="number" step="any" placeholder="16.7521" /></div>
                   <div class="field"><label>Longitud</label><input v-model="form.longitude" type="number" step="any" placeholder="-93.1147" /></div>
                 </div>
               </div>
-              <div class="map-slot">
-                <div class="map-pin-icon">📍</div>
-                <strong>Mapa de ubicacion</strong>
-                <small>Ingresa lat/lng para previsualizar</small>
-              </div>
+              <div ref="mapContainer" class="map-container"></div>
             </div>
           </div>
 
@@ -531,7 +782,7 @@ onMounted(loadProperty)
               </div>
               <div class="feature-card">
                 <span class="feature-emoji">🛁</span>
-                <label>Banos</label>
+                <label>Baños</label>
                 <input v-model="form.bathrooms" type="number" min="0" placeholder="0" />
               </div>
               <div class="feature-card">
@@ -563,20 +814,22 @@ onMounted(loadProperty)
                   <img v-if="bedroomPhotos[index - 1]?.preview" :src="bedroomPhotos[index - 1].preview" :alt="`Recamara ${index}`" />
                   <div v-else class="slot-empty"><span>+</span><small>Recamara {{ index }}</small></div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bedroomPhotos, index - 1)" />
+                  <button v-if="bedroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBedroomPhoto(index - 1)">✕</button>
                 </label>
               </div>
             </div>
 
             <div v-if="bathroomsCount" class="section-block">
               <div class="section-block-header">
-                <span>🛁 Banos</span>
+                <span>🛁 Baños</span>
                 <span class="count-badge">{{ bathroomsCount }} foto(s)</span>
               </div>
               <div class="slot-grid">
                 <label v-for="index in bathroomsCount" :key="`bath-${index}`" class="photo-slot">
-                  <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`Bano ${index}`" />
-                  <div v-else class="slot-empty"><span>+</span><small>Bano {{ index }}</small></div>
+                  <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`Baño ${index}`" />
+                  <div v-else class="slot-empty"><span>+</span><small>Baño {{ index }}</small></div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bathroomPhotos, index - 1)" />
+                  <button v-if="bathroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBathroomPhoto(index - 1)">✕</button>
                 </label>
               </div>
             </div>
@@ -612,6 +865,8 @@ onMounted(loadProperty)
         </form>
       </template>
     </div>
+
+    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
 
@@ -718,10 +973,23 @@ input::placeholder, textarea::placeholder { color: #b5ae9f; }
 .location-layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; }
 .location-fields { display: flex; flex-direction: column; gap: 14px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.map-slot { min-height: 220px; border: 2px dashed var(--line); border-radius: 14px; background: linear-gradient(#f0ece4 1px, transparent 1px), linear-gradient(90deg, #f0ece4 1px, transparent 1px), #faf9f6; background-size: 28px 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); text-align: center; }
-.map-pin-icon { font-size: 32px; }
-.map-slot strong { font-size: 14px; color: var(--navy); font-weight: 600; }
-.map-slot small { font-size: 12px; }
+.input-row { display: flex; gap: 8px; }
+.input-row input { flex: 1; }
+.btn-search-map { padding: 11px 16px; border: 1.5px solid var(--gold); border-radius: 10px; background: var(--gold); color: var(--navy); font-size: 13px; font-weight: 700; font-family: "Poppins", sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.btn-search-map:hover { background: var(--gold-light); }
+.btn-search-map:disabled { opacity: 0.5; cursor: not-allowed; }
+.map-container { min-height: 220px; border: 2px dashed var(--line); border-radius: 14px; }
+.city-select-wrapper { position: relative; }
+.city-display { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #faf9f6; cursor: pointer; font-size: 14px; color: var(--navy); transition: border-color 0.2s; }
+.city-display:hover, .city-select-wrapper:focus-within .city-display { border-color: var(--gold); background: var(--white); }
+.city-arrow { font-size: 10px; color: var(--muted); }
+.city-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--white); border: 1.5px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(7,23,45,0.15); z-index: 50; overflow: hidden; }
+.city-search-input { width: 100%; padding: 10px 14px; border: none; border-bottom: 1px solid var(--line); background: #faf9f6; font-size: 13px; font-family: "Poppins", sans-serif; outline: none; }
+.city-list { max-height: 240px; overflow-y: auto; }
+.city-option { padding: 10px 14px; font-size: 13px; color: var(--navy); cursor: pointer; transition: background 0.15s; }
+.city-option:hover { background: #fdf8ee; }
+.city-option.active { background: #fdf8ee; color: var(--gold); font-weight: 600; }
+.city-no-results { padding: 10px 14px; font-size: 12px; color: var(--muted); text-align: center; }
 
 /* FEATURES */
 .features-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
