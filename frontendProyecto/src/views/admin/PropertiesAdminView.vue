@@ -225,7 +225,7 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 .filters button.active, .filters button:hover { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px; border-bottom: 1px solid rgba(7, 23, 45, .08); font-size: 14px; text-align: left; }
+th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); }
 th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .08em; }
 .td-title { color: var(--color-navy); font-weight: 700; }
 .owner-name { display: block; color: var(--color-navy); font-weight: 700; }
@@ -236,8 +236,8 @@ th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; lett
 .aprobada { background: #dff7e9; color: #166534; }
 .rechazada { background: #fee2e2; color: #991b1b; }
 .vendida { background: #e8edf0; color: var(--color-navy-2); }
-.actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 44px; }
+.actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; flex-shrink: 0; }
 .actions button:hover { filter: brightness(1.02); transform: translateY(-1px); }
 .view { background: #f7efe0; color: var(--color-navy-2); }
 .edit { background: #e8edf0; color: var(--color-navy-2); }
