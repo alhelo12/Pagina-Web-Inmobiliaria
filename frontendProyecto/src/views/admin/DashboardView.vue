@@ -1,49 +1,66 @@
 <script setup>
-import { computed, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { usePropertyStore } from '@/stores/propertyStore'
+import { propertiesApi } from '@/api/properties'
 import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
 import AdminMetricCards from '@/components/admin/dashboard/AdminMetricCards.vue'
 import AdminStatusChart from '@/components/admin/dashboard/AdminStatusChart.vue'
 import AdminRightPanel from '@/components/admin/dashboard/AdminRightPanel.vue'
 import AdminRecentList from '@/components/admin/dashboard/AdminRecentList.vue'
 
-const store = usePropertyStore()
 const auth = useAuthStore()
 const router = useRouter()
-const { properties, loading, error } = storeToRefs(store)
 
-const metrics = computed(() => {
-  const total = properties.value.length
-  const approved = properties.value.filter(p => p.status === 'approved').length
-  const pending = properties.value.filter(p => p.status === 'pending').length
-  return {
-    total,
-    approved,
-    pending,
-    approvalRate: total ? Math.round((approved / total) * 100) : 0
-  }
+const loading = ref(true)
+const error = ref('')
+
+const summary = ref({
+  total: 0, approved: 0, pending: 0, rejected: 0, sold: 0, average_price: 0
 })
+const recentProperties = ref([])
+const pendingProperties = ref([])
+
+const metrics = computed(() => ({
+  total: summary.value.total,
+  approved: summary.value.approved,
+  pending: summary.value.pending,
+  approvalRate: summary.value.total
+    ? Math.round((summary.value.approved / summary.value.total) * 100)
+    : 0
+}))
 
 const chartData = computed(() => [
-  { label: 'Pendientes', value: properties.value.filter(p => p.status === 'pending').length },
-  { label: 'Aprobadas', value: properties.value.filter(p => p.status === 'approved').length },
-  { label: 'Rechazadas', value: properties.value.filter(p => p.status === 'rejected').length },
-  { label: 'Vendidas', value: properties.value.filter(p => p.status === 'sold').length }
+  { label: 'Pendientes', value: summary.value.pending },
+  { label: 'Aprobadas', value: summary.value.approved },
+  { label: 'Rechazadas', value: summary.value.rejected },
+  { label: 'Vendidas', value: summary.value.sold }
 ])
 
-const avgPrice = computed(() => {
-  if (!properties.value.length) return '0'
-  const sum = properties.value.reduce((acc, p) => acc + Number(p.price || 0), 0)
-  return Math.round(sum / properties.value.length).toLocaleString('es-MX')
+const avgPrice = computed(() =>
+  summary.value.average_price
+    ? Math.round(summary.value.average_price).toLocaleString('es-MX')
+    : '0'
+)
+
+onMounted(async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const [sumRes, recentRes, pendingRes] = await Promise.all([
+      propertiesApi.getSummary(),
+      propertiesApi.getAll({ limit: 5 }),
+      propertiesApi.getPending({ limit: 5 })
+    ])
+    summary.value = sumRes.data
+    recentProperties.value = recentRes.data.properties ?? recentRes.data.items ?? []
+    pendingProperties.value = pendingRes.data.properties ?? pendingRes.data.items ?? []
+  } catch (err) {
+    error.value = err.response?.data?.detail ?? 'Error al cargar el dashboard'
+  } finally {
+    loading.value = false
+  }
 })
-
-const recent = computed(() => [...properties.value].sort((a, b) => b.id - a.id).slice(0, 5))
-const pendingReview = computed(() => properties.value.filter(p => p.status === 'pending').slice(0, 5))
-
-onMounted(() => store.fetchProperties())
 </script>
 
 <template>
@@ -67,11 +84,11 @@ onMounted(() => store.fetchProperties())
 
       <div class="middle-grid">
         <AdminStatusChart :dataset="chartData" />
-        <AdminRightPanel :sold="chartData[3].value" :rejected="chartData[2].value" :avg-price="avgPrice" />
+        <AdminRightPanel :sold="summary.sold" :rejected="summary.rejected" :avg-price="avgPrice" />
       </div>
 
       <div class="overview-grid">
-        <AdminRecentList :items="recent" />
+        <AdminRecentList :items="recentProperties" />
 
         <article class="review-card">
           <div class="review-head">
@@ -82,8 +99,8 @@ onMounted(() => store.fetchProperties())
             <button @click="router.push('/admin/propiedades')">Ver tabla</button>
           </div>
 
-          <div v-if="pendingReview.length" class="review-list">
-            <div v-for="property in pendingReview" :key="property.id" class="review-row">
+          <div v-if="pendingProperties.length" class="review-list">
+            <div v-for="property in pendingProperties" :key="property.id" class="review-row">
               <div>
                 <strong>{{ property.title }}</strong>
                 <span>{{ property.city || 'Sin ciudad' }}</span>

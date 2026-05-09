@@ -8,9 +8,7 @@
     <nav>
       <RouterLink to="/admin/dashboard"><i></i>Dashboard</RouterLink>
       <RouterLink to="/admin/propiedades"><i></i>Propiedades</RouterLink>
-      <RouterLink to="/favoritos"><i></i>Favoritos</RouterLink>
       <RouterLink to="/admin/usuarios"><i></i>Usuarios</RouterLink>
-      <RouterLink to="/crear-propiedad"><i></i>Configuración</RouterLink>
     </nav>
 
     <div class="sidebar-card">
