@@ -3,7 +3,7 @@
     <article class="card">
       <span>Total propiedades</span>
       <strong>{{ metrics.total }}</strong>
-      <small>Registros cargados</small>
+      <small>En toda la plataforma</small>
     </article>
     <article class="card">
       <span>Aprobadas</span>
@@ -20,6 +20,16 @@
       <strong>{{ metrics.approvalRate }}%</strong>
       <small>Rendimiento general</small>
     </article>
+    <article class="card">
+      <span>Total usuarios</span>
+      <strong>{{ metrics.totalUsers ?? 0 }}</strong>
+      <small>Registrados en plataforma</small>
+    </article>
+    <article class="card">
+      <span>Asesores</span>
+      <strong>{{ metrics.activeAdvisors ?? 0 }}</strong>
+      <small>Publicando propiedades</small>
+    </article>
   </section>
 </template>
 
@@ -35,6 +45,7 @@ defineProps({ metrics: { type: Object, required: true } })
 .card strong { display: block; margin-top: 8px; color: var(--color-navy); font-size: 30px; font-weight: 700; }
 .card small { color: #87909b; font-size: 12px; }
 .highlight { background: linear-gradient(150deg, rgba(214, 168, 72, .2) 0%, var(--color-card) 100%); }
+@media (max-width: 1200px) { .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 980px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .metrics { grid-template-columns: 1fr; } }
 </style>

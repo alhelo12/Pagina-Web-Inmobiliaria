@@ -25,7 +25,6 @@ def get_users(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    # El service espera role_name (string), no role_id (int)
     users = userService.get_users(
         db,
         skip=skip,
@@ -34,8 +33,6 @@ def get_users(
         is_active=is_active
     )
     total = userService.count_users(db, role_name=role_name, is_active=is_active)
-
-    # Construir la respuesta paginada que exige UserListResponse
     return UserListResponse(
         total=total,
         page=(skip // limit) + 1,
@@ -44,7 +41,40 @@ def get_users(
     )
 
 
-# ── DETALLE DE USUARIO ───────────────────────────────────────────────────────
+# ── STATS RESUMEN (solo admin) ────────────────────────────────────────────────
+@router.get("/stats/summary", tags=["Users"])
+def get_user_stats(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    return userService.get_user_stats(db)
+
+
+# ── ACTIVIDAD RECIENTE (solo admin) ───────────────────────────────────────────
+@router.get("/recent-activity", tags=["Users"])
+def get_recent_activity(
+    limit: int = Query(10, ge=1, le=50),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    return userService.get_recent_activity(db, limit)
+
+
+# ── BUSCAR POR EMAIL ─────────────────────────────────────────────────────────
+@router.get("/search/by-email", response_model=UserResponse)
+def search_user_by_email(
+    email: str = Query(..., description="Email a buscar"),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    user = userService.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Usuario no encontrado")
+    return user
+
+
+# ── DETALLE DE USUARIO (después de rutas específicas) ────────────────────────
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(
     user_id: int,
@@ -54,7 +84,6 @@ def get_user(
     if not current_user.is_admin() and current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="No tienes permisos para ver este usuario")
-
     user = userService.get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -112,18 +141,4 @@ def deactivate_user(
     user.is_active = False
     db.commit()
     db.refresh(user)
-    return user
-
-
-# ── BUSCAR POR EMAIL ─────────────────────────────────────────────────────────
-@router.get("/search/by-email", response_model=UserResponse)
-def search_user_by_email(
-    email: str = Query(..., description="Email a buscar"),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
-):
-    user = userService.get_user_by_email(db, email)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Usuario no encontrado")
     return user

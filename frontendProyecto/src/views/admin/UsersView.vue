@@ -32,7 +32,10 @@ const confirmModal = ref({ show: false, type: '', user: null })
 const toastState = ref({ show: false, message: '', type: 'success' })
 let toastTimeout = null
 
-const roleMap = { admin: 1, advisor: 2, client: 3 }
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 const roleLabel = { admin: 'Admin', advisor: 'Asesor', client: 'Cliente' }
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / perPage.value)))
@@ -223,7 +226,7 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
         <thead>
           <tr>
             <th>Nombre</th><th>Email</th><th>Teléfono</th>
-            <th>Rol</th><th>Estado</th><th>Acciones</th>
+            <th>Rol</th><th>Estado</th><th>Creación</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -232,11 +235,8 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
             <td>{{ u.email }}</td>
             <td>{{ u.phone ?? '-' }}</td>
             <td><span class="role-badge">{{ roleLabel[u.role?.name] ?? u.role?.name }}</span></td>
-            <td>
-              <span :class="['status', u.is_active ? 'on' : 'off']">
-                {{ u.is_active ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
+            <td><span :class="['status', u.is_active ? 'on' : 'off']">{{ u.is_active ? 'Activo' : 'Inactivo' }}</span></td>
+            <td class="td-date">{{ formatDate(u.created_at) }}</td>
             <td class="actions">
               <button class="edit" @click="openModal(u)">Editar</button>
               <button class="toggle" @click="openConfirm('toggle', u)">
@@ -246,7 +246,7 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
             </td>
           </tr>
           <tr v-if="!filtered.length">
-            <td colspan="6" class="empty">Sin usuarios</td>
+            <td colspan="7" class="empty">Sin usuarios</td>
           </tr>
         </tbody>
       </table>
@@ -331,6 +331,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { padding: 15px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid #eee7dc; }
 th { color: #65717e; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
 .td-name { font-weight: 900; color: #07172d; }
+.td-date { color: #65717e; font-size: 13px; }
 .empty { text-align: center; color: #999; padding: 30px !important; }
 
 .role-badge, .status { padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 900; }
