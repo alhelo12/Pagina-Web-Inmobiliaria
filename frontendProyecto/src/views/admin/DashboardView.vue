@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { propertiesApi } from '@/api/properties'
+import { usersApi } from '@/api/users'
 import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
 import AdminMetricCards from '@/components/admin/dashboard/AdminMetricCards.vue'
 import AdminStatusChart from '@/components/admin/dashboard/AdminStatusChart.vue'
@@ -20,6 +21,8 @@ const summary = ref({
 })
 const recentProperties = ref([])
 const pendingProperties = ref([])
+const userStats = ref({ total_users: 0, active_users: 0, advisors_count: 0, clients_count: 0 })
+const recentActivity = ref([])
 
 const metrics = computed(() => ({
   total: summary.value.total,
@@ -27,7 +30,9 @@ const metrics = computed(() => ({
   pending: summary.value.pending,
   approvalRate: summary.value.total
     ? Math.round((summary.value.approved / summary.value.total) * 100)
-    : 0
+    : 0,
+  totalUsers: userStats.value.total_users,
+  activeAdvisors: userStats.value.advisors_count
 }))
 
 const chartData = computed(() => [
@@ -43,24 +48,57 @@ const avgPrice = computed(() =>
     : '0'
 )
 
+const formatPrice = (price) => Number(price || 0).toLocaleString('es-MX')
+
+const getPropertyImage = (property) => {
+  const img = property.images?.find(i => i.is_main) ?? property.images?.[0]
+  if (img) {
+    const url = img.image_url ?? img.url
+    if (!url) return null
+    if (/^(https?:|blob:|data:)/.test(url)) return url
+    const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`
+  }
+  return null
+}
+
+const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZGlzcGxheTpibG9jazsiIGNsYXNzPSJhIiBmaWxsPSIjZWRlY2VkIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgc3R5bGU9ImZpbGw6I2VkZWNlZCIgc3BhY2Y9Im5vbmUiLz48cGF0aCBkPSJNMjIgMzZoMjBjLTEuMSAwLTIgLjktMiAyIDAgMS4xLjkgMiAyIDIgMCAxLjEtLjkgMi0yIDJoLTIwYzEuMSAwIDItLjkgMi0yIDAtMS4xLS45LTItMi0yeiIgZmlsbD0iI2RkYzJkNSIvPjwvc3ZnPg=='
+
 onMounted(async () => {
   loading.value = true
   error.value = ''
   try {
-    const [sumRes, recentRes, pendingRes] = await Promise.all([
+    const [sumRes, recentRes, pendingRes, userStatsRes, activityRes] = await Promise.all([
       propertiesApi.getSummary(),
       propertiesApi.getAll({ limit: 5 }),
-      propertiesApi.getPending({ limit: 5 })
+      propertiesApi.getPending({ limit: 5 }),
+      usersApi.getStats(),
+      usersApi.getRecentActivity({ limit: 10 })
     ])
     summary.value = sumRes.data
     recentProperties.value = recentRes.data.properties ?? recentRes.data.items ?? []
     pendingProperties.value = pendingRes.data.properties ?? pendingRes.data.items ?? []
+    userStats.value = userStatsRes.data
+    recentActivity.value = activityRes.data
   } catch (err) {
     error.value = err.response?.data?.detail ?? 'Error al cargar el dashboard'
   } finally {
     loading.value = false
   }
 })
+
+const formatRelativeTime = (timestamp) => {
+  if (!timestamp) return ''
+  const diff = Date.now() - new Date(timestamp).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'hace un momento'
+  if (mins < 60) return `hace ${mins} min`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `hace ${hrs}h`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `hace ${days}d`
+  return new Date(timestamp).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })
+}
 </script>
 
 <template>
@@ -82,6 +120,21 @@ onMounted(async () => {
     <template v-else>
       <AdminMetricCards :metrics="metrics" />
 
+      <div class="quick-actions">
+        <button class="qa-btn" @click="router.push('/admin/usuarios')">
+          <span>👤</span> Agregar usuario
+        </button>
+        <button class="qa-btn" @click="router.push('/crear-propiedad')">
+          <span>+🏠</span> Nueva propiedad
+        </button>
+        <button class="qa-btn" @click="router.push('/admin/propiedades')">
+          <span>📋</span> Ver todas las propiedades
+        </button>
+        <button class="qa-btn" @click="router.push('/admin/usuarios')">
+          <span>🏢</span> Ver asesores
+        </button>
+      </div>
+
       <div class="middle-grid">
         <AdminStatusChart :dataset="chartData" />
         <AdminRightPanel :sold="summary.sold" :rejected="summary.rejected" :avg-price="avgPrice" />
@@ -89,6 +142,23 @@ onMounted(async () => {
 
       <div class="overview-grid">
         <AdminRecentList :items="recentProperties" />
+
+        <article class="activity-card">
+          <div class="activity-head">
+            <p>Admin</p>
+            <h3>Actividad reciente</h3>
+          </div>
+          <div v-if="recentActivity.length" class="activity-list">
+            <div v-for="a in recentActivity" :key="a.id" class="activity-row">
+              <span class="activity-icon">{{ a.icon }}</span>
+              <div class="activity-body">
+                <p>{{ a.message }}</p>
+                <small>{{ formatRelativeTime(a.timestamp) }}</small>
+              </div>
+            </div>
+          </div>
+          <p v-else class="empty">Sin actividad reciente.</p>
+        </article>
 
         <article class="review-card">
           <div class="review-head">
@@ -101,6 +171,14 @@ onMounted(async () => {
 
           <div v-if="pendingProperties.length" class="review-list">
             <div v-for="property in pendingProperties" :key="property.id" class="review-row">
+              <div class="review-thumb-wrap">
+                <img
+                  :src="getPropertyImage(property) || propertyFallback"
+                  :alt="property.title"
+                  class="review-thumb"
+                  @error="(e) => { e.target.src = propertyFallback }"
+                />
+              </div>
               <div>
                 <strong>{{ property.title }}</strong>
                 <span>{{ property.city || 'Sin ciudad' }}</span>
@@ -119,9 +197,19 @@ onMounted(async () => {
 <style scoped>
 .dashboard { display: grid; gap: 16px; }
 .middle-grid { display: grid; gap: 14px; grid-template-columns: 2fr 1fr; }
-.overview-grid { display: grid; gap: 14px; grid-template-columns: 1.1fr 1fr; }
+.overview-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr 1fr; }
 .state { padding: 18px; color: var(--color-muted); background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; }
 .error-msg { color: #991b1b; }
+.activity-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
+.activity-head { margin-bottom: 12px; }
+.activity-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.activity-head h3 { margin: 0; color: var(--color-navy); font-size: 18px; }
+.activity-list { display: grid; gap: 8px; }
+.activity-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--color-line); background: #fff; }
+.activity-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.activity-body { flex: 1; min-width: 0; }
+.activity-body p { margin: 0 0 2px; color: var(--color-navy); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.activity-body small { color: var(--color-muted); font-size: 11px; }
 .review-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
 .review-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
 .review-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
@@ -131,10 +219,19 @@ onMounted(async () => {
 .review-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-line); background: #fff; }
 .review-row strong { display: block; color: var(--color-navy); font-size: 14px; }
 .review-row span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
+.review-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: #f0ece4; }
+.review-thumb { width: 100%; height: 100%; object-fit: cover; }
 .review-row small { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; }
 .empty { margin: 0; color: var(--color-muted); }
+.quick-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.qa-btn { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; background: var(--color-card); border: 1.5px solid var(--color-line); color: var(--color-navy); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(7,23,45,0.06); }
+.qa-btn:hover { border-color: var(--color-gold); background: #fdf8ee; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(7,23,45,0.1); }
+.qa-btn span { font-size: 16px; }
 @media (max-width: 1050px) {
   .middle-grid,
+  .overview-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
   .overview-grid { grid-template-columns: 1fr; }
 }
 </style>

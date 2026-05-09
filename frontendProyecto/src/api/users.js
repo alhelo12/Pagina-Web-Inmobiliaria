@@ -32,5 +32,15 @@ export const usersApi = {
   /** Desactivar usuario */
   deactivate(id) {
     return api.patch(`/users/${id}/deactivate`)
+  },
+
+  /** Stats resumidos para dashboard */
+  getStats() {
+    return api.get('/users/stats/summary')
+  },
+
+  /** Actividad reciente para dashboard */
+  getRecentActivity(params = {}) {
+    return api.get('/users/recent-activity', { params })
   }
 }

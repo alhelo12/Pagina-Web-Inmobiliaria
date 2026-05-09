@@ -342,37 +342,89 @@ def get_user_with_role(db: Session, user_id: int) -> Optional[User]:
 def validate_user_can_be_deleted(db: Session, user_id: int) -> tuple[bool, Optional[str]]:
     """
     Validar si un usuario puede ser eliminado
-    
+
     Args:
         db: Sesión de base de datos
-        user_id: ID del usuario
-        
+        user_id: ID del usuario a eliminar
+
     Returns:
         Tupla (puede_eliminar, mensaje_error)
     """
     user = get_user_by_id(db, user_id)
-    
+
     if not user:
         return False, "Usuario no encontrado"
-    
-    # Verificar si es admin (no se puede eliminar el último admin)
+
     if user.is_admin():
         admin_count = db.query(func.count(User.id))\
             .join(Role)\
             .filter(Role.name == 'admin')\
             .filter(User.is_active == True)\
             .scalar()
-        
+
         if admin_count <= 1:
             return False, "No se puede eliminar el único administrador activo"
-    
-    # Verificar si tiene propiedades activas (si es necesario)
-    # active_properties_count = db.query(func.count(Property.id))\
-    #     .filter(Property.submitted_by_user_id == user_id)\
-    #     .filter(Property.status.in_(['pending', 'approved']))\
-    #     .scalar()
-    #
-    # if active_properties_count > 0:
-    #     return False, f"El usuario tiene {active_properties_count} propiedades activas"
-    
+
     return True, None
+
+
+# ==========================================
+# STATS Y ACTIVIDAD
+# ==========================================
+
+def get_user_stats(db: Session) -> dict:
+    """
+    Obtener estadísticas resumidas de usuarios para el dashboard.
+
+    Returns:
+        Dict con total_users, active_users, inactive_users,
+        advisors_count, clients_count
+    """
+    total = db.query(func.count(User.id)).scalar()
+    active = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
+    inactive = db.query(func.count(User.id)).filter(User.is_active == False).scalar()
+    advisors = db.query(func.count(User.id))\
+        .join(Role).filter(Role.name == 'advisor').scalar()
+    clients = db.query(func.count(User.id))\
+        .join(Role).filter(Role.name == 'client').scalar()
+
+    return {
+        "total_users": total,
+        "active_users": active,
+        "inactive_users": inactive,
+        "advisors_count": advisors,
+        "clients_count": clients
+    }
+
+
+def get_recent_activity(db: Session, limit: int = 10) -> list:
+    """
+    Obtener actividad reciente de usuarios para el dashboard.
+
+    Devuelve los últimos usuarios creados en orden descendente.
+    Cada item tiene: id, full_name, email, created_at, type='user_created'
+
+    Args:
+        db: Sesión de base de datos
+        limit: Número máximo de items
+
+    Returns:
+        Lista de actividades recientes
+    """
+    from app.models import Property, Advisor
+
+    activities = []
+
+    recent_users = db.query(User).order_by(User.created_at.desc()).limit(limit).all()
+    for u in recent_users:
+        role_label = u.role.name if u.role else 'usuario'
+        activities.append({
+            "id": f"user-{u.id}",
+            "type": "user_created",
+            "icon": "👤",
+            "message": f"Nuevo {role_label}: {u.full_name}",
+            "sub": u.email,
+            "timestamp": u.created_at.isoformat() if u.created_at else None
+        })
+
+    return activities
