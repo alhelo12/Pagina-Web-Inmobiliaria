@@ -24,6 +24,20 @@ const router = createRouter({
 
     // ── RUTAS DE CLIENTE ─────────────────────────────────────────────────────
     {
+      path: '/cliente',
+      component: () => import('@/views/client/ClientLayout.vue'),
+      meta: { requiresAuth: true, role: 'client' },
+      children: [
+        { path: '', redirect: '/cliente/dashboard' },
+        { path: 'dashboard', component: () => import('@/views/client/ClientDashboard.vue') },
+        { path: 'mis-propiedades', component: () => import('@/views/client/MyPropertiesView.vue') },
+        { path: 'favoritos', component: () => import('@/views/client/FavoritesView.vue') },
+        { path: 'publicar', component: () => import('@/views/client/CreatePropertyView.vue') },
+        { path: 'notificaciones', component: () => import('@/views/client/NotificationsView.vue') },
+        { path: 'perfil', component: () => import('@/views/client/ProfileView.vue') }
+      ]
+    },
+    {
       path: '/crear-propiedad',
       name: 'create-property',
       component: () => import('@/views/client/CreatePropertyView.vue'),

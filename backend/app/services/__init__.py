@@ -23,6 +23,7 @@ from app.services import propertyService
 from app.services import appointmentService
 from app.services import advisorService
 from app.services import favoriteService
+from app.services import notificationService
 
 __all__ = [
     # TODO: Agregar services aquí cuando se creen
@@ -31,5 +32,6 @@ __all__ = [
     'propertyService',
     'appointmentService',
     'advisorService',
-    'favoriteService'
+    'favoriteService',
+    'notificationService'
 ]

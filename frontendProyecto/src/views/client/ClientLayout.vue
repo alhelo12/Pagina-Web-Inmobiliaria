@@ -1,0 +1,43 @@
+<script setup>
+import Sidebar from '@/components/client/Sidebar.vue'
+</script>
+
+<template>
+  <div class="client-layout">
+    <Sidebar />
+    <main class="content">
+      <RouterView />
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.client-layout {
+  --color-navy: #07172d;
+  --color-navy-2: #102e4f;
+  --color-gold: #d6a848;
+  --color-cream: #f5f2ec;
+  --color-card: #fffdf8;
+  --color-muted: #65717e;
+  --color-line: rgba(7, 23, 45, .1);
+  --shadow-soft: 0 18px 45px rgba(7, 23, 45, 0.12);
+  --shadow-strong: 0 24px 70px rgba(7, 23, 45, 0.22);
+  min-height: calc(100vh - 60px);
+  display: flex;
+  background: var(--color-cream);
+  font-family: 'Poppins', sans-serif;
+}
+
+.client-layout :deep(button),
+.client-layout :deep(input),
+.client-layout :deep(select),
+.client-layout :deep(textarea) {
+  font-family: inherit;
+}
+
+.content { flex: 1; min-width: 0; padding: 28px; background: var(--color-cream); }
+@media (max-width: 900px) {
+  .client-layout { flex-direction: column; }
+  .content { padding: 18px; }
+}
+</style>

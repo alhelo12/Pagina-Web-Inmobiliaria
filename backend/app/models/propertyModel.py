@@ -215,6 +215,14 @@ class Property(BaseModel):
         lazy="dynamic"
     )
     
+    # Relación One-to-Many con Notification
+    notifications = relationship(
+        "Notification",
+        back_populates="property",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+    
     def __repr__(self):
         """Representación de la propiedad para debugging"""
         return f"<Property(id={self.id}, title='{self.title[:30]}...', status='{self.status}')>"
