@@ -42,8 +42,10 @@ const router = createRouter({
       component: () => import('@/views/advisor/AdvisorLayout.vue'),
       meta: { requiresAuth: true, role: 'advisor' },
       children: [
-        { path: '',      redirect: '/advisor/panel' },
-        { path: 'panel', component: () => import('@/views/advisor/AdvisorPanel.vue') }
+        { path: '', redirect: '/advisor/dashboard' },
+        { path: 'dashboard', component: () => import('@/views/advisor/AdvisorDashboard.vue') },
+        { path: 'panel', component: () => import('@/views/advisor/AdvisorPanel.vue') },
+        { path: 'clientes', component: () => import('@/views/advisor/AdvisorClientsView.vue') }
       ]
     },
 

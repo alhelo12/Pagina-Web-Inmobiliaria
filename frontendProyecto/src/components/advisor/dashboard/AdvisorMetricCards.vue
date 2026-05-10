@@ -1,12 +1,12 @@
-﻿<template>
+<template>
   <section class="metrics">
     <article class="card">
       <div class="card-icon total-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </div>
-      <span>Total propiedades</span>
+      <span>Mis propiedades</span>
       <strong>{{ metrics.total }}</strong>
-      <small>En toda la plataforma</small>
+      <small>Total asignadas</small>
     </article>
     <article class="card">
       <div class="card-icon approved-icon">
@@ -14,7 +14,7 @@
       </div>
       <span>Aprobadas</span>
       <strong>{{ metrics.approved }}</strong>
-      <small>Disponibles al público</small>
+      <small>Visibles al público</small>
     </article>
     <article class="card">
       <div class="card-icon pending-icon">
@@ -25,28 +25,28 @@
       <small>En revisión</small>
     </article>
     <article class="card highlight">
-      <div class="card-icon rate-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <div class="card-icon sold-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       </div>
-      <span>Tasa aprobación</span>
-      <strong>{{ metrics.approvalRate }}%</strong>
-      <small>Rendimiento general</small>
+      <span>Vendidas</span>
+      <strong>{{ metrics.sold }}</strong>
+      <small>Cerradas</small>
     </article>
     <article class="card">
-      <div class="card-icon users-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div class="card-icon available-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
       </div>
-      <span>Total usuarios</span>
-      <strong>{{ metrics.totalUsers ?? 0 }}</strong>
-      <small>Registrados en plataforma</small>
+      <span>Disponibles</span>
+      <strong>{{ metrics.availableToTake }}</strong>
+      <small>Para tomar</small>
     </article>
     <article class="card">
-      <div class="card-icon advisors-icon">
+      <div class="card-icon clients-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </div>
-      <span>Asesores</span>
-      <strong>{{ metrics.activeAdvisors ?? 0 }}</strong>
-      <small>Publicando propiedades</small>
+      <span>Clientes</span>
+      <strong>{{ metrics.clientsCount ?? 0 }}</strong>
+      <small>Propietarios únicos</small>
     </article>
   </section>
 </template>
@@ -56,21 +56,21 @@ defineProps({ metrics: { type: Object, required: true } })
 </script>
 
 <style scoped>
-.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
 .card { background: var(--color-card); border-radius: 10px; border: 1px solid var(--color-line); box-shadow: 0 10px 24px rgba(7, 23, 45, 0.08); padding: 16px; transition: .3s ease; position: relative; overflow: hidden; }
 .card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(7, 23, 45, 0.12); }
 .card-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
 .total-icon { background: #e8edf0; color: var(--color-navy-2); }
 .approved-icon { background: #dff7e9; color: #166534; }
 .pending-icon { background: #fff3ce; color: #856404; }
-.rate-icon { background: #f7efe0; color: var(--color-navy-2); }
-.users-icon { background: #e8edf0; color: var(--color-navy-2); }
-.advisors-icon { background: #f0e8fd; color: #6b21a8; }
+.sold-icon { background: #d4edda; color: #155724; }
+.available-icon { background: #f7efe0; color: var(--color-navy-2); }
+.clients-icon { background: #f0e8fd; color: #6b21a8; }
 .card span { color: var(--color-muted); font-size: 13px; font-weight: 600; }
 .card strong { display: block; margin-top: 8px; color: var(--color-navy); font-size: 30px; font-weight: 700; }
 .card small { color: #87909b; font-size: 12px; }
 .highlight { background: linear-gradient(150deg, rgba(214, 168, 72, .2) 0%, var(--color-card) 100%); }
-@media (max-width: 1200px) { .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1400px) { .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 980px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .metrics { grid-template-columns: 1fr; } }
 </style>

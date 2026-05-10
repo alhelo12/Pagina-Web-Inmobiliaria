@@ -72,5 +72,30 @@ export const propertiesApi = {
   /** Resumen de estadísticas */
   getSummary() {
     return api.get('/properties/stats/summary')
+  },
+
+  /** Propiedades del advisor (las que gestiona + disponibles para tomar) */
+  getByAdvisor(params = {}) {
+    return api.get('/properties/by-advisor', { params })
+  },
+
+  /** Estadísticas personales del advisor */
+  getSummaryByAdvisor() {
+    return api.get('/properties/stats/by-advisor')
+  },
+
+  /** Tomar una propiedad */
+  takeProperty(id) {
+    return api.patch(`/properties/${id}/take`)
+  },
+
+  /** Devolver una propiedad */
+  returnProperty(id) {
+    return api.patch(`/properties/${id}/return`)
+  },
+
+  /** Propiedades disponibles para tomar */
+  getAvailable(params = {}) {
+    return api.get('/properties/available', { params })
   }
 }
