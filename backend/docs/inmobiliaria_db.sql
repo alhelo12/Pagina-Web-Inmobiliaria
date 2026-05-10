@@ -1,6 +1,6 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.0.3
+-- Version: 1.2.0
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
 --              con sistema de aprobación de propiedades
 -- ==========================================
@@ -126,6 +126,20 @@ CREATE TABLE IF NOT EXISTS favorites (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT unique_favorite UNIQUE (user_id, property_id)
+);
+
+-- Tabla: notifications
+-- Descripción: Notificaciones para informar a los clientes sobre el estado de sus propiedades
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    property_id INT REFERENCES properties(id) ON DELETE SET NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'info',
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- ==========================================
