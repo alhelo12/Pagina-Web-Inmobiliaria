@@ -12,6 +12,8 @@ frontend/dist/
 # Media
 backend/media/propertyImages/*
 !backend/media/propertyImages/.gitkeep
+backend/media/properties/*
+!backend/media/properties/.gitkeep
 
 # IDEs
 .vscode/
