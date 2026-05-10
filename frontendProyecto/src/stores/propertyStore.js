@@ -6,7 +6,9 @@ export const usePropertyStore = defineStore('property', {
     properties: [],
     total:      0,
     loading:    false,
-    error:      null
+    error:      null,
+    advisorStats: null,
+    availableProperties: []
   }),
 
   getters: {
@@ -20,7 +22,6 @@ export const usePropertyStore = defineStore('property', {
       this.error   = null
       try {
         const { data } = await propertiesApi.getAll(params)
-        // El backend devuelve { total, page, per_page, properties: [...] }
         this.properties = data.properties ?? data.items ?? data
         this.total      = data.total ?? this.properties.length
       } catch (err) {
@@ -42,6 +43,53 @@ export const usePropertyStore = defineStore('property', {
       } finally {
         this.loading = false
       }
+    },
+
+    async fetchByAdvisor() {
+      this.loading = true
+      this.error   = null
+      try {
+        const { data } = await propertiesApi.getByAdvisor()
+        this.properties = data.properties ?? data.items ?? data
+        this.total      = data.total ?? this.properties.length
+      } catch (err) {
+        this.error = err.response?.data?.detail ?? 'Error al cargar propiedades'
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchAvailable() {
+      this.loading = true
+      this.error   = null
+      try {
+        const { data } = await propertiesApi.getAvailable()
+        this.availableProperties = data.properties ?? data.items ?? data
+      } catch (err) {
+        this.error = err.response?.data?.detail ?? 'Error al cargar disponibles'
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchAdvisorStats() {
+      try {
+        const { data } = await propertiesApi.getSummaryByAdvisor()
+        this.advisorStats = data
+      } catch (err) {
+        this.error = err.response?.data?.detail ?? 'Error al cargar estadísticas'
+      }
+    },
+
+    async takeProperty(id) {
+      const { data } = await propertiesApi.takeProperty(id)
+      this._updateLocal(data)
+      this.availableProperties = this.availableProperties.filter(p => p.id !== id)
+    },
+
+    async returnProperty(id) {
+      const { data } = await propertiesApi.returnProperty(id)
+      this._updateLocal(data)
     },
 
     async approve(id) {

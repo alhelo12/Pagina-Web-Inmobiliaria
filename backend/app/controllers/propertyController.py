@@ -16,9 +16,23 @@ from app.schemas import (
     PropertyCreate, PropertyUpdate, PropertyResponse,
     PropertyListResponse, PropertySearchFilters, NearbySearchParams
 )
-from app.models import User
+from app.models import User, Property, Advisor
 
 router = APIRouter(prefix="/properties", tags=["Properties"])
+
+
+def get_or_create_advisor(db: Session, user: User) -> int:
+    """
+    Obtiene el ID del advisor o crea el perfil si no existe
+    """
+    if user.advisor:
+        return user.advisor.id
+    
+    new_advisor = Advisor(user_id=user.id)
+    db.add(new_advisor)
+    db.commit()
+    db.refresh(new_advisor)
+    return new_advisor.id
 
 
 # ── LISTAR PROPIEDADES (público) ─────────────────────────────────────────────
@@ -90,6 +104,80 @@ def get_properties_summary(
     db: Session = Depends(get_db)
 ):
     return propertyService.get_property_stats(db)
+
+
+# ── PROPIEDADES DEL ADVISOR ─────────────────────────────────────────────────
+@router.get("/by-advisor", response_model=PropertyListResponse)
+def get_properties_by_advisor(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    advisor_id = get_or_create_advisor(db, current_user)
+    
+    properties, total = propertyService.get_advisor_properties_with_available(
+        db, advisor_id, skip=skip, limit=limit
+    )
+    return PropertyListResponse(
+        total=total,
+        page=(skip // limit) + 1,
+        per_page=limit,
+        properties=properties
+    )
+
+
+# ── ESTADÍSTICAS DEL ADVISOR ─────────────────────────────────────────────────
+@router.get("/stats/by-advisor")
+def get_properties_stats_by_advisor(
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    advisor_id = get_or_create_advisor(db, current_user)
+    return propertyService.get_property_stats_by_advisor(db, advisor_id)
+
+
+# ── TOMAR PROPIEDAD (asesor) ─────────────────────────────────────────────────
+@router.patch("/{property_id}/take", response_model=PropertyResponse)
+def take_property(
+    property_id: int,
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    advisor_id = get_or_create_advisor(db, current_user)
+    return propertyService.take_property(db, property_id, advisor_id)
+
+
+# ── DEVOLVER PROPIEDAD (asesor) ──────────────────────────────────────────────
+@router.patch("/{property_id}/return", response_model=PropertyResponse)
+def return_property(
+    property_id: int,
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    advisor_id = get_or_create_advisor(db, current_user)
+    return propertyService.return_property(db, property_id, advisor_id)
+
+
+# ── PROPIEDADES DISPONIBLES PARA TOMAR ───────────────────────────────────────
+@router.get("/available", response_model=PropertyListResponse)
+def get_available_properties(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    properties = propertyService.get_available_properties(db, skip=skip, limit=limit)
+    total = db.query(Property).filter(
+        Property.status == 'pending',
+        Property.advisor_id == None
+    ).count()
+    return PropertyListResponse(
+        total=total,
+        page=(skip // limit) + 1,
+        per_page=limit,
+        properties=properties
+    )
 
 
 # ── DETALLE DE PROPIEDAD (público) ───────────────────────────────────────────

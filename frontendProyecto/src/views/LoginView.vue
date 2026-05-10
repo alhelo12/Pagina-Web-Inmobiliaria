@@ -15,7 +15,7 @@ const showPassword = ref(false)
 
 const roleRedirect = {
   admin:   '/admin/dashboard',
-  advisor: '/advisor/panel',
+  advisor: '/advisor/dashboard',
   client:  '/'
 }
 

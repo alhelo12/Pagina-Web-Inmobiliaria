@@ -728,4 +728,189 @@ def get_properties_by_advisor(
         .limit(limit)
         .all()
     )
+
+
+def take_property(db: Session, property_id: int, advisor_id: int) -> Property:
+    """
+    Asignar una propiedad pendiente a un asesor
+    
+    Args:
+        db: Sesión de base de datos
+        property_id: ID de la propiedad
+        advisor_id: ID del asesor que toma la propiedad
+        
+    Returns:
+        Propiedad actualizada
+        
+    Raises:
+        HTTPException: Si la propiedad no existe o ya tiene advisor
+    """
+    db_property = get_property_by_id(db, property_id)
+    
+    if not db_property:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Propiedad no encontrada"
+        )
+    
+    if db_property.advisor_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Esta propiedad ya está asignada a otro asesor"
+        )
+    
+    if db_property.status != 'pending':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Solo se pueden tomar propiedades pendientes"
+        )
+    
+    db_property.advisor_id = advisor_id
+    db.commit()
+    db.refresh(db_property)
+    
+    return db_property
+
+
+def return_property(db: Session, property_id: int, advisor_id: int) -> Property:
+    """
+    Devolver una propiedad (quitar asignación del advisor)
+    
+    Args:
+        db: Sesión de base de datos
+        property_id: ID de la propiedad
+        advisor_id: ID del asesor que devuelve la propiedad
+        
+    Returns:
+        Propiedad actualizada
+        
+    Raises:
+        HTTPException: Si la propiedad no existe o no está asignada a este asesor
+    """
+    db_property = get_property_by_id(db, property_id)
+    
+    if not db_property:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Propiedad no encontrada"
+        )
+    
+    if db_property.advisor_id != advisor_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Esta propiedad no está asignada a ti"
+        )
+    
+    if db_property.status not in ['pending', 'rejected']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No puedes devolver propiedades ya aprobadas o vendidas"
+        )
+    
+    db_property.advisor_id = None
+    db.commit()
+    db.refresh(db_property)
+    
+    return db_property
+
+
+def get_available_properties(db: Session, skip: int = 0, limit: int = 20) -> List[Property]:
+    """
+    Obtener propiedades pendientes sin asignar (disponibles para tomar)
+    
+    Args:
+        db: Sesión de base de datos
+        skip: Registros a saltar
+        limit: Máximo de registros
+        
+    Returns:
+        Lista de propiedades disponibles
+    """
+    return (
+        db.query(Property)
+        .options(selectinload(Property.images), selectinload(Property.owner))
+        .filter(Property.status == 'pending')
+        .filter(Property.advisor_id == None)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def get_advisor_properties_with_available(
+    db: Session,
+    advisor_id: int,
+    skip: int = 0,
+    limit: int = 20
+) -> Tuple[List[Property], int]:
+    """
+    Obtener propiedades del asesor + disponibles para tomar
+    
+    Args:
+        db: Sesión de base de datos
+        advisor_id: ID del asesor
+        skip: Registros a saltar
+        limit: Máximo de registros
+        
+    Returns:
+        Tupla (lista de propiedades, total)
+    """
+    my_properties = (
+        db.query(Property)
+        .options(selectinload(Property.images), selectinload(Property.owner))
+        .filter(Property.advisor_id == advisor_id)
+        .all()
+    )
+    
+    available = (
+        db.query(Property)
+        .options(selectinload(Property.images), selectinload(Property.owner))
+        .filter(Property.status == 'pending')
+        .filter(Property.advisor_id == None)
+        .all()
+    )
+    
+    all_properties = my_properties + available
+    total = len(all_properties)
+    
+    return all_properties[skip:skip + limit], total
+
+
+def get_property_stats_by_advisor(db: Session, advisor_id: int) -> dict:
+    """
+    Obtener estadísticas personales de un asesor
+    
+    Args:
+        db: Sesión de base de datos
+        advisor_id: ID del asesor
+        
+    Returns:
+        Diccionario con estadísticas del advisor
+    """
+    base_query = db.query(Property).filter(Property.advisor_id == advisor_id)
+    
+    total = base_query.count()
+    approved = base_query.filter(Property.status == 'approved').count()
+    pending = base_query.filter(Property.status == 'pending').count()
+    rejected = base_query.filter(Property.status == 'rejected').count()
+    sold = base_query.filter(Property.status == 'sold').count()
+    
+    available = db.query(func.count(Property.id)).filter(
+        Property.status == 'pending',
+        Property.advisor_id == None
+    ).scalar()
+    
+    clients_count = db.query(func.count(func.distinct(Property.submitted_by_user_id))).filter(
+        Property.advisor_id == advisor_id
+    ).scalar()
+    
+    return {
+        "total": total,
+        "approved": approved,
+        "pending": pending,
+        "rejected": rejected,
+        "sold": sold,
+        "available_to_take": available,
+        "clients_count": clients_count
+    }
     
