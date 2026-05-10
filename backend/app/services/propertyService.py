@@ -12,6 +12,7 @@ from fastapi import HTTPException, status
 
 from app.models import Property, PropertyImage, User, Advisor
 from app.schemas import PropertyCreate, PropertyUpdate, PropertySearchFilters
+from app.services import notificationService
 
 
 # ==========================================
@@ -315,6 +316,12 @@ def approve_property(db: Session, property_id: int, advisor_id: Optional[int] = 
     db.commit()
     db.refresh(db_property)
     
+    # Crear notificación al propietario
+    try:
+        notificationService.notify_property_approved(db, property_id)
+    except Exception:
+        pass  # No fallar si no se puede crear la notificación
+    
     return db_property
 
 
@@ -358,6 +365,12 @@ def reject_property(db: Session, property_id: int, reason: Optional[str] = None)
     db.commit()
     db.refresh(db_property)
     
+    # Crear notificación al propietario
+    try:
+        notificationService.notify_property_rejected(db, property_id, reason)
+    except Exception:
+        pass  # No fallar si no se puede crear la notificación
+    
     return db_property
 
 
@@ -393,6 +406,12 @@ def mark_as_sold(db: Session, property_id: int) -> Property:
     
     db.commit()
     db.refresh(db_property)
+    
+    # Crear notificación al propietario
+    try:
+        notificationService.notify_property_sold(db, property_id)
+    except Exception:
+        pass  # No fallar si no se puede crear la notificación
     
     return db_property
 
@@ -768,6 +787,12 @@ def take_property(db: Session, property_id: int, advisor_id: int) -> Property:
     db_property.advisor_id = advisor_id
     db.commit()
     db.refresh(db_property)
+    
+    # Crear notificación al propietario
+    try:
+        notificationService.notify_property_taken(db, property_id, advisor_id)
+    except Exception:
+        pass  # No fallar si no se puede crear la notificación
     
     return db_property
 

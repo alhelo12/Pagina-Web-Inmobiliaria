@@ -20,6 +20,7 @@ from app.controllers.propertyController import router as property_router
 from app.controllers.advisorController import router as advisor_router
 from app.controllers.appointmentController import router as appointment_router
 from app.controllers.favoriteController import router as favorite_router
+from app.controllers.notificationController import router as notification_router
 
 # Ejecutar prueba al iniciar
 test_db_connection()
@@ -56,6 +57,7 @@ app.include_router(property_router)
 app.include_router(advisor_router)
 app.include_router(appointment_router)
 app.include_router(favorite_router)
+app.include_router(notification_router)
 
 # ==========================================
 # ENDPOINTS PÚBLICOS

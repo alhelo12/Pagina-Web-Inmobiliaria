@@ -21,6 +21,7 @@ from app.models.propertyModel import Property
 from app.models.propertyImageModel import PropertyImage
 from app.models.appointmentModel import Appointment
 from app.models.favoriteModel import Favorite
+from app.models.notificationModel import Notification
 
 __all__ = [
     'Role',
@@ -29,6 +30,6 @@ __all__ = [
     'Property',
     'PropertyImage',
     'Appointment',
-    'Favorite'
-
+    'Favorite',
+    'Notification'
 ]

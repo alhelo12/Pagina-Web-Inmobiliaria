@@ -130,6 +130,15 @@ class User(BaseModel):
         lazy="dynamic"
     )
     
+    # Relación con Notification (One-to-Many)
+    # Notificaciones recibidas por el usuario
+    notifications = relationship(
+        "Notification",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+    
     def __repr__(self):
         """Representación del usuario para debugging"""
         return f"<User(id={self.id}, email='{self.email}', role={self.role_id})>"

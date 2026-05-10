@@ -95,6 +95,18 @@ from app.schemas.favoriteSchema import (
     FavoritePropertyResponse
 )
 
+from app.schemas.notificationSchema import (
+    NotificationBase,
+    NotificationCreate,
+    NotificationResponse,
+    NotificationListResponse,
+    NotificationCountResponse,
+    NotificationMarkReadResponse,
+    NotificationMarkRead,
+    NOTIFICATION_TYPES,
+    get_notification_type_info
+)
+
 # TODO: Descomentar a medida que se creen los schemas
 
 
@@ -175,6 +187,17 @@ __all__ = [
     'FavoriteCheck',
     'FavoriteStats',
     'FavoritePropertyResponse',
+    
+    # Notification schemas
+    'NotificationBase',
+    'NotificationCreate',
+    'NotificationResponse',
+    'NotificationListResponse',
+    'NotificationCountResponse',
+    'NotificationMarkReadResponse',
+    'NotificationMarkRead',
+    'NOTIFICATION_TYPES',
+    'get_notification_type_info',
     
     # TODO: Agregar schemas aquí cuando se creen
 

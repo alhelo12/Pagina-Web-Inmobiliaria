@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import NotificationBell from '@/components/shared/NotificationBell.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -14,6 +15,7 @@ const dropdownRef = ref(null)
 const dashboardPath = computed(() => {
   if (auth.role === 'admin') return '/admin/dashboard'
   if (auth.role === 'advisor') return '/advisor/panel'
+  if (auth.role === 'client') return '/cliente/dashboard'
   return '/crear-propiedad'
 })
 
@@ -82,19 +84,23 @@ onUnmounted(() => {
         <RouterLink to="/nosotros" @click="closeAll">Nosotros</RouterLink>
         <RouterLink to="/contacto" @click="closeAll">Contacto</RouterLink>
 
-        <div v-if="auth.isLogged" ref="dropdownRef" class="account">
-          <button class="btn-account" type="button" @click="dropdownOpen = !dropdownOpen">
-            Mi cuenta
-            <span class="chevron" :class="{ up: dropdownOpen }">▾</span>
-          </button>
+        <div v-if="auth.isLogged" ref="dropdownRef" class="account-wrapper">
+          <NotificationBell v-if="auth.role === 'client'" />
 
-          <transition name="dropdown">
-            <div v-if="dropdownOpen" class="dropdown">
-              <button type="button" @click="goDashboard">Dashboard</button>
-              <button v-if="auth.role === 'client'" type="button" @click="() => { router.push('/favoritos'); closeAll() }">Mis favoritos</button>
-              <button type="button" @click="logout">Cerrar sesion</button>
-            </div>
-          </transition>
+          <div ref="dropdownRef" class="account">
+            <button class="btn-account" type="button" @click="dropdownOpen = !dropdownOpen">
+              Mi cuenta
+              <span class="chevron" :class="{ up: dropdownOpen }">▾</span>
+            </button>
+
+            <transition name="dropdown">
+              <div v-if="dropdownOpen" class="dropdown">
+                <button type="button" @click="goDashboard">Dashboard</button>
+                <button v-if="auth.role === 'client'" type="button" @click="() => { router.push('/favoritos'); closeAll() }">Mis favoritos</button>
+                <button type="button" @click="logout">Cerrar sesion</button>
+              </div>
+            </transition>
+          </div>
         </div>
 
         <RouterLink
@@ -229,6 +235,12 @@ onUnmounted(() => {
 
 .account {
   position: relative;
+}
+
+.account-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .chevron {
