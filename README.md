@@ -48,12 +48,13 @@ El proyecto utiliza una Arquitectura Multicapa (Clean Architecture) para separar
 │   │   │
 │   │   ├── models/                      # SQLAlchemy ORM models (7 modelos)
 │   │   │   ├── __init__.py
-│   │   │   ├── baseModels.py            # Base model con timestamps automáticos
-│   │   │   ├── userModels.py            # User, Role
-│   │   │   ├── propertyModels.py        # Property, PropertyImage
-│   │   │   ├── advisorModels.py         # Advisor
-│   │   │   ├── appointmentModels.py     # Appointment
-│   │   │   └── favoriteModels.py        # Favorite
+│   │   │   ├── userModel.py             # User, Role
+│   │   │   ├── roleModel.py             # Role
+│   │   │   ├── propertyModel.py        # Property
+│   │   │   ├── propertyImageModel.py    # PropertyImage
+│   │   │   ├── advisorModel.py         # Advisor
+│   │   │   ├── appointmentModel.py     # Appointment
+│   │   │   └── favoriteModel.py        # Favorite
 │   │   │
 │   │   ├── schemas/                     # Pydantic schemas - DTOs (59 schemas)
 │   │   │   ├── __init__.py
@@ -87,27 +88,105 @@ El proyecto utiliza una Arquitectura Multicapa (Clean Architecture) para separar
 │   │       ├── baseModels.py            # Declarative base para SQLAlchemy
 │   │       └── databaseSession.py       # Engine, SessionLocal, connection pooling, get_db()
 │   │
-│   ├── database/
-│   │   └── schema.sql                   # Complete DB schema v1.0.1 con triggers y seed data
+│   ├── docs/
+│   │   └── inmobiliaria_db.sql          # Complete DB schema con triggers y seed data
+│   │
+│   ├── media/
+│   │   ├── properties/                  # Imagenes de propiedades subidas
+│   │   └── propertyImages/               # Imagenes adicionales
 │   │
 │   ├── .env                             # Environment variables (NO subir a Git)
+│   ├── .env-example.txt                 # Template de variables de entorno
 │   ├── .gitignore                       # Archivos ignorados por Git
-│   ├── requirements.txt                 # Python dependencies
-│   ├── API_Documentation.docx           # Documentación completa para frontend (Word)
-│   ├── CHANGES_SUMMARY.md               # Resumen de protecciones JWT implementadas
-│   └── README.md                        # Este archivo
+│   └── requirements.txt                 # Python dependencies
 │
 ├── frontendProyecto/
 │   ├── public/                          # Archivos estaticos y configuracion PWA
-│   │   └── manifest.json                # Identidad de la App en el movil
 │   ├── src/
-│   │   ├── views/                       # Vistas de Admin, Advisor y Client
-│   │   ├── components/                  # Mapas, Cards y UI
-│   │   ├── apiServices/                 # Clientes Axios por controlador
-│   │   └── store/                       # Pinia: Auth y Propiedades
-│   └── package.json
+│   │   ├── views/                       # Vistas de la aplicación
+│   │   │   ├── HomeView.vue
+│   │   │   ├── LoginView.vue
+│   │   │   ├── RegisterView.vue
+│   │   │   ├── PropertiesView.vue
+│   │   │   ├── PropertyDetailView.vue
+│   │   │   ├── admin/                    # Vistas de administrador
+│   │   │   │   ├── AdminLayout.vue
+│   │   │   │   ├── DashboardView.vue
+│   │   │   │   ├── UsersView.vue
+│   │   │   │   └── PropertiesAdminView.vue
+│   │   │   ├── advisor/                 # Vistas de asesor
+│   │   │   │   ├── AdvisorLayout.vue
+│   │   │   │   ├── AdvisorDashboard.vue
+│   │   │   │   ├── AdvisorPanel.vue
+│   │   │   │   ├── AdvisorClientsView.vue
+│   │   │   │   └── PropertyTable.vue
+│   │   │   └── client/                  # Vistas de cliente
+│   │   │       ├── FavoritesView.vue
+│   │   │       ├── ServicesView.vue
+│   │   │       ├── NosotrosView.vue
+│   │   │       ├── CreatePropertyView.vue
+│   │   │       └── ContactosView.vue
+│   │   │
+│   │   ├── components/                 # Componentes reutilizables
+│   │   │   ├── PropertyCard.vue
+│   │   │   ├── admin/                   # Componentes de admin
+│   │   │   │   ├── Sidebar.vue
+│   │   │   │   └── dashboard/
+│   │   │   │       ├── AdminMetricCards.vue
+│   │   │   │       ├── AdminRecentList.vue
+│   │   │   │       ├── AdminRightPanel.vue
+│   │   │   │       ├── AdminStatusChart.vue
+│   │   │   │       └── AdminDashboardHeader.vue
+│   │   │   ├── advisor/                 # Componentes de asesor
+│   │   │   │   ├── Sidebar.vue
+│   │   │   │   └── dashboard/
+│   │   │   │       ├── AdvisorMetricCards.vue
+│   │   │   │       ├── AdvisorRecentList.vue
+│   │   │   │       ├── AdvisorRightPanel.vue
+│   │   │   │       ├── AdvisorAvailablePanel.vue
+│   │   │   │       └── AdvisorDashboardHeader.vue
+│   │   │   ├── properties/              # Componentes de propiedades
+│   │   │   │   └── FiltersBar.vue
+│   │   │   ├── home/                    # Componentes de inicio
+│   │   │   │   ├── Hero.vue
+│   │   │   │   ├── SearchBar.vue
+│   │   │   │   └── FeaturedProperties.vue
+│   │   │   ├── layout/                  # Componentes de diseño
+│   │   │   │   ├── Navbar.vue
+│   │   │   │   └── Footer.vue
+│   │   │   └── shared/                  # Componentes compartidos
+│   │   │       └── Toast.vue
+│   │   │
+│   │   ├── api/                         # Clientes Axios por servicio
+│   │   │   ├── axios.js
+│   │   │   ├── auth.js
+│   │   │   ├── users.js
+│   │   │   ├── properties.js
+│   │   │   ├── advisors.js
+│   │   │   └── favorites.js
+│   │   │
+│   │   ├── stores/                      # Pinia stores
+│   │   │   ├── authStore.js
+│   │   │   ├── propertyStore.js
+│   │   │   └── favoritesStore.js
+│   │   │
+│   │   ├── utils/                       # Utilidades helper
+│   │   │   ├── titleFormatter.js
+│   │   │   └── propertyImages.js
+│   │   │
+│   │   ├── router/
+│   │   │   └── index.js
+│   │   ├── App.vue
+│   │   ├── main.js
+│   │   └── style.css
+│   │
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   └── .env
 │
 ├── .gitignore
+├── LICENSE
 └── README.md
 
 🔐 = Endpoints protegidos con JWT
@@ -225,12 +304,12 @@ GRANT ALL PRIVILEGES ON DATABASE inmobiliaria_db TO inmobiliaria_user;
 
 ### Paso 5: Ejecutar el Schema SQL
 
-Ejecuta el archivo `database/schema.sql` para crear todas las tablas, triggers y datos iniciales:
+Ejecuta el archivo `docs/inmobiliaria_db.sql` para crear todas las tablas, triggers y datos iniciales:
 
 **Opción A - Usando pgAdmin:**
 1. En pgAdmin, conectar a la base de datos `inmobiliaria_db`
 2. Click derecho en `inmobiliaria_db` → "Query Tool"
-3. Abrir el archivo `database/schema.sql`
+3. Abrir el archivo `docs/inmobiliaria_db.sql`
 4. Click en "Execute" (⚡)
 
 **Opción B - Usando psql (terminal):**
@@ -239,7 +318,7 @@ Ejecuta el archivo `database/schema.sql` para crear todas las tablas, triggers y
 cd backend
 
 # Ejecutar el script (Windows/Linux/Mac)
-psql -U postgres -d inmobiliaria_db -f database/schema.sql
+psql -U postgres -d inmobiliaria_db -f docs/inmobiliaria_db.sql
 ```
 
 Esto creará:
@@ -481,15 +560,6 @@ El `schema.sql` crea estos usuarios automáticamente:
 | (Crear en /auth/register/client) | - | client | Cliente normal |
 
 **Nota:** Para crear usuarios advisor, usar `POST /auth/register` como admin y especificar `role_id: 2`.
-
----
-
-### Resumen de Cambios
-
-Consultar **`CHANGES_SUMMARY.md`** para ver:
-- ✅ Protección JWT en endpoints críticos
-- ✅ Breaking changes para frontend
-- ✅ Guía de migración
 
 ---
 
