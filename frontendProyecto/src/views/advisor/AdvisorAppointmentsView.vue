@@ -15,7 +15,7 @@ const processingId = ref(null)
 const showToast = (message, type = 'success') => {
   clearTimeout(toastTimeout)
   toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
+  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 const statusMap = {
@@ -69,6 +69,7 @@ onMounted(() => {
 <template>
   <section class="appointments-page">
     <AdvisorDashboardHeader eyebrow="Panel del Asesor" title="Mis Citas" />
+    <Breadcrumb :crumbs="[{ label: 'Citas', path: '/advisor/citas' }]" />
 
     <section class="metrics">
       <article class="card">

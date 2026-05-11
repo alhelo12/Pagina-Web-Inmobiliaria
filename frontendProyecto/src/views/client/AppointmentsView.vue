@@ -26,7 +26,7 @@ let toastTimeout = null
 const showToast = (message, type = 'success') => {
   clearTimeout(toastTimeout)
   toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
+  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 // Formulario de nueva cita
@@ -162,6 +162,7 @@ onUnmounted(() => {
       eyebrow="Panel de Cliente"
       title="Mis Citas"
     />
+    <Breadcrumb :crumbs="[{ label: 'Citas', path: '/cliente/citas' }]" />
 
     <div class="header-actions">
       <button v-if="!showForm" class="btn-add" @click="showForm = true">

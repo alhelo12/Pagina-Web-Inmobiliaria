@@ -11,6 +11,7 @@ import AdvisorRightPanel from '@/components/advisor/dashboard/AdvisorRightPanel.
 import AdvisorRecentList from '@/components/advisor/dashboard/AdvisorRecentList.vue'
 import AdvisorAvailablePanel from '@/components/advisor/dashboard/AdvisorAvailablePanel.vue'
 import AdvisorRelationshipPanel from '@/components/advisor/AdvisorRelationshipPanel.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -86,6 +87,8 @@ onMounted(async () => {
       :profile-email="auth.userEmail || ''"
       @add="router.push('/advisor/publicar')"
     />
+
+    <Breadcrumb :crumbs="[{ label: 'Dashboard', path: '/advisor/dashboard' }]" />
 
     <div v-if="loadingDashboard" class="state">Cargando resumen...</div>
     <div v-else-if="error" class="state error-msg">{{ error }}</div>

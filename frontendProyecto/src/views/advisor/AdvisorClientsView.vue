@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const store = usePropertyStore()
 const { properties, loading, error } = storeToRefs(store)
@@ -65,6 +66,16 @@ onMounted(() => {
       :show-add="false"
     />
 
+    <div class="filters-bar">
+      <div class="search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input v-model="search" type="search" placeholder="Buscar por nombre o email..." />
+      </div>
+      <span class="result-count">{{ myClients.length }} cliente{{ myClients.length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <Breadcrumb :crumbs="[{ label: 'Clientes', path: '/advisor/clientes' }]" />
+
     <article class="table-card">
       <div v-if="loading" class="state"><div class="spinner"></div></div>
       <div v-else-if="error" class="state error-msg">{{ error }}</div>
@@ -101,6 +112,12 @@ onMounted(() => {
 
 <style scoped>
 .clients-view { font-family: 'Poppins', sans-serif; display: grid; gap: 16px; }
+
+.filters-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 18px; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); }
+.search-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px; background: #fff; border: 1px solid var(--color-line); border-radius: 8px; padding: 8px 12px; }
+.search-wrap svg { color: var(--color-muted); flex-shrink: 0; }
+.search-wrap input { border: none; outline: none; flex: 1; font-size: 14px; color: var(--color-navy); background: transparent; font-family: inherit; }
+.result-count { color: var(--color-muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
 
 .table-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 16px; }
 

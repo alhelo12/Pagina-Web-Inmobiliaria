@@ -12,7 +12,7 @@
       <button v-if="showExport" class="ghost" @click="$emit('export')">Exportar</button>
       <button v-if="showAdd" class="primary" @click="$emit('add')">{{ addLabel }}</button>
       <div class="profile">
-        <span class="avatar">A</span>
+        <span class="avatar">{{ avatarInitial }}</span>
         <div>
           <strong>{{ profileName || 'Admin' }}</strong>
           <small>{{ profileEmail || 'Cuenta activa' }}</small>
@@ -23,7 +23,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   eyebrow: { type: String, default: 'Dashboard' },
   title: { type: String, default: 'Panel Administrativo' },
   search: { type: String, default: '' },
@@ -36,6 +38,11 @@ defineProps({
   profileEmail: { type: String, default: '' }
 })
 defineEmits(['update:search', 'export', 'add'])
+
+const avatarInitial = computed(() => {
+  const name = props.profileName || props.profileEmail || 'A'
+  return name.trim().charAt(0).toUpperCase()
+})
 </script>
 
 <style scoped>

@@ -15,7 +15,7 @@ let toastTimeout = null
 const showToast = (message, type = 'success') => {
   clearTimeout(toastTimeout)
   toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
+  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 const form = ref({
@@ -166,6 +166,8 @@ const changePassword = async () => {
       <p>Panel de Asesor</p>
       <h1>Mi Perfil</h1>
     </header>
+
+    <Breadcrumb :crumbs="[{ label: 'Mi Perfil', path: '/advisor/perfil' }]" />
 
     <div v-if="loading" class="state">Cargando perfil...</div>
     <div v-else-if="error && !form.email" class="state error-msg">{{ error }}</div>
