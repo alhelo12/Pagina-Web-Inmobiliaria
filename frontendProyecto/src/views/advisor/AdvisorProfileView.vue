@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import Toast from '@/components/shared/Toast.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
 

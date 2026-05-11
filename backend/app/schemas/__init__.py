@@ -107,6 +107,15 @@ from app.schemas.notificationSchema import (
     get_notification_type_info
 )
 
+from app.schemas.messageSchema import (
+    MessageCreate,
+    MessageResponse,
+    MessageListResponse,
+    ConversationCreate,
+    ConversationResponse,
+    ConversationListResponse,
+)
+
 # TODO: Descomentar a medida que se creen los schemas
 
 
@@ -198,7 +207,15 @@ __all__ = [
     'NotificationMarkRead',
     'NOTIFICATION_TYPES',
     'get_notification_type_info',
-    
+
+    # Message schemas
+    'MessageCreate',
+    'MessageResponse',
+    'MessageListResponse',
+    'ConversationCreate',
+    'ConversationResponse',
+    'ConversationListResponse',
+
     # TODO: Agregar schemas aquí cuando se creen
 
 ]

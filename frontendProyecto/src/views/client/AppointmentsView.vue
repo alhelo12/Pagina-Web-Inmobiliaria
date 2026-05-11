@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 import { appointmentsApi } from '@/api/appointments'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
 import Toast from '@/components/shared/Toast.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()

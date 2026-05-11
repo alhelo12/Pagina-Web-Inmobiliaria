@@ -1,8 +1,8 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.2.0
+-- Version: 1.3.0
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
---              con sistema de aprobación de propiedades
+--              con sistema de aprobación de propiedades y chat cliente-asesor
 -- ==========================================
 
 -- ==========================================
@@ -142,6 +142,30 @@ CREATE TABLE IF NOT EXISTS notifications (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+-- Tabla: conversations
+-- Descripción: Hilo de chat entre cliente y su asesor asignado
+CREATE TABLE IF NOT EXISTS conversations (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    advisor_id INT NOT NULL REFERENCES advisors(id) ON DELETE CASCADE,
+    last_message_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT unique_conversation UNIQUE (user_id, advisor_id)
+);
+
+-- Tabla: messages
+-- Descripción: Mensajes individuales dentro de una conversación
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id INT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    sender_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
 -- ==========================================
 -- 3. ÍNDICES PARA OPTIMIZACIÓN
 -- ==========================================
@@ -176,6 +200,16 @@ CREATE INDEX IF NOT EXISTS idx_appointments_client_id ON appointments(client_id)
 CREATE INDEX IF NOT EXISTS idx_appointments_advisor_id ON appointments(advisor_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_scheduled_date ON appointments(scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
+
+-- Índices en conversations
+CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_advisor_id ON conversations(advisor_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_last_message ON conversations(last_message_at DESC NULLS LAST);
+
+-- Índices en messages
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read) WHERE is_read = FALSE;
 
 -- ==========================================
 -- 4. TRIGGERS
@@ -218,9 +252,21 @@ CREATE TRIGGER tr_update_appointments
     EXECUTE PROCEDURE update_updated_at_column();
 
 -- Trigger: Actualizar updated_at en favorites
-CREATE TRIGGER tr_update_favorites 
-    BEFORE UPDATE ON favorites 
-    FOR EACH ROW 
+CREATE TRIGGER tr_update_favorites
+    BEFORE UPDATE ON favorites
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_updated_at_column();
+
+-- Trigger: Actualizar updated_at en conversations
+CREATE TRIGGER tr_update_conversations
+    BEFORE UPDATE ON conversations
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_updated_at_column();
+
+-- Trigger: Actualizar updated_at en messages
+CREATE TRIGGER tr_update_messages
+    BEFORE UPDATE ON messages
+    FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
 
 -- ==========================================
@@ -257,6 +303,8 @@ COMMENT ON TABLE properties IS 'Propiedades listadas en el sistema';
 COMMENT ON TABLE property_images IS 'Galería de imágenes de las propiedades';
 COMMENT ON TABLE appointments IS 'Citas programadas entre clientes y asesores';
 COMMENT ON TABLE favorites IS 'Propiedades guardadas como favoritas por los usuarios';
+COMMENT ON TABLE conversations IS 'Hilos de chat entre clientes y sus asesores asignados';
+COMMENT ON TABLE messages IS 'Mensajes individuales dentro de una conversación';
 
 -- ==========================================
 -- FIN DEL SCRIPT

@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
 
