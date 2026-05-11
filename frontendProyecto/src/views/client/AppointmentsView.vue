@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 import { appointmentsApi } from '@/api/appointments'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
 import Toast from '@/components/shared/Toast.vue'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -57,7 +58,7 @@ const minDateTime = computed(() => {
 const fetchAppointments = async () => {
   try {
     const { data } = await appointmentsApi.getByClient()
-    appointments.value = data.items || data
+    appointments.value = data.appointments || data.items || data
   } catch (err) {
     error.value = err.response?.data?.detail || err.message || 'Error al cargar citas'
     console.error('Error fetching appointments:', err)
@@ -160,8 +161,6 @@ onUnmounted(() => {
     <ClientDashboardHeader
       eyebrow="Panel de Cliente"
       title="Mis Citas"
-      :profile-name="auth.userEmail?.split('@')?.[0] || 'Cliente'"
-      :profile-email="auth.userEmail || ''"
     />
 
     <div class="header-actions">
@@ -169,7 +168,7 @@ onUnmounted(() => {
         + Solicitar nueva cita
       </button>
       <button v-else class="btn-cancel" @click="showForm = false">
-        ✕ Cancelar
+        <AppIcon name="x" :size="14" /> Cancelar
       </button>
     </div>
 
@@ -227,7 +226,7 @@ onUnmounted(() => {
     <!-- Lista de citas -->
     <div v-else-if="!loading" class="content">
       <div v-if="!appointments.length && !showForm" class="empty-state">
-        <span class="empty-icon">📅</span>
+        <div class="empty-icon"><AppIcon name="calendar" :size="48" /></div>
         <h3>No tienes citas programadas</h3>
         <p>Solicita una cita para visitar tus propiedades o propiedades de tu interés.</p>
       </div>
@@ -236,7 +235,7 @@ onUnmounted(() => {
         <article v-for="appt in appointments" :key="appt.id" :class="['appointment-card', { pending: appt.status === 'pending' }]">
           <div class="appointment-header">
             <div class="appointment-type">
-              <span class="type-badge" :class="appt.appointment_type">{{ appt.appointment_type === 'viewing' ? '👁️ Visita' : '🔍 Inspección' }}</span>
+              <span :class="['type-badge', appt.appointment_type]"><AppIcon :name="appt.appointment_type === 'viewing' ? 'eye' : 'search'" :size="12" /> {{ appt.appointment_type === 'viewing' ? 'Visita' : 'Inspección' }}</span>
             </div>
             <div class="appointment-status">
               <span :class="['badge', statusMap[appt.status]?.cls]">{{ statusMap[appt.status]?.label }}</span>
@@ -443,11 +442,7 @@ onUnmounted(() => {
   border-radius: 12px;
 }
 
-.empty-icon {
-  font-size: 48px;
-  display: block;
-  margin-bottom: 16px;
-}
+.empty-icon { color: var(--color-gold); display: block; margin-bottom: 16px; }
 
 .empty-state h3 {
   margin: 0 0 8px;
@@ -501,6 +496,9 @@ onUnmounted(() => {
   border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .type-badge.viewing {
