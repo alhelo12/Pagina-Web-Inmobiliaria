@@ -1,34 +1,16 @@
-import { defineStore } from 'pinia'
-
-// Decodifica el payload de un JWT sin librería externa
-function decodeJwtPayload(token) {
-  try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(atob(base64))
-  } catch {
-    return null
-  }
-}
-
-// Verifica si el token ya expiró comparando con la hora actual
-function isTokenExpired(token) {
-  const payload = decodeJwtPayload(token)
-  if (!payload || !payload.exp) return true
-  // payload.exp está en segundos, Date.now() en milisegundos
-  return payload.exp * 1000 < Date.now()
-}
+﻿import { defineStore } from 'pinia'
+import { supabase } from '@/lib/supabase'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     role: null,
     isLogged: false,
-    token: null,       // ← JWT guardado en memoria
+    token: null,
     userId: null,
     userEmail: null
   }),
 
   getters: {
-    // Devuelve el header Authorization listo para usarse en axios/fetch
     authHeaders: (state) => {
       if (!state.token) return {}
       return { Authorization: `Bearer ${state.token}` }
@@ -36,53 +18,80 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    // Recibe la respuesta completa del backend { access_token, token_type }
-    login(accessToken) {
-      const payload = decodeJwtPayload(accessToken)
-      if (!payload) {
-        console.error('Token JWT inválido')
-        return
-      }
-
-      this.token      = accessToken
-      this.role       = payload.role   ?? null
-      this.userId     = payload.sub    ?? null
-      this.userEmail  = payload.email  ?? null
-      this.isLogged   = true
-
-      // Solo guardamos token y role en localStorage (no contraseñas)
-      localStorage.setItem('token', accessToken)
-      localStorage.setItem('role', this.role)
+    async register(email, password) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin + '/verificado'
+        }
+      })
+      if (error) throw error
+      return data
     },
 
-    logout() {
-      this.token      = null
-      this.role       = null
-      this.userId     = null
-      this.userEmail  = null
-      this.isLogged   = false
+    async login(email, password) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
 
-      localStorage.removeItem('token')
+      if (error) {
+        if (error.message?.toLowerCase().includes('email not confirmed')) {
+          throw new Error('Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.')
+        }
+        throw error
+      }
+
+      const user = data.user
+      const session = data.session
+
+      this.role = user.user_metadata?.role ?? user.app_metadata?.role ?? 'client'
+      this.token = session.access_token
+      this.userId = user.id
+      this.userEmail = user.email
+      this.isLogged = true
+
+      localStorage.setItem('role', this.role)
+      return data
+    },
+
+    async logout() {
+      await supabase.auth.signOut()
+      this.token = null
+      this.role = null
+      this.userId = null
+      this.userEmail = null
+      this.isLogged = false
       localStorage.removeItem('role')
     },
 
-    // Se llama al iniciar la app para restaurar la sesión guardada
-    loadSession() {
-      const token = localStorage.getItem('token')
-      if (!token) return
+    async loadSession() {
+      const { data } = await supabase.auth.getSession()
+      const session = data?.session
+      if (!session) return
 
-      // Si el token ya expiró, limpiamos y no restauramos
-      if (isTokenExpired(token)) {
-        this.logout()
-        return
-      }
+      const user = session.user
+      this.token = session.access_token
+      this.role = user.user_metadata?.role ?? user.app_metadata?.role ?? 'client'
+      this.userId = user.id
+      this.userEmail = user.email
+      this.isLogged = true
+    },
 
-      const payload = decodeJwtPayload(token)
-      this.token     = token
-      this.role      = payload?.role  ?? null
-      this.userId    = payload?.sub   ?? null
-      this.userEmail = payload?.email ?? null
-      this.isLogged  = true
+    async forgotPassword(email) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/nueva-contrasena'
+      })
+      if (error) throw error
+    },
+
+    async updatePassword(newPassword) {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+      if (error) throw error
     }
   }
 })
+

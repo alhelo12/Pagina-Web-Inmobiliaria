@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
 const apiClient = axios.create({
@@ -6,7 +6,7 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' }
 })
 
-// ── Request: agrega el token JWT si existe ──────────────────────────────────
+// â”€â”€ Request: agrega el token JWT si existe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 apiClient.interceptors.request.use((config) => {
   const auth = useAuthStore()
   if (auth.token) {
@@ -15,18 +15,33 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// ── Response: maneja 401 SOLO fuera del login ────────────────────────────────
+// â”€â”€ Response: maneja 401 SOLO fuera del login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Si interceptamos el 401 del propio endpoint de login, la página se recarga
 // antes de que el componente pueda mostrar el error al usuario.
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const isLoginEndpoint = error.config?.url?.includes('/auth/login')
+    const authRoutes = new Set([
+      '/login',
+      '/registro',
+      '/verificado',
+      '/recuperar-contrasena',
+      '/nueva-contrasena'
+    ])
+    const currentPath = window.location.pathname
 
     if (error.response?.status === 401 && !isLoginEndpoint) {
       const auth = useAuthStore()
-      auth.logout()
-      window.location.href = '/login'
+
+      // Evita bucles de recarga en pantallas públicas/auth y cuando no hay sesión activa.
+      if (!auth.token || authRoutes.has(currentPath)) {
+        return Promise.reject(error)
+      }
+
+      // En flujo Supabase puede haber endpoints legacy que respondan 401 con token válido.
+      // No forzamos redirección global para evitar rebotes al login.
+      return Promise.reject(error)
     }
 
     return Promise.reject(error)
@@ -34,3 +49,4 @@ apiClient.interceptors.response.use(
 )
 
 export default apiClient
+
