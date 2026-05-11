@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '@/api/auth'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 const auth   = useAuthStore()
@@ -57,7 +58,7 @@ const submit = async () => {
         <div v-if="error" class="alert-error">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span>{{ error }}</span>
-          <button class="close-error" @click="error = ''">✕</button>
+          <button class="close-error" @click="error = ''"><AppIcon name="x" :size="16" /></button>
         </div>
 
         <form @submit.prevent="submit" class="login-form">

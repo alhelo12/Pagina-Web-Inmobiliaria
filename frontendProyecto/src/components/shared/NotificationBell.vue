@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 const store = useNotificationsStore()
@@ -13,11 +14,11 @@ const dropdownRef = ref(null)
 let pollInterval = null
 
 const typeIcons = {
-  advisor_assigned: '👤',
-  approved: '✅',
-  rejected: '❌',
-  sold: '🏠',
-  property_updated: '✏️'
+  advisor_assigned: 'user',
+  approved: 'check',
+  rejected: 'x-circle',
+  sold: 'home',
+  property_updated: 'pencil'
 }
 
 const typeColors = {
@@ -109,7 +110,7 @@ onUnmounted(() => {
             @click="handleNotificationClick(notification)"
           >
             <span class="icon" :style="{ backgroundColor: typeColors[notification.type] + '20', color: typeColors[notification.type] }">
-              {{ typeIcons[notification.type] || '📢' }}
+              <AppIcon :name="typeIcons[notification.type] || 'megaphone'" :size="16" />
             </span>
             <div class="content">
               <strong>{{ notification.title }}</strong>

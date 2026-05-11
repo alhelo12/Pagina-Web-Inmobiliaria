@@ -5,6 +5,7 @@ import { propertiesApi } from '@/api/properties'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { useAuthStore } from '@/stores/authStore'
 import { FALLBACK_PROPERTY_IMAGE, normalizeImageUrl } from '@/utils/propertyImages'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const route    = useRoute()
 const favStore = useFavoritesStore()
@@ -247,7 +248,7 @@ const txLabel   = { sale: 'En Venta', rent: 'En Renta' }
             <div class="lb-header">
               <span class="lb-counter">{{ activeImg + 1 }} / {{ images.length }}</span>
               <span class="lb-label">{{ images[activeImg]?.label || property.title }}</span>
-              <button class="lb-close" @click="lightboxOpen = false">✕</button>
+              <button class="lb-close" @click="lightboxOpen = false"><AppIcon name="x" :size="20" /></button>
             </div>
             <div class="lb-img-wrap">
               <button v-if="images.length > 1" class="lb-arrow lb-prev" @click.stop="prev">

@@ -6,6 +6,7 @@ import { propertiesApi } from '@/api/properties'
 import { normalizeImageUrl } from '@/utils/propertyImages'
 import { formatPropertyTitle } from '@/utils/titleFormatter'
 import Toast from '@/components/shared/Toast.vue'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -652,7 +653,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
           <div class="progress-fill" :style="{ width: progress }"></div>
         </div>
 
-        <div v-if="error" class="alert alert-error">⚠ {{ error }}</div>
+        <div v-if="error" class="alert alert-error"><AppIcon name="warning" :size="16" /> {{ error }}</div>
         <div v-if="warning" class="alert alert-warning">⚡ {{ warning }}</div>
 
         <form @submit.prevent="submit" class="form">
@@ -771,7 +772,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
           <!-- STEP 4 -->
           <div v-if="currentStep === 3" class="step-panel">
             <div class="panel-header">
-              <span class="panel-icon">🏠</span>
+              <span class="panel-icon"><AppIcon name="home" :size="20" /></span>
               <div><h2>Caracteristicas</h2><p>Detalles fisicos de la propiedad</p></div>
             </div>
             <div class="features-cards">
@@ -814,7 +815,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
                   <img v-if="bedroomPhotos[index - 1]?.preview" :src="bedroomPhotos[index - 1].preview" :alt="`Recamara ${index}`" />
                   <div v-else class="slot-empty"><span>+</span><small>Recamara {{ index }}</small></div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bedroomPhotos, index - 1)" />
-                  <button v-if="bedroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBedroomPhoto(index - 1)">✕</button>
+                  <button v-if="bedroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBedroomPhoto(index - 1)"><AppIcon name="x" :size="12" /></button>
                 </label>
               </div>
             </div>
@@ -829,7 +830,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
                   <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`Baño ${index}`" />
                   <div v-else class="slot-empty"><span>+</span><small>Baño {{ index }}</small></div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bathroomPhotos, index - 1)" />
-                  <button v-if="bathroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBathroomPhoto(index - 1)">✕</button>
+                  <button v-if="bathroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBathroomPhoto(index - 1)"><AppIcon name="x" :size="12" /></button>
                 </label>
               </div>
             </div>
@@ -842,7 +843,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
               <div v-for="(extra, index) in extras" :key="index" class="extra-row">
                 <div class="field"><label>Nombre del espacio</label><input v-model="extra.label" type="text" placeholder="Cocina, patio, sala..." /></div>
                 <div class="field"><label>Fotos</label><input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onExtraFilesChange($event, index)" /></div>
-                <button type="button" class="remove-btn" @click="removeExtra(index)">✕ Quitar</button>
+                <button type="button" class="remove-btn" @click="removeExtra(index)"><AppIcon name="x" :size="12" /> Quitar</button>
                 <div v-if="extra.previews.length" class="preview-grid extra-preview">
                   <div v-for="(src, imgIndex) in extra.previews" :key="imgIndex" class="preview-item">
                     <img :src="src" :alt="`${extra.label || 'Extra'} ${imgIndex + 1}`" />
