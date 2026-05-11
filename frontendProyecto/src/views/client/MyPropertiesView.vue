@@ -57,8 +57,16 @@ const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3
 
 // Popover de asesor
 const activeAdvisorPopover = ref(null)
-const advisorDetails = ref({})
+const advisorDataCache = ref({})
 const advisorLoading = ref(false)
+const popoverPosition = ref({ top: 0, left: 0 })
+
+const activeAdvisorData = computed(() => {
+  if (!activeAdvisorPopover.value) return null
+  const prop = filtered.value.find(p => p.id === activeAdvisorPopover.value)
+  if (!prop?.advisor_id) return null
+  return advisorDataCache.value[prop.advisor_id] ?? null
+})
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / perPage.value)))
 
@@ -174,15 +182,15 @@ const fetchAdvisorDetails = async (advisorId) => {
     })
     if (!response.ok) throw new Error('Error al cargar datos del asesor')
     const data = await response.json()
-    advisorDetails.value = {
+    advisorDataCache.value[advisorId] = {
       name: data.user?.full_name || `Asesor #${advisorId}`,
       email: data.user?.email || '',
       phone: data.user?.phone || '',
       agency: data.agency_name || '',
       licenseNumber: data.license_number || ''
     }
-  } catch (err) {
-    advisorDetails.value = { name: 'Error', email: '', phone: '', agency: '' }
+  } catch {
+    advisorDataCache.value[advisorId] = { name: 'Error', email: '', phone: '', agency: '' }
   } finally {
     advisorLoading.value = false
   }
@@ -196,20 +204,25 @@ const toggleAdvisorPopover = async (event, property) => {
     return
   }
 
+  const el = document.getElementById(`advisor-badge-${property.id}`)
+  if (el) {
+    const rect = el.getBoundingClientRect()
+    const scrollY = window.scrollY || document.documentElement.scrollTop
+    popoverPosition.value = {
+      top: rect.bottom + scrollY + 6,
+      left: Math.min(rect.left, window.innerWidth - 300)
+    }
+  }
+
   activeAdvisorPopover.value = property.id
 
-  // Solo hacer fetch si no tenemos los datos ya
-  if (!advisorDetails.value.name || advisorDetails.value.name === 'Error') {
-    await fetchAdvisorDetails(property.advisor_id)
-  } else if (advisorDetails.value.name === '') {
+  if (!advisorDataCache.value[property.advisor_id]) {
     await fetchAdvisorDetails(property.advisor_id)
   }
 }
 
-const closeAdvisorPopover = (event) => {
-  if (activeAdvisorPopover.value !== null) {
-    activeAdvisorPopover.value = null
-  }
+const closeAdvisorPopover = () => {
+  activeAdvisorPopover.value = null
 }
 
 document.addEventListener('click', closeAdvisorPopover)
@@ -275,48 +288,15 @@ onUnmounted(() => {
               <td>${{ Number(p.price).toLocaleString('es-MX') }}</td>
               <td class="advisor-cell">
                 <span
-                  :class="['advisor-badge', p.advisor_id ? 'assigned' : 'unassigned']"
-                  @click="p.advisor_id ? toggleAdvisorPopover($event, p) : null"
+                  v-if="p.advisor_id"
+                  :id="`advisor-badge-${p.id}`"
+                  class="advisor-badge"
+                  @click="toggleAdvisorPopover($event, p)"
                 >
                   {{ getAdvisorName(p) }}
-                  <span v-if="p.advisor_id" class="advisor-info-icon">?</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 </span>
-                <div
-                  v-if="activeAdvisorPopover === p.id"
-                  class="advisor-popover"
-                >
-                  <div v-if="advisorLoading" class="popover-loading">Cargando...</div>
-                  <template v-else>
-                    <div class="popover-header">{{ advisorDetails.name }}</div>
-                    <div class="popover-body">
-                      <div v-if="advisorDetails.agency" class="popover-item">
-                        <span class="popover-icon">🏢</span>
-                        <span>{{ advisorDetails.agency }}</span>
-                      </div>
-                      <div v-if="advisorDetails.licenseNumber" class="popover-item">
-                        <span class="popover-icon">📋</span>
-                        <span>{{ advisorDetails.licenseNumber }}</span>
-                      </div>
-                      <div v-if="advisorDetails.email" class="popover-item">
-                        <span class="popover-icon">📧</span>
-                        <a :href="'mailto:' + advisorDetails.email" class="popover-link">
-                          {{ advisorDetails.email }}
-                        </a>
-                      </div>
-                      <div class="popover-item">
-                        <span class="popover-icon">📱</span>
-                        <template v-if="advisorDetails.phone">
-                          <a :href="'tel:' + advisorDetails.phone" class="popover-link">
-                            {{ advisorDetails.phone }}
-                          </a>
-                        </template>
-                        <template v-else>
-                          <span class="popover-unavailable">No disponible</span>
-                        </template>
-                      </div>
-                    </div>
-                  </template>
-                </div>
+                <span v-else class="advisor-badge unassigned">Sin asignar</span>
               </td>
               <td><span :class="['badge', statusMap[p.status]?.cls]">{{ statusMap[p.status]?.label ?? p.status }}</span></td>
               <td class="actions">
@@ -351,6 +331,44 @@ onUnmounted(() => {
         <span class="pagination-info">Mostrando {{ filtered.length }} propiedades</span>
       </div>
     </article>
+
+    <Teleport to="body">
+      <div
+        v-if="activeAdvisorPopover"
+        class="advisor-popover"
+        :style="{ top: popoverPosition.top + 'px', left: popoverPosition.left + 'px' }"
+        @click.stop
+      >
+        <div class="popover-header">
+          <strong>{{ activeAdvisorData?.name }}</strong>
+          <button class="popover-close" @click="closeAdvisorPopover">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div v-if="advisorLoading" class="popover-loading">Cargando...</div>
+        <template v-else>
+          <div class="popover-body">
+            <div v-if="activeAdvisorData?.agency" class="popover-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span>{{ activeAdvisorData.agency }}</span>
+            </div>
+            <div v-if="activeAdvisorData?.licenseNumber" class="popover-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              <span>{{ activeAdvisorData.licenseNumber }}</span>
+            </div>
+            <div v-if="activeAdvisorData?.email" class="popover-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <a :href="'mailto:' + activeAdvisorData.email" class="popover-link">{{ activeAdvisorData.email }}</a>
+            </div>
+            <div class="popover-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <a v-if="activeAdvisorData?.phone" :href="'tel:' + activeAdvisorData.phone" class="popover-link">{{ activeAdvisorData.phone }}</a>
+              <span v-else class="popover-unavailable">No disponible</span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </Teleport>
 
     <Teleport to="body">
       <div v-if="confirmModal.show" class="modal-overlay" @click.self="confirmModal.show = false">
@@ -416,122 +434,81 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .advisor-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 4px 10px;
   border-radius: 7px;
   font-size: 12px;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
   transition: 0.2s ease;
   border: none;
-  background: transparent;
-  color: inherit;
-}
-
-.advisor-badge.assigned {
+  background: rgba(214, 168, 72, 0.1);
   color: var(--color-navy-2);
 }
-
-.advisor-badge.unassigned {
-  color: var(--color-muted);
-  cursor: default;
-}
-
-.advisor-badge:hover.assigned {
-  color: var(--color-gold);
-}
-
-.advisor-info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(214, 168, 72, 0.12);
-  color: var(--color-gold);
-  font-size: 10px;
-  font-weight: 800;
-  transition: 0.2s ease;
-}
-
-.advisor-badge.assigned:hover .advisor-info-icon {
-  background: var(--color-gold);
-  color: var(--color-navy);
-}
+.advisor-badge:hover { background: rgba(214, 168, 72, 0.2); color: var(--color-gold); }
+.advisor-badge.unassigned { background: transparent; color: var(--color-muted); cursor: default; }
+.advisor-badge svg { color: var(--color-gold); flex-shrink: 0; }
 
 .advisor-popover {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 100;
-  min-width: 260px;
-  background: var(--color-card);
+  position: fixed;
+  z-index: 2000;
+  min-width: 280px;
+  max-width: 320px;
+  background: #fff;
   border: 1px solid var(--color-line);
-  border-radius: 10px;
-  box-shadow: 0 12px 40px rgba(7, 23, 45, 0.18);
-  padding: 14px;
-  margin-top: 6px;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(7, 23, 45, 0.2);
+  overflow: hidden;
   animation: popoverIn 0.15s ease;
 }
 
 @keyframes popoverIn {
-  from { opacity: 0; transform: translateY(-4px); }
+  from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.popover-loading {
-  text-align: center;
-  color: var(--color-muted);
-  font-size: 13px;
-  padding: 10px;
-}
-
-.popover-header {
-  font-weight: 700;
-  color: var(--color-navy);
-  font-size: 14px;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.popover-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
+.popover-loading { text-align: center; color: var(--color-muted); font-size: 13px; padding: 16px; }
+.popover-body { display: flex; flex-direction: column; gap: 0; }
 .popover-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
   color: var(--color-muted);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-line);
 }
+.popover-item:last-child { border-bottom: none; }
+.popover-item svg { color: var(--color-gold); flex-shrink: 0; }
+.popover-link { color: var(--color-navy-2); text-decoration: none; font-weight: 500; transition: 0.2s ease; }
+.popover-link:hover { color: var(--color-gold); text-decoration: underline; }
+.popover-unavailable { color: var(--color-muted); font-style: italic; font-size: 12px; }
 
-.popover-icon {
-  font-size: 14px;
+.popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-line);
+  background: #f7efe0;
+}
+.popover-header strong { color: var(--color-navy); font-size: 14px; }
+.popover-close {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(7, 23, 45, 0.08);
+  color: var(--color-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s ease;
   flex-shrink: 0;
 }
-
-.popover-link {
-  color: var(--color-navy-2);
-  text-decoration: none;
-  font-weight: 500;
-  transition: 0.2s ease;
-}
-
-.popover-link:hover {
-  color: var(--color-gold);
-  text-decoration: underline;
-}
-
-.popover-unavailable {
-  color: var(--color-muted);
-  font-style: italic;
-  font-size: 12px;
-}
+.popover-close:hover { background: rgba(153, 27, 27, 0.12); color: #991b1b; }
 
 /* Pagination */
 .pagination { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--color-line); flex-wrap: wrap; }
