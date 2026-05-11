@@ -1,3 +1,16 @@
+<script setup>
+import { useNotificationsStore } from '@/stores/notificationsStore'
+import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
+
+const store = useNotificationsStore()
+const { unreadCount } = storeToRefs(store)
+
+onMounted(() => {
+  store.fetchUnreadCount()
+})
+</script>
+
 <template>
   <aside class="sidebar">
     <RouterLink to="/" class="brand">
@@ -9,6 +22,12 @@
       <RouterLink to="/advisor/dashboard"><i></i>Dashboard</RouterLink>
       <RouterLink to="/advisor/panel"><i></i>Mis Propiedades</RouterLink>
       <RouterLink to="/advisor/clientes"><i></i>Clientes</RouterLink>
+      <RouterLink to="/advisor/citas"><i></i>Citas</RouterLink>
+      <RouterLink to="/advisor/mensajes"><i></i>Mensajes</RouterLink>
+      <RouterLink to="/advisor/notificaciones">
+        <i></i>Notificaciones
+        <span v-if="unreadCount > 0" class="nav-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+      </RouterLink>
       <RouterLink to="/advisor/perfil"><i></i>Mi Perfil</RouterLink>
     </nav>
 
@@ -38,10 +57,11 @@
 .logo-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--color-gold); box-shadow: 0 0 0 6px rgba(214, 168, 72, 0.18); }
 .brand strong { letter-spacing: .03em; font-weight: 800; }
 nav { display: grid; gap: 8px; }
-nav a { color: var(--color-muted); padding: 12px 14px; border-radius: 10px; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: .3s ease; }
+nav a { color: var(--color-muted); padding: 12px 14px; border-radius: 10px; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: .3s ease; position: relative; }
 nav a i { width: 7px; height: 7px; border-radius: 999px; background: rgba(7, 23, 45, .22); transition: .3s ease; }
 nav a:hover, nav a.router-link-active { background: rgba(214, 168, 72, .14); color: var(--color-navy); transform: translateX(2px); }
 nav a:hover i, nav a.router-link-active i { background: var(--color-gold); box-shadow: 0 0 0 5px rgba(214, 168, 72, .14); }
+.nav-badge { margin-left: auto; background: #dc2626; color: white; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 .sidebar-card { margin-top: auto; padding: 18px; border-radius: 10px; background: #f7efe0; border: 1px solid rgba(214, 168, 72, .28); }
 .sidebar-card small { color: var(--color-gold); font-weight: 800; }
 .sidebar-card p { margin-top: 8px; color: var(--color-muted); line-height: 1.6; font-size: 13px; }

@@ -18,12 +18,12 @@ export const useNotificationsStore = defineStore('notifications', {
   actions: {
     async fetchNotifications(params = {}) {
       const auth = useAuthStore()
-      if (!auth.isLogged || auth.role !== 'client') return
+      if (!auth.isLogged) return
 
       this.loading = true
       this.error = null
       try {
-        const { data } = await notificationsApi.getAll(params)
+        const { data } = await notificationsApi.getAll({ user_id: auth.userId, ...params })
         this.notifications = data.notifications ?? []
         this.unreadCount = data.unread_count ?? 0
       } catch (err) {
@@ -35,10 +35,10 @@ export const useNotificationsStore = defineStore('notifications', {
 
     async fetchUnreadCount() {
       const auth = useAuthStore()
-      if (!auth.isLogged || auth.role !== 'client') return
+      if (!auth.isLogged) return
 
       try {
-        const { data } = await notificationsApi.getUnreadCount()
+        const { data } = await notificationsApi.getUnreadCount({ user_id: auth.userId })
         this.unreadCount = data.unread_count ?? 0
       } catch (err) {
         console.error('Error al obtener conteo de notificaciones:', err)

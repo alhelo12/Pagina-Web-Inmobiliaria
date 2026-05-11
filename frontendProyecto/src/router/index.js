@@ -34,6 +34,8 @@ const router = createRouter({
         { path: 'favoritos', component: () => import('@/views/client/FavoritesView.vue') },
         { path: 'publicar', component: () => import('@/views/client/CreatePropertyView.vue') },
         { path: 'notificaciones', component: () => import('@/views/client/NotificationsView.vue') },
+        { path: 'citas', component: () => import('@/views/client/AppointmentsView.vue') },
+        { path: 'mensajes', component: () => import('@/views/client/ClientChatView.vue') },
         { path: 'perfil', component: () => import('@/views/client/ProfileView.vue') }
       ]
     },
@@ -60,6 +62,9 @@ const router = createRouter({
         { path: 'dashboard', component: () => import('@/views/advisor/AdvisorDashboard.vue') },
         { path: 'panel', component: () => import('@/views/advisor/AdvisorPanel.vue') },
         { path: 'clientes', component: () => import('@/views/advisor/AdvisorClientsView.vue') },
+        { path: 'citas', component: () => import('@/views/advisor/AdvisorAppointmentsView.vue') },
+        { path: 'mensajes', component: () => import('@/views/advisor/AdvisorChatView.vue') },
+        { path: 'notificaciones', component: () => import('@/views/advisor/AdvisorNotificationsView.vue') },
         { path: 'perfil', component: () => import('@/views/advisor/AdvisorProfileView.vue') }
       ]
     },

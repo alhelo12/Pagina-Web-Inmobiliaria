@@ -10,6 +10,7 @@ import AdvisorStatusChart from '@/components/admin/dashboard/AdminStatusChart.vu
 import AdvisorRightPanel from '@/components/advisor/dashboard/AdvisorRightPanel.vue'
 import AdvisorRecentList from '@/components/advisor/dashboard/AdvisorRecentList.vue'
 import AdvisorAvailablePanel from '@/components/advisor/dashboard/AdvisorAvailablePanel.vue'
+import AdvisorRelationshipPanel from '@/components/advisor/AdvisorRelationshipPanel.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -98,6 +99,7 @@ onMounted(async () => {
           :pending-properties="pendingMyProperties"
           @go-to-properties="router.push('/advisor/panel')"
         />
+        <AdvisorRelationshipPanel :clients="[]" :stats="{ appointments: 0 }" />
       </div>
 
       <div class="overview-grid">
