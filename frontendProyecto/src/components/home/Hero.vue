@@ -43,7 +43,7 @@ const SearchBar = defineAsyncComponent(() =>
   background-image:
     linear-gradient(90deg, rgba(7, 23, 45, .94) 0%, rgba(10, 33, 57, .78) 46%, rgba(7, 23, 45, .48) 100%),
     linear-gradient(180deg, rgba(7, 23, 45, .18), rgba(7, 23, 45, .86)),
-    url('@/assets/images/fondo.webp');
+    url('@/assets/images/fondo2.jpg');
   background-size: cover;
   background-position: center;
   display: flex;

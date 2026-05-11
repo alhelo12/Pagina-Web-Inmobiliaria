@@ -6,7 +6,7 @@ import { useFavoritesStore } from '@/stores/favoritesStore'
 import { useAuthStore } from '@/stores/authStore'
 import PropertyCard from '@/components/PropertyCard.vue'
 import { getPropertyImage } from '@/utils/propertyImages'
-
+import homeFallbackImage from '@/assets/images/fondo2.jpg'
 const propertyStore = usePropertyStore()
 const favoritesStore = useFavoritesStore()
 const authStore = useAuthStore()
@@ -37,6 +37,13 @@ const cityOptions = computed(() =>
 )
 
 const heroProperty = computed(() => approvedProperties.value[0] ?? null)
+const heroImage = computed(() =>
+  heroProperty.value ? getPropertyImage(heroProperty.value) : homeFallbackImage
+)
+
+const onHeroImageError = (event) => {
+  if (event?.target) event.target.src = homeFallbackImage
+}
 
 const highlightedProperties = computed(() => {
   let list = approvedProperties.value
@@ -74,7 +81,8 @@ onMounted(async () => {
     <header class="hero reveal">
       <img
         class="hero-image"
-        :src="heroProperty ? getPropertyImage(heroProperty) : 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1800&q=80'"
+        :src="heroImage"
+        @error="onHeroImageError"
         alt="Propiedad principal"
       />
       <div class="hero-overlay"></div>
