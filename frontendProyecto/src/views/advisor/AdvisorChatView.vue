@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { useMessagesStore } from '@/stores/messagesStore'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
+const messagesStore = useMessagesStore()
 
 const conversations = ref([])
 const messages = ref([])
@@ -46,8 +48,9 @@ const fetchMessages = async (conversationId) => {
   }
 }
 
-const selectConversation = (conv) => {
+const selectConversation = async (conv) => {
   selectedConversation.value = conv
+  await messagesStore.markConversationRead(conv.id)
   fetchMessages(conv.id)
   startPolling()
 }

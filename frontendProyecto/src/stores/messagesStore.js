@@ -29,6 +29,22 @@ export const useMessagesStore = defineStore('messages', {
       }
     },
 
+    async markConversationRead(conversationId) {
+      const auth = useAuthStore()
+      try {
+        await api.get(`/messages?conversation_id=${conversationId}`, {
+          headers: { ...auth.authHeaders }
+        })
+        const conv = this.conversations.find(c => c.id === conversationId)
+        if (conv) {
+          this.unreadCount -= (conv.unread_count || 0)
+          conv.unread_count = 0
+        }
+      } catch (err) {
+        console.error('Error al marcar conversación como leída:', err)
+      }
+    },
+
     clear() {
       this.conversations = []
       this.unreadCount = 0
