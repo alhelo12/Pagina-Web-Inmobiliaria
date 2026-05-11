@@ -1,13 +1,22 @@
 <script setup>
 import { useAuthStore } from '@/stores/authStore'
 import { useNotificationsStore } from '@/stores/notificationsStore'
+import { useMessagesStore } from '@/stores/messagesStore'
 import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const notifStore = useNotificationsStore()
-const { unreadCount } = storeToRefs(notifStore)
+const msgStore = useMessagesStore()
+const { unreadCount: unreadNotifCount } = storeToRefs(notifStore)
+const { unreadCount: unreadMsgCount } = storeToRefs(msgStore)
 const router = useRouter()
+
+onMounted(() => {
+  notifStore.fetchUnreadCount()
+  msgStore.fetchConversations()
+})
 
 const handleLogout = () => {
   localStorage.removeItem('token')
@@ -46,6 +55,7 @@ const handleLogout = () => {
       <RouterLink to="/cliente/mensajes" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span>Mensajes</span>
+        <span v-if="unreadMsgCount > 0" class="nav-badge">{{ unreadMsgCount > 9 ? '9+' : unreadMsgCount }}</span>
       </RouterLink>
       <RouterLink to="/cliente/perfil" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -54,7 +64,7 @@ const handleLogout = () => {
       <RouterLink to="/cliente/notificaciones" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span>Notificaciones</span>
-        <span v-if="unreadCount > 0" class="nav-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+        <span v-if="unreadNotifCount > 0" class="nav-badge">{{ unreadNotifCount > 9 ? '9+' : unreadNotifCount }}</span>
       </RouterLink>
     </nav>
 
