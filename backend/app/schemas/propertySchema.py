@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+from app.schemas.userSchema import UserResponse
 
 
 # ==========================================
@@ -206,8 +207,8 @@ class PropertyAdvisorResponse(BaseModel):
     id: int
     agency_name: Optional[str] = None
     rating: Optional[float] = None
-    user: dict  # Simplificado: {id, full_name, email, phone}
-    
+    user: Optional[UserResponse] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -245,6 +246,7 @@ class PropertyResponse(PropertyBase):
     submitted_by_user_id: int
     advisor_id: Optional[int] = None
     owner: Optional[PropertyOwnerResponse] = None
+    advisor: Optional[PropertyAdvisorResponse] = None
     images: List[PropertyImageResponse] = []
     created_at: datetime
     updated_at: datetime
