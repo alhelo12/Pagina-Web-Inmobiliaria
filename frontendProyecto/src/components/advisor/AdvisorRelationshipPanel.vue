@@ -51,7 +51,7 @@ const activeClients = computed(() => props.clients?.filter(c => c.is_active).len
 
     <div class="quick-actions">
       <RouterLink to="/advisor/clientes" class="action-link">
-        <span class="action-icon">👥</span>
+        <span class="action-icon"><AppIcon name="user" :size="16" /></span>
         <span>Ver Clientes</span>
       </RouterLink>
       <RouterLink to="/advisor/citas" class="action-link">

@@ -65,7 +65,8 @@ const router = createRouter({
         { path: 'citas', component: () => import('@/views/advisor/AdvisorAppointmentsView.vue') },
         { path: 'mensajes', component: () => import('@/views/advisor/AdvisorChatView.vue') },
         { path: 'notificaciones', component: () => import('@/views/advisor/AdvisorNotificationsView.vue') },
-        { path: 'perfil', component: () => import('@/views/advisor/AdvisorProfileView.vue') }
+        { path: 'perfil', component: () => import('@/views/advisor/AdvisorProfileView.vue') },
+        { path: 'publicar', component: () => import('@/views/client/CreatePropertyView.vue') }
       ]
     },
 

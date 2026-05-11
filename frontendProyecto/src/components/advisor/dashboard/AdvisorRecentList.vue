@@ -1,19 +1,7 @@
 <script setup>
+import { getPropertyImage, FALLBACK_PROPERTY_IMAGE } from '@/utils/propertyImages'
+
 defineProps({ items: Array })
-
-const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZGlzcGxheTpibG9jazsiIGNsYXNzPSJhIiBmaWxsPSIjZWRlY2VkIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgc3R5bGU9ImZpbGw6I2VkZWNlZCIgc3BhY2Y9Im5vbmUiLz48cGF0aCBkPSJNMjIgMzZoMjBjLTEuMSAwLTIgLjktMiAyIDAgMS4xLjkgMiAyIDIgMCAxLjEtLjkgMi0yIDJoLTIwYzEuMSAwIDItLjkgMi0yIDAtMS4xLS45LTItMi0yeiIgZmlsbD0iI2RkYzJkNSIvPjwvc3ZnPg=='
-
-const getPropertyImage = (property) => {
-  const img = property.images?.find(i => i.is_main) ?? property.images?.[0]
-  if (img) {
-    const url = img.image_url ?? img.url
-    if (!url) return null
-    if (/^(https?:|blob:|data:)/.test(url)) return url
-    const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-    return `${base}${url.startsWith('/') ? '' : '/'}${url}`
-  }
-  return null
-}
 
 const statusLabel = {
   pending: 'Pendiente',
@@ -34,10 +22,10 @@ const statusLabel = {
       <div v-for="p in items" :key="p.id" class="recent-row">
         <div class="recent-thumb-wrap">
           <img
-            :src="getPropertyImage(p) || propertyFallback"
+            :src="getPropertyImage(p) || FALLBACK_PROPERTY_IMAGE"
             :alt="p.title"
             class="recent-thumb"
-            @error="(e) => { e.target.src = propertyFallback }"
+            @error="(e) => { e.target.src = FALLBACK_PROPERTY_IMAGE }"
           />
         </div>
         <div class="recent-info">

@@ -1,15 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
-import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
-import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
+import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
 
 const store = usePropertyStore()
-const auth = useAuthStore()
 const { properties, loading, error } = storeToRefs(store)
-const router = useRouter()
 
 const search = ref('')
 const debouncedSearch = ref('')
@@ -63,14 +59,10 @@ onMounted(() => {
 
 <template>
   <section class="clients-view">
-    <AdminDashboardHeader
-      v-model:search="search"
+    <AdvisorDashboardHeader
       eyebrow="Gestión de clientes"
       title="Mis Clientes"
-      :show-search="true"
-      :show-export="false"
-      :profile-name="auth.userEmail?.split('@')?.[0] || 'Asesor'"
-      :profile-email="auth.userEmail || ''"
+      :show-add="false"
     />
 
     <article class="table-card">
