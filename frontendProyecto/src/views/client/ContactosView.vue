@@ -1,5 +1,6 @@
 ﻿<script setup>
 import { reactive } from 'vue'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const form = reactive({
   name: '',
@@ -50,7 +51,7 @@ const submitNewsletter = () => {
               </div>
             </div>
             <div class="contact-item">
-              <div class="item-icon">✉️</div>
+              <div class="item-icon"><AppIcon name="envelope" :size="20" /></div>
               <div class="item-body">
                 <span>Escribenos al correo</span>
                 <strong>info@jakedainmobiliaria.com</strong>

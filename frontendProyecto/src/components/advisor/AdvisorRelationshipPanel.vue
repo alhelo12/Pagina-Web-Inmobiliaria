@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const props = defineProps({
   clients: { type: Array, default: () => [] },
@@ -54,7 +55,7 @@ const activeClients = computed(() => props.clients?.filter(c => c.is_active).len
         <span>Ver Clientes</span>
       </RouterLink>
       <RouterLink to="/advisor/citas" class="action-link">
-        <span class="action-icon">📅</span>
+        <span class="action-icon"><AppIcon name="calendar" :size="16" /></span>
         <span>Ver Citas</span>
       </RouterLink>
     </div>

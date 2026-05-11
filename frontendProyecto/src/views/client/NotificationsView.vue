@@ -1,24 +1,23 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
-const auth = useAuthStore()
 const store = useNotificationsStore()
 const { notifications, loading, unreadCount } = storeToRefs(store)
 
 const activeFilter = ref('all')
 
 const typeIcons = {
-  advisor_assigned: { icon: '👤', color: '#d6a848', label: 'Asesor asignado' },
-  approved: { icon: '✅', color: '#22c55e', label: 'Aprobada' },
-  rejected: { icon: '❌', color: '#dc2626', label: 'Rechazada' },
-  sold: { icon: '🏠', color: '#7c3aed', label: 'Vendida' },
-  property_updated: { icon: '✏️', color: '#3b82f6', label: 'Actualizada' }
+  advisor_assigned: { icon: 'user', color: '#d6a848', label: 'Asesor asignado' },
+  approved: { icon: 'check', color: '#22c55e', label: 'Aprobada' },
+  rejected: { icon: 'x-circle', color: '#dc2626', label: 'Rechazada' },
+  sold: { icon: 'home', color: '#7c3aed', label: 'Vendida' },
+  property_updated: { icon: 'pencil', color: '#3b82f6', label: 'Actualizada' }
 }
 
 const filters = [
@@ -89,8 +88,6 @@ onMounted(() => {
     <ClientDashboardHeader
       eyebrow="Panel de Cliente"
       title="Notificaciones"
-      :profile-name="auth.userEmail?.split('@')?.[0] || 'Cliente'"
-      :profile-email="auth.userEmail || ''"
     />
 
     <div class="section-header">
@@ -134,7 +131,7 @@ onMounted(() => {
     </div>
 
     <div v-else-if="!filteredNotifications.length" class="empty-state">
-      <span class="empty-icon">🔔</span>
+      <div class="empty-icon"><AppIcon name="bell" :size="48" /></div>
       <h3>No hay notificaciones</h3>
       <p>No tienes notificaciones que coincidan con el filtro seleccionado.</p>
     </div>
@@ -150,7 +147,7 @@ onMounted(() => {
           class="type-icon"
           :style="{ backgroundColor: typeIcons[notification.type]?.color + '20', color: typeIcons[notification.type]?.color }"
         >
-          {{ typeIcons[notification.type]?.icon || '📢' }}
+          <AppIcon :name="typeIcons[notification.type]?.icon || 'megaphone'" :size="22" />
         </div>
 
         <div class="notification-content">
@@ -322,7 +319,7 @@ onMounted(() => {
 }
 
 .empty-icon {
-  font-size: 48px;
+  color: var(--color-gold);
   display: block;
   margin-bottom: 16px;
 }

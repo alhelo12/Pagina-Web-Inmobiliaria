@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const auth = useAuthStore()
 
@@ -116,7 +117,7 @@ onUnmounted(() => {
 
 <template>
   <div class="chat-page">
-    <AdvisorDashboardHeader title="Mensajes" subtitle="Chatea con tus clientes" />
+    <AdvisorDashboardHeader eyebrow="Panel del Asesor" title="Mensajes" />
 
     <div class="chat-container">
       <aside class="conversations-list">
@@ -146,7 +147,7 @@ onUnmounted(() => {
 
       <main class="chat-area">
         <div v-if="!selectedConversation" class="no-selection">
-          <div class="no-selection-icon">💬</div>
+          <div class="no-selection-icon"><AppIcon name="chat" :size="48" /></div>
           <h3>Selecciona una conversación</h3>
           <p>Elige una conversación de la lista para ver los mensajes</p>
         </div>
@@ -190,25 +191,25 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.chat-page { padding: 32px; max-width: 1200px; margin: 0 auto; }
+.chat-page { display: flex; flex-direction: column; gap: 20px; }
 .chat-container { display: grid; grid-template-columns: 320px 1fr; gap: 0; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; overflow: hidden; height: 600px; }
 
 .conversations-list { border-right: 1px solid var(--color-line); padding: 20px; overflow-y: auto; }
 .conversations-list h3 { font-size: 14px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }
 .conversation-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; transition: .2s; }
 .conversation-item:hover, .conversation-item.active { background: rgba(214, 168, 72, .1); }
-.conv-avatar { width: 44px; height: 44px; border-radius: 50%; background: #4b5563; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+.conv-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
 .conv-info { display: flex; flex-direction: column; overflow: hidden; }
 .conv-name { font-weight: 600; color: var(--color-navy); }
 .conv-preview { font-size: 13px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .chat-area { display: flex; flex-direction: column; }
 .no-selection { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--color-muted); text-align: center; padding: 40px; }
-.no-selection-icon { font-size: 48px; margin-bottom: 16px; }
+.no-selection-icon { color: var(--color-gold); margin-bottom: 16px; }
 
 .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--color-line); }
 .chat-user { display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--color-navy); }
-.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #4b5563; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
 
 .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
 .no-messages { text-align: center; color: var(--color-muted); padding: 40px; }
