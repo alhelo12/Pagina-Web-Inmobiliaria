@@ -104,9 +104,35 @@ const formatTime = (dateStr) => {
   return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
 }
 
+const resolveDisplayName = (person, fallback = 'Usuario') => {
+  if (!person) return fallback
+  return (
+    person.full_name ||
+    person.name ||
+    person.display_name ||
+    person.username ||
+    person.email ||
+    fallback
+  )
+}
+
 const getConversationName = (conv) => {
-  if (conv.client) return conv.client.name || 'Cliente'
-  return 'Cliente'
+  return (
+    resolveDisplayName(conv.client, '') ||
+    conv.client_name ||
+    conv.other_user_name ||
+    conv.participant_name ||
+    'Cliente'
+  )
+}
+
+const messageSenderName = (msg) => {
+  if (msg.sender_id === auth.userId) return 'Tú'
+  return (
+    resolveDisplayName(msg.sender, '') ||
+    msg.sender_name ||
+    getConversationName(selectedConversation.value || {})
+  )
 }
 
 onMounted(() => {
@@ -127,10 +153,20 @@ onUnmounted(() => {
       <aside class="conversations-list">
         <h3>Conversaciones</h3>
         
-        <div v-if="loading" class="loading">Cargando...</div>
+        <div v-if="loading" class="loading fancy-loading">
+          <div class="skeleton-row" v-for="n in 3" :key="n">
+            <span class="sk-avatar"></span>
+            <span class="sk-lines">
+              <i></i>
+              <i></i>
+            </span>
+          </div>
+        </div>
         
-        <div v-else-if="conversations.length === 0" class="empty">
-          <p>No tienes conversaciones</p>
+        <div v-else-if="conversations.length === 0" class="empty fancy-empty">
+          <div class="empty-icon-wrap"><AppIcon name="chat" :size="28" /></div>
+          <h4>Aún no tienes conversaciones</h4>
+          <p>Cuando un cliente te contacte desde una propiedad, aparecerá aquí.</p>
         </div>
         
         <div v-else>
@@ -169,6 +205,7 @@ onUnmounted(() => {
               <p>No hay mensajes aún. Envía el primero!</p>
             </div>
             <div v-else v-for="msg in messages" :key="msg.id" :class="['message', { mine: msg.sender_id === auth.userId }]">
+              <span class="sender-name">{{ messageSenderName(msg) }}</span>
               <div class="message-bubble">{{ msg.content }}</div>
               <span class="message-time">{{ formatTime(msg.created_at) }}</span>
             </div>
@@ -200,12 +237,15 @@ onUnmounted(() => {
 
 .conversations-list { border-right: 1px solid var(--color-line); padding: 20px; overflow-y: auto; }
 .conversations-list h3 { font-size: 14px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }
-.conversation-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; transition: .2s; }
-.conversation-item:hover, .conversation-item.active { background: rgba(214, 168, 72, .1); }
+.conversation-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: .22s ease; }
+.conversation-item:hover { background: rgba(7, 24, 44, 0.05); border-color: rgba(7, 24, 44, 0.08); transform: translateY(-1px); }
+.conversation-item.active { background: linear-gradient(120deg, rgba(7, 24, 44, 0.95), rgba(16, 46, 79, 0.92)); border-color: rgba(214, 168, 72, 0.35); box-shadow: 0 10px 20px rgba(7, 24, 44, 0.22); }
 .conv-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
 .conv-info { display: flex; flex-direction: column; overflow: hidden; }
 .conv-name { font-weight: 600; color: var(--color-navy); }
 .conv-preview { font-size: 13px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conversation-item.active .conv-name { color: #fff; }
+.conversation-item.active .conv-preview { color: rgba(255, 255, 255, 0.78); }
 
 .chat-area { display: flex; flex-direction: column; }
 .no-selection { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--color-muted); text-align: center; padding: 40px; }
@@ -215,25 +255,59 @@ onUnmounted(() => {
 .chat-user { display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--color-navy); }
 .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
 
-.messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background:
+    radial-gradient(circle at 15% 5%, rgba(214, 168, 72, 0.06), transparent 28%),
+    radial-gradient(circle at 90% 100%, rgba(7, 24, 44, 0.06), transparent 30%),
+    #f8fafc;
+}
 .no-messages { text-align: center; color: var(--color-muted); padding: 40px; }
 
-.message { display: flex; flex-direction: column; max-width: 70%; }
+.message { display: flex; flex-direction: column; max-width: 74%; animation: msgIn .2s ease both; }
 .message.mine { align-self: flex-end; }
-.message-bubble { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
-.message:not(.mine) .message-bubble { background: #f1f3f5; color: var(--color-navy); border-bottom-left-radius: 4px; }
-.message.mine .message-bubble { background: var(--color-gold); color: white; border-bottom-right-radius: 4px; }
+.sender-name { font-size: 11px; font-weight: 700; color: #60758f; margin: 0 4px 4px; }
+.message.mine .sender-name { color: #91671f; text-align: right; }
+.message-bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; border: 1px solid transparent; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08); transition: transform .2s ease, box-shadow .2s ease; }
+.message-bubble:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12); }
+.message:not(.mine) .message-bubble { background: #ffffff; color: var(--color-navy); border-color: #e6edf6; border-bottom-left-radius: 6px; }
+.message.mine .message-bubble { background: linear-gradient(120deg, #d8a54d, #c9973d); color: #fff; border-bottom-right-radius: 6px; }
 .message-time { font-size: 11px; color: var(--color-muted); margin-top: 4px; }
 .message.mine .message-time { text-align: right; }
 
 .chat-input { display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--color-line); }
-.chat-input input { flex: 1; padding: 12px 16px; border: 1px solid var(--color-line); border-radius: 24px; font-size: 14px; outline: none; transition: .2s; }
-.chat-input input:focus { border-color: var(--color-gold); }
-.chat-input button { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .2s; }
-.chat-input button:hover:not(:disabled) { background: #c9973d; }
+.chat-input input { flex: 1; padding: 12px 16px; border: 1px solid var(--color-line); border-radius: 24px; font-size: 14px; outline: none; transition: .2s; background: #fff; }
+.chat-input input:focus { border-color: #d8a54d; box-shadow: 0 0 0 3px rgba(216, 165, 77, 0.15); }
+.chat-input button { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(120deg, #07182c, #0f355f); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .2s; box-shadow: 0 10px 16px rgba(7, 24, 44, 0.25); }
+.chat-input button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 20px rgba(7, 24, 44, 0.32); }
 .chat-input button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .loading, .empty { padding: 20px; text-align: center; color: var(--color-muted); }
+.fancy-loading { display: grid; gap: 12px; padding: 10px 4px; text-align: left; }
+.skeleton-row { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #e8edf4; border-radius: 12px; background: #fff; }
+.sk-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(90deg, #eef2f8, #f7f9fc, #eef2f8); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+.sk-lines { flex: 1; display: grid; gap: 6px; }
+.sk-lines i { height: 10px; border-radius: 999px; background: linear-gradient(90deg, #eef2f8, #f7f9fc, #eef2f8); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+.sk-lines i:first-child { width: 72%; }
+.sk-lines i:last-child { width: 48%; }
+.fancy-empty { min-height: 210px; display: grid; place-items: center; gap: 8px; background: #f9fbff; border: 1px dashed #d8e2ef; border-radius: 14px; padding: 22px 14px; }
+.empty-icon-wrap { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; color: #d8a54d; background: rgba(216, 165, 77, 0.12); }
+.fancy-empty h4 { margin: 0; color: #102c4f; font-size: 16px; }
+.fancy-empty p { margin: 0; font-size: 13px; max-width: 240px; color: #62778f; }
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 @media (max-width: 768px) {
   .chat-container { grid-template-columns: 1fr; }

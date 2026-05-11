@@ -2,11 +2,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notificationsStore'
+import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 const store = useNotificationsStore()
+const auth = useAuthStore()
 const { notifications, unreadCount, loading } = storeToRefs(store)
 
 const dropdownOpen = ref(false)
@@ -63,6 +65,7 @@ const handleMarkAllRead = async () => {
 }
 
 onMounted(() => {
+  if (!auth.isLogged || !auth.token) return
   store.fetchNotifications()
   store.fetchUnreadCount()
   pollInterval = setInterval(() => {

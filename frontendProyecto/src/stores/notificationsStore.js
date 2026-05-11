@@ -18,7 +18,7 @@ export const useNotificationsStore = defineStore('notifications', {
   actions: {
     async fetchNotifications(params = {}) {
       const auth = useAuthStore()
-      if (!auth.isLogged) return
+      if (!auth.isLogged || !auth.token) return
 
       this.loading = true
       this.error = null
@@ -27,6 +27,7 @@ export const useNotificationsStore = defineStore('notifications', {
         this.notifications = data.notifications ?? []
         this.unreadCount = data.unread_count ?? 0
       } catch (err) {
+        if (err?.response?.status === 401) return
         this.error = err.response?.data?.detail ?? 'Error al cargar notificaciones'
       } finally {
         this.loading = false
@@ -35,12 +36,13 @@ export const useNotificationsStore = defineStore('notifications', {
 
     async fetchUnreadCount() {
       const auth = useAuthStore()
-      if (!auth.isLogged) return
+      if (!auth.isLogged || !auth.token) return
 
       try {
         const { data } = await notificationsApi.getUnreadCount({ user_id: auth.userId })
         this.unreadCount = data.unread_count ?? 0
       } catch (err) {
+        if (err?.response?.status === 401) return
         console.error('Error al obtener conteo de notificaciones:', err)
       }
     },
