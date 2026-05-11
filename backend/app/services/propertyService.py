@@ -32,7 +32,11 @@ def get_property_by_id(db: Session, property_id: int) -> Optional[Property]:
     """
     return (
         db.query(Property)
-        .options(selectinload(Property.images), selectinload(Property.owner))
+        .options(
+            selectinload(Property.images),
+            selectinload(Property.owner),
+            selectinload(Property.advisor).selectinload(Advisor.user)
+        )
         .filter(Property.id == property_id)
         .first()
     )
@@ -58,14 +62,18 @@ def get_properties(
     Returns:
         Lista de propiedades
     """
-    query = db.query(Property).options(selectinload(Property.images), selectinload(Property.owner))
-    
+    query = db.query(Property).options(
+        selectinload(Property.images),
+        selectinload(Property.owner),
+        selectinload(Property.advisor).selectinload(Advisor.user)
+    )
+
     if status:
         query = query.filter(Property.status == status)
-    
+
     if user_id:
         query = query.filter(Property.submitted_by_user_id == user_id)
-    
+
     return query.offset(skip).limit(limit).all()
 
 
@@ -882,7 +890,11 @@ def get_advisor_properties_with_available(
     """
     my_properties = (
         db.query(Property)
-        .options(selectinload(Property.images), selectinload(Property.owner))
+        .options(
+            selectinload(Property.images),
+            selectinload(Property.owner),
+            selectinload(Property.advisor).selectinload(Advisor.user)
+        )
         .filter(Property.advisor_id == advisor_id)
         .all()
     )
