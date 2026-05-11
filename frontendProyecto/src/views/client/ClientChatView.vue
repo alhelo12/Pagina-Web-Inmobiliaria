@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const auth = useAuthStore()
 const propertyStore = usePropertyStore()
@@ -125,7 +126,7 @@ onUnmounted(() => {
 
 <template>
   <div class="chat-page">
-    <ClientDashboardHeader title="Mensajes" subtitle="Chatea con tu asesor" />
+    <ClientDashboardHeader eyebrow="Panel de Cliente" title="Mensajes" />
 
     <div class="chat-container">
       <aside class="conversations-list">
@@ -155,7 +156,7 @@ onUnmounted(() => {
 
       <main class="chat-area">
         <div v-if="!selectedConversation" class="no-selection">
-          <div class="no-selection-icon">💬</div>
+          <div class="no-selection-icon"><AppIcon name="chat" :size="48" /></div>
           <h3>Selecciona una conversación</h3>
           <p>Elige una conversación de la lista para ver los mensajes</p>
         </div>
@@ -199,7 +200,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.chat-page { padding: 32px; max-width: 1200px; margin: 0 auto; }
+.chat-page { display: flex; flex-direction: column; gap: 20px; }
 .chat-container { display: grid; grid-template-columns: 320px 1fr; gap: 0; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; overflow: hidden; height: 600px; }
 
 .conversations-list { border-right: 1px solid var(--color-line); padding: 20px; overflow-y: auto; }
@@ -213,7 +214,7 @@ onUnmounted(() => {
 
 .chat-area { display: flex; flex-direction: column; }
 .no-selection { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--color-muted); text-align: center; padding: 40px; }
-.no-selection-icon { font-size: 48px; margin-bottom: 16px; }
+.no-selection-icon { color: var(--color-gold); margin-bottom: 16px; }
 
 .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--color-line); }
 .chat-user { display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--color-navy); }
