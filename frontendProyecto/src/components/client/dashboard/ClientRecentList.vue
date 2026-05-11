@@ -1,30 +1,19 @@
 <script setup>
+import { RouterLink } from 'vue-router'
+import { getPropertyImage, FALLBACK_PROPERTY_IMAGE } from '@/utils/propertyImages'
+
 defineProps({
   title: { type: String, default: 'Recientes' },
   items: { type: Array, default: () => [] },
   emptyText: { type: String, default: 'No hay elementos.' }
 })
-
-const getPropertyImage = (property) => {
-  const img = property.images?.find(i => i.is_main) ?? property.images?.[0]
-  if (img) {
-    const url = img.image_url ?? img.url
-    if (!url) return null
-    if (/^(https?:|blob:|data:)/.test(url)) return url
-    const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-    return `${base}${url.startsWith('/') ? '' : '/'}${url}`
-  }
-  return null
-}
-
-const fallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZGlzcGxheTpibG9jazsiIGNsYXNzPSJhIiBmaWxsPSIjZWRlY2VkIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgc3R5bGU9ImZpbGw6I2VkZWNlZCIgc3BhY2Y9Im5vbmUiLz48cGF0aCBkPSJNMjIgMzZoMjBjLTEuMSAwLTIgLjktMiAyIDAgMS4xLjkgMiAyIDIgMCAxLjEtLjkgMi0yIDJoLTIwYzEuMSAwIDItLjkgMi0yIDAtMS4xLS45LTItMi0yeiIgZmlsbD0iI2RkYzJkNSIvPjwvc3ZnPg=='
 </script>
 
 <template>
   <article class="recent-list-card">
     <div class="card-head">
-      <p>{{ title }}</p>
-      <h3>Propiedades Recientes</h3>
+      <p>Publicaciones</p>
+      <h3>{{ title }}</h3>
     </div>
 
     <div v-if="items.length" class="list">
@@ -36,9 +25,9 @@ const fallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5v
       >
         <div class="thumb-wrap">
           <img
-            :src="getPropertyImage(item) || fallback"
+            :src="getPropertyImage(item) || FALLBACK_PROPERTY_IMAGE"
             :alt="item.title"
-            @error="(e) => { e.target.src = fallback }"
+            @error="(e) => { e.target.src = FALLBACK_PROPERTY_IMAGE }"
           />
         </div>
         <div class="item-info">
@@ -96,6 +85,6 @@ const fallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5v
   text-overflow: ellipsis;
 }
 .item-info span { display: block; margin-top: 2px; color: var(--color-muted); font-size: 12px; }
-.price { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; font-size: 13px; }
+.price { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; font-size: 13px; flex-shrink: 0; }
 .empty { margin: 0; color: var(--color-muted); font-size: 13px; }
 </style>

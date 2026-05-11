@@ -1,18 +1,10 @@
 <script setup>
-import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { getPropertyImage } from '@/utils/propertyImages'
+import { getPropertyImage, FALLBACK_PROPERTY_IMAGE } from '@/utils/propertyImages'
 
-const props = defineProps({
+defineProps({
   favorites: { type: Array, default: () => [] }
 })
-
-const fallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZGlzcGxheTpibG9jazsiIGNsYXNzPSJhIiBmaWxsPSIjZWRlY2VkIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgc3R5bGU9ImZpbGw6I2VkZWNlZCIgc3BhY2Y9Im5vbmUiLz48cGF0aCBkPSJNMjIgMzZoMjBjLTEuMSAwLTIgLjktMiAyIDAgMS4xLjkgMiAyIDIgMCAxLjEtLjkgMi0yIDJoLTIwYzEuMSAwIDItLjkgMi0yIDAtMS4xLS45LTItMi0yeiIgZmlsbD0iI2RkYzJkNSIvPjwvc3ZnPg=='
-
-const getImage = (fav) => {
-  const prop = fav.favorited_property ?? fav.property ?? fav
-  return getPropertyImage(prop) || fallback
-}
 
 const getId = (fav) => {
   const prop = fav.favorited_property ?? fav.property ?? fav
@@ -50,7 +42,11 @@ const getPrice = (fav) => {
         class="fav-item"
       >
         <div class="fav-thumb">
-          <img :src="getImage(fav)" :alt="getTitle(fav)" />
+          <img
+            :src="getPropertyImage(fav.favorited_property ?? fav.property ?? fav) || FALLBACK_PROPERTY_IMAGE"
+            :alt="getTitle(fav)"
+            @error="(e) => { e.target.src = FALLBACK_PROPERTY_IMAGE }"
+          />
         </div>
         <div class="fav-info">
           <span class="city">{{ getCity(fav) }}</span>
