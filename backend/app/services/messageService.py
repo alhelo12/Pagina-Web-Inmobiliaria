@@ -9,6 +9,7 @@ from sqlalchemy import or_, and_, func
 from typing import List, Optional, Tuple
 
 from app.models import Conversation, Message, User, Advisor
+from app.services import notificationService
 
 
 def get_or_create_conversation(
@@ -162,6 +163,28 @@ def send_message(
 
     db.commit()
     db.refresh(message)
+
+    # Notificar al receptor del mensaje
+    try:
+        if conversation:
+            recipient_id = (
+                conversation.user_id
+                if conversation.user_id != sender_id
+                else None
+            )
+            if recipient_id:
+                sender = db.query(User).filter(User.id == sender_id).first()
+                sender_name = sender.full_name if sender else "Un usuario"
+                notificationService.create_notification(
+                    db=db,
+                    user_id=recipient_id,
+                    notification_type="message_received",
+                    title="Nuevo mensaje",
+                    message=f"Tienes un nuevo mensaje de {sender_name}"
+                )
+    except Exception:
+        pass
+
     return message
 
 
