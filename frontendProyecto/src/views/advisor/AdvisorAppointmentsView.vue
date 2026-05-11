@@ -4,6 +4,7 @@ import { appointmentsApi } from '@/api/appointments'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
 import Toast from '@/components/shared/Toast.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const appointments = ref([])
 const loading = ref(true)

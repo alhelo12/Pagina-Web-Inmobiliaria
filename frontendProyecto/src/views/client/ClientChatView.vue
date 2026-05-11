@@ -5,6 +5,7 @@ import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
 const propertyStore = usePropertyStore()

@@ -104,23 +104,15 @@ class BaseModel(Base):
 # ==========================================
 # IMPORTAR TODOS LOS MODELOS AQUÍ
 # ==========================================
-# IMPORTANTE: 
-# - Estos imports deben estar AL FINAL del archivo
-# - Se ejecutan después de que Base y BaseModel estén definidos
-# - Esto previene imports circulares entre modelos
-# - Permite que las relaciones (relationships) funcionen correctamente
-# ==========================================
-
-
-
-# TODO: Descomentar a medida que se vayan creando los modelos
-# from app.models.roleModel import Role
-# from app.models.userModel import User
-# from app.models.advisorModel import Advisor
-# from app.models.propertyModel import Property
-# from app.models.propertyImageModel import PropertyImage
-# from app.models.appointmentModel import Appointment
-# from app.models.favoriteModel import Favorite
+from app.models.roleModel import Role
+from app.models.userModel import User
+from app.models.advisorModel import Advisor
+from app.models.propertyModel import Property
+from app.models.propertyImageModel import PropertyImage
+from app.models.appointmentModel import Appointment
+from app.models.favoriteModel import Favorite
+from app.models.notificationModel import Notification
+from app.models.messageModel import Conversation, Message
 
 # ==========================================
 # EXPORTAR PARA ALEMBIC Y OTROS MÓDULOS
@@ -134,11 +126,13 @@ __all__ = [
     'Base',
     'BaseModel',
     'Role',
-    # TODO: Agregar modelos aquí cuando se creen
-    # 'User',
-    # 'Advisor',
-    # 'Property',
-    # 'PropertyImage',
-    # 'Appointment',
-    # 'Favorite'
+    'User',
+    'Advisor',
+    'Property',
+    'PropertyImage',
+    'Appointment',
+    'Favorite',
+    'Notification',
+    'Conversation',
+    'Message',
 ]

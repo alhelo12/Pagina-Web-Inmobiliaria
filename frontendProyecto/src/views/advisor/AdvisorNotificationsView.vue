@@ -4,6 +4,7 @@ import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const store = useNotificationsStore()
 const { notifications, unreadCount, loading } = storeToRefs(store)

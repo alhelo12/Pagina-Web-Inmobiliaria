@@ -100,7 +100,16 @@ class Advisor(BaseModel):
         back_populates="advisor",
         lazy="dynamic"
     )
-    
+
+    # Relación con Conversation (One-to-Many)
+    conversations = relationship(
+        "Conversation",
+        foreign_keys="Conversation.advisor_id",
+        back_populates="advisor",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+
     def __repr__(self):
         """Representación del asesor para debugging"""
         return f"<Advisor(id={self.id}, user_id={self.user_id}, agency='{self.agency_name}')>"

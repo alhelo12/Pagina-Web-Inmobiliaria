@@ -138,7 +138,25 @@ class User(BaseModel):
         cascade="all, delete-orphan",
         lazy="dynamic"
     )
-    
+
+    # Relación con Conversation (One-to-Many, como cliente)
+    conversations = relationship(
+        "Conversation",
+        foreign_keys="Conversation.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+
+    # Relación con Message (One-to-Many, como remitente)
+    sent_messages = relationship(
+        "Message",
+        foreign_keys="Message.sender_id",
+        back_populates="sender",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+
     def __repr__(self):
         """Representación del usuario para debugging"""
         return f"<User(id={self.id}, email='{self.email}', role={self.role_id})>"
