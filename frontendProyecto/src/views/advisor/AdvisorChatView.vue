@@ -118,6 +118,7 @@ onUnmounted(() => {
 <template>
   <div class="chat-page">
     <AdvisorDashboardHeader eyebrow="Panel del Asesor" title="Mensajes" />
+    <Breadcrumb :crumbs="[{ label: 'Mensajes', path: '/advisor/mensajes' }]" />
 
     <div class="chat-container">
       <aside class="conversations-list">

@@ -12,6 +12,7 @@ import ClientActivityPanel from '@/components/client/dashboard/ClientActivityPan
 import ClientFavoritesPreview from '@/components/client/dashboard/ClientFavoritesPreview.vue'
 import RelationshipPanel from '@/components/client/RelationshipPanel.vue'
 import ClientRecentList from '@/components/client/dashboard/ClientRecentList.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -65,6 +66,8 @@ onMounted(async () => {
       add-label="Nueva propiedad"
       @add="router.push('/cliente/publicar')"
     />
+
+    <Breadcrumb :crumbs="[{ label: 'Dashboard', path: '/cliente/dashboard' }]" />
 
     <div v-if="loadingDashboard" class="state">Cargando resumen...</div>
     <div v-else-if="error" class="state error-msg">{{ error }}</div>

@@ -7,6 +7,7 @@ import { advisorsApi } from '@/api/advisors'
 import { useAuthStore } from '@/stores/authStore'
 import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
 import Toast from '@/components/shared/Toast.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -24,6 +25,20 @@ const page = ref(1)
 const perPage = ref(20)
 const totalItems = ref(0)
 
+const sortKey = ref('created_at')
+const sortDir = ref('desc')
+
+const sort = (key) => {
+  if (sortKey.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortDir.value = 'desc'
+  }
+  page.value = 1
+  load()
+}
+
 const showModal = ref(false)
 const saving = ref(false)
 const modalError = ref('')
@@ -34,6 +49,8 @@ const confirmModal = ref({ show: false, type: '', user: null })
 
 const toastState = ref({ show: false, message: '', type: 'success' })
 let toastTimeout = null
+
+const actionLoading = ref(null)
 
 const roleMap = { admin: 1, advisor: 2, client: 3 }
 const roleLabel = { admin: 'Admin', advisor: 'Asesor', client: 'Cliente' }
@@ -51,7 +68,7 @@ const filtered = computed(() => {
 const showToast = (message, type = 'success') => {
   clearTimeout(toastTimeout)
   toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
+  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 watch(search, (val) => {
@@ -67,6 +84,7 @@ const load = async () => {
     if (filterRole.value !== 'all') params.role_name = filterRole.value
     if (filterStatus.value === 'active') params.is_active = true
     else if (filterStatus.value === 'inactive') params.is_active = false
+    if (sortKey.value) { params.sort_by = sortKey.value; params.sort_dir = sortDir.value }
     const { data } = await usersApi.getAll(params)
     users.value = data.users ?? data.items ?? data
     totalItems.value = data.total ?? users.value.length
@@ -188,6 +206,7 @@ const openConfirm = (type, user) => {
 const executeConfirm = async () => {
   const { type, user } = confirmModal.value
   confirmModal.value.show = false
+  actionLoading.value = `${type}-${user.id}`
   try {
     if (type === 'delete') {
       await usersApi.remove(user.id)
@@ -204,6 +223,8 @@ const executeConfirm = async () => {
     }
   } catch (err) {
     showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
+  } finally {
+    actionLoading.value = null
   }
 }
 onMounted(() => {
@@ -230,21 +251,25 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       @add="openModal()"
     />
 
-    <div class="filters-group">
-      <div class="filter-label">Rol:</div>
-      <div class="filters">
-        <button :class="{ active: filterRole === 'all' }" @click="changeFilterRole('all')">Todos</button>
-        <button :class="{ active: filterRole === 'admin' }" @click="changeFilterRole('admin')">Administradores</button>
-        <button :class="{ active: filterRole === 'advisor' }" @click="changeFilterRole('advisor')">Asesores</button>
-        <button :class="{ active: filterRole === 'client' }" @click="changeFilterRole('client')">Clientes</button>
+    <Breadcrumb :crumbs="[{ label: 'Usuarios', path: '/admin/usuarios' }]" />
+
+    <div class="filters-bar">
+      <div class="filters-group">
+        <span class="filter-label">Rol:</span>
+        <div class="filters">
+          <button :class="{ active: filterRole === 'all' }" @click="changeFilterRole('all')">Todos</button>
+          <button :class="{ active: filterRole === 'admin' }" @click="changeFilterRole('admin')">Administradores</button>
+          <button :class="{ active: filterRole === 'advisor' }" @click="changeFilterRole('advisor')">Asesores</button>
+          <button :class="{ active: filterRole === 'client' }" @click="changeFilterRole('client')">Clientes</button>
+        </div>
       </div>
-    </div>
-    <div class="filters-group">
-      <div class="filter-label">Estado:</div>
-      <div class="filters">
-        <button :class="{ active: filterStatus === 'all' }" @click="changeFilterStatus('all')">Todos</button>
-        <button :class="{ active: filterStatus === 'active' }" @click="changeFilterStatus('active')">Activos</button>
-        <button :class="{ active: filterStatus === 'inactive' }" @click="changeFilterStatus('inactive')">Inactivos</button>
+      <div class="filters-group">
+        <span class="filter-label">Estado:</span>
+        <div class="filters">
+          <button :class="{ active: filterStatus === 'all' }" @click="changeFilterStatus('all')">Todos</button>
+          <button :class="{ active: filterStatus === 'active' }" @click="changeFilterStatus('active')">Activos</button>
+          <button :class="{ active: filterStatus === 'inactive' }" @click="changeFilterStatus('inactive')">Inactivos</button>
+        </div>
       </div>
     </div>
 
@@ -253,12 +278,25 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 
     <div v-else class="table-container">
       <table>
-        <thead>
-          <tr>
-            <th>Nombre</th><th>Email</th><th>Teléfono</th>
-            <th>Rol</th><th>Estado</th><th>Creación</th><th>Acciones</th>
-          </tr>
-        </thead>
+          <thead>
+            <tr>
+              <th class="sortable" @click="sort('full_name')">
+                Nombre <span class="sort-icon" :class="{ active: sortKey === 'full_name' }">{{ sortKey === 'full_name' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th class="sortable" @click="sort('role_name')">
+                Rol <span class="sort-icon" :class="{ active: sortKey === 'role_name' }">{{ sortKey === 'role_name' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th class="sortable" @click="sort('is_active')">
+                Estado <span class="sort-icon" :class="{ active: sortKey === 'is_active' }">{{ sortKey === 'is_active' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th class="sortable" @click="sort('created_at')">
+                Creación <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
         <tbody>
           <tr v-for="u in filtered" :key="u.id">
             <td class="td-name">{{ u.full_name }}</td>
@@ -268,11 +306,17 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
             <td><span :class="['status', u.is_active ? 'on' : 'off']">{{ u.is_active ? 'Activo' : 'Inactivo' }}</span></td>
             <td class="td-date">{{ formatDate(u.created_at) }}</td>
             <td class="actions">
-              <button class="edit" @click="openModal(u)">Editar</button>
-              <button class="toggle" @click="openConfirm('toggle', u)">
-                {{ u.is_active ? 'Desactivar' : 'Activar' }}
+              <button class="edit" :disabled="actionLoading" @click="openModal(u)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Editar
               </button>
-              <button class="delete" @click="openConfirm('delete', u)">Eliminar</button>
+              <button class="toggle" :disabled="actionLoading === `toggle-${u.id}`" @click="openConfirm('toggle', u)">
+                {{ actionLoading === `toggle-${u.id}` ? '...' : u.is_active ? 'Desactivar' : 'Activar' }}
+              </button>
+              <button class="delete" :disabled="actionLoading === `delete-${u.id}`" @click="openConfirm('delete', u)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Eliminar
+              </button>
             </td>
           </tr>
           <tr v-if="!filtered.length">
@@ -297,18 +341,39 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
         <h2>{{ editingUser ? 'Editar usuario' : 'Agregar usuario' }}</h2>
         <div v-if="modalError" class="alert-error">{{ modalError }}</div>
         <div class="form">
-          <input v-model="newUser.full_name" placeholder="Nombre completo" autocomplete="name" />
-          <input v-model="newUser.email" type="email" placeholder="Correo electrónico" autocomplete="email" />
-          <input v-model="newUser.phone" type="tel" placeholder="Teléfono opcional" autocomplete="tel" />
-          <input v-model="newUser.password" type="password" :placeholder="editingUser ? 'Nueva contraseña (dejar vacío si no cambia)' : 'Contraseña'" autocomplete="new-password" />
-          <select v-model="newUser.role_name" :disabled="!!editingUser" autocomplete="off">
-            <option value="client">Cliente</option>
-            <option value="advisor">Asesor</option>
-            <option value="admin">Administrador</option>
-          </select>
+          <div class="field">
+            <label for="user-name">Nombre completo</label>
+            <input id="user-name" v-model="newUser.full_name" placeholder="Nombre completo" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="user-email">Correo electrónico</label>
+            <input id="user-email" v-model="newUser.email" type="email" placeholder="Correo electrónico" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="user-phone">Teléfono opcional</label>
+            <input id="user-phone" v-model="newUser.phone" type="tel" placeholder="Teléfono opcional" autocomplete="tel" />
+          </div>
+          <div class="field">
+            <label for="user-password">{{ editingUser ? 'Nueva contraseña (dejar vacío si no cambia)' : 'Contraseña' }}</label>
+            <input id="user-password" v-model="newUser.password" type="password" :placeholder="editingUser ? 'Nueva contraseña (dejar vacío si no cambia)' : 'Contraseña'" autocomplete="new-password" />
+          </div>
+          <div class="field">
+            <label for="user-role">Rol</label>
+            <select id="user-role" v-model="newUser.role_name" :disabled="!!editingUser">
+              <option value="client">Cliente</option>
+              <option value="advisor">Asesor</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
           <template v-if="newUser.role_name === 'advisor'">
-            <input v-model="newUser.license_number" placeholder="Número de licencia" autocomplete="off" />
-            <input v-model="newUser.agency_name" placeholder="Nombre de la agencia" autocomplete="off" />
+            <div class="field">
+              <label for="user-license">Número de licencia</label>
+              <input id="user-license" v-model="newUser.license_number" placeholder="Número de licencia" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="user-agency">Nombre de la agencia</label>
+              <input id="user-agency" v-model="newUser.agency_name" placeholder="Nombre de la agencia" autocomplete="off" />
+            </div>
           </template>
         </div>
         <div class="modal-actions">
@@ -347,9 +412,10 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 <style scoped>
 .admin-users { display: grid; gap: 18px; }
 
+.filters-bar { display: flex; gap: 20px; flex-wrap: wrap; padding: 14px 18px; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); }
 .filters-group { display: flex; align-items: center; gap: 10px; }
-.filter-label { font-size: 13px; font-weight: 700; color: #65717e; }
-.filters { display: flex; gap: 10px; flex-wrap: wrap; }
+.filter-label { font-size: 13px; font-weight: 700; color: #65717e; white-space: nowrap; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
 .filters button { padding: 9px 14px; border-radius: 999px; border: 1px solid rgba(7,23,45,.12); background: white; color: #40566e; font-weight: 800; cursor: pointer; transition: .3s ease; }
 .filters button.active { background: #07172d; color: white; }
 
@@ -362,6 +428,11 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 15px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid #eee7dc; }
 th { color: #65717e; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--color-navy); }
+.sort-icon { margin-left: 4px; font-size: 10px; opacity: .4; }
+.sort-icon.active { opacity: 1; color: var(--color-gold); }
+tr:hover { background: rgba(214, 168, 72, .05); }
 .td-name { font-weight: 900; color: #07172d; }
 .td-date { color: #65717e; font-size: 13px; }
 .empty { text-align: center; color: #999; padding: 30px !important; }
@@ -371,8 +442,8 @@ th { color: #65717e; font-size: 12px; text-transform: uppercase; letter-spacing:
 .status.on { background: #dff7e9; color: #166534; }
 .status.off { background: #fee2e2; color: #991b1b; }
 
-.actions { display: flex; gap: 8px; }
-.actions button { padding: 7px 10px; border-radius: 7px; font-weight: 900; border: none; cursor: pointer; transition: .3s ease; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.actions button { padding: 7px 10px; border-radius: 7px; font-weight: 900; border: none; cursor: pointer; transition: .3s ease; display: flex; align-items: center; gap: 4px; }
 .actions button:hover { filter: brightness(1.05); }
 .edit { background: #e8edf0; color: #102e4f; }
 .toggle { background: #eef4fb; color: #102e4f; }
@@ -391,7 +462,9 @@ th { color: #65717e; font-size: 12px; text-transform: uppercase; letter-spacing:
 .modal h2 { font-family: 'Poppins', sans-serif; color: #07172d; font-size: 26px; margin-bottom: 18px; }
 .modal-desc { color: #65717e; line-height: 1.6; margin-bottom: 24px; }
 .alert-error { background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
-.form { display: grid; gap: 12px; margin-bottom: 24px; }
+.form { display: grid; gap: 14px; margin-bottom: 24px; }
+.field { display: grid; gap: 5px; }
+.field label { font-size: 13px; font-weight: 700; color: var(--color-navy); }
 .form input, .form select { padding: 12px; border-radius: 8px; border: 1px solid #d9d2c5; background: white; font: inherit; }
 .form input:focus, .form select:focus { outline: none; border-color: #d6a848; }
 .form select:disabled { opacity: .5; cursor: not-allowed; }

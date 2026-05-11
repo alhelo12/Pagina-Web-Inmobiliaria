@@ -66,6 +66,7 @@ onMounted(() => {
 <template>
   <section class="notifications-page">
     <AdvisorDashboardHeader eyebrow="Panel del Asesor" title="Notificaciones" />
+    <Breadcrumb :crumbs="[{ label: 'Notificaciones', path: '/advisor/notificaciones' }]" />
 
     <div class="section-header">
       <div class="filters">

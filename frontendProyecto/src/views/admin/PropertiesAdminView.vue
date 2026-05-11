@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { usePropertyStore } from '@/stores/propertyStore'
 import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
 import Toast from '@/components/shared/Toast.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const store = usePropertyStore()
 const auth = useAuthStore()
@@ -21,6 +22,20 @@ const page = ref(1)
 const perPage = ref(20)
 const totalItems = ref(0)
 
+const sortKey = ref('created_at')
+const sortDir = ref('desc')
+
+const sort = (key) => {
+  if (sortKey.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortDir.value = 'desc'
+  }
+  page.value = 1
+  fetchPage()
+}
+
 const statusMap = {
   pending: { label: 'Pendiente', cls: 'pendiente' },
   approved: { label: 'Aprobada', cls: 'aprobada' },
@@ -32,6 +47,7 @@ const toastState = ref({ show: false, message: '', type: 'success' })
 let toastTimeout = null
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
+const actionLoading = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / perPage.value)))
 
@@ -53,9 +69,25 @@ const formatRegisteredAt = (value) => {
   }).format(new Date(value))
 }
 
+const getPropertyImage = (property) => {
+  const img = property.images?.find(i => i.is_main) ?? property.images?.[0]
+  if (img) {
+    const url = img.image_url ?? img.url
+    if (!url) return null
+    if (/^(https?:|blob:|data:)/.test(url)) return url
+    const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`
+  }
+  return null
+}
+
+const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZGlzcGxheTpibG9jazsiIGNsYXNzPSJhIiBmaWxsPSIjZWRlY2VkIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgc3R5bGU9ImZpbGw6I2VkZWNlZCIgc3BhY2Y9Im5vbmUiLz48cGF0aCBkPSJNMjIgMzZoMjBjLTEuMSAwLTIgLjktMiAyIDAgMS4xLjkgMiAyIDIgMCAxLjEtLjkgMi0yIDJoLTIwYzEuMSAwIDItLjkgMi0yIDAtMS4xLS45LTItMi0yeiIgZmlsbD0iI2RkYzJkNSIvPjwvc3ZnPg=='
+
 const fetchPage = () => {
   const params = { skip: (page.value - 1) * perPage.value, limit: perPage.value }
   if (filter.value !== 'todos') params.status = filter.value
+  if (sortKey.value) params.sort_by = sortKey.value
+  if (sortDir.value) params.sort_dir = sortDir.value
   store.fetchProperties(params).then(() => {
     totalItems.value = store.total
   })
@@ -64,7 +96,7 @@ const fetchPage = () => {
 const showToast = (message, type = 'success') => {
   clearTimeout(toastTimeout)
   toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
+  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 const changeFilter = (f) => {
@@ -91,6 +123,7 @@ const openConfirm = (action, p) => {
 const executeConfirm = async () => {
   const { action, propertyId } = confirmModal.value
   confirmModal.value.show = false
+  actionLoading.value = true
   try {
     await store[action](propertyId)
     fetchPage()
@@ -103,6 +136,8 @@ const executeConfirm = async () => {
     showToast(messages[action] || 'Acción completada')
   } catch (err) {
     showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
+  } finally {
+    actionLoading.value = false
   }
 }
 
@@ -141,6 +176,8 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       @export="exportCsv"
     />
 
+    <Breadcrumb :crumbs="[{ label: 'Propiedades', path: '/admin/propiedades' }]" />
+
     <article class="table-card">
       <div class="filters">
         <button :class="{ active: filter === 'todos' }" @click="changeFilter('todos')">Todos</button>
@@ -157,11 +194,40 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
         <table>
           <thead>
             <tr>
-              <th>Título</th><th>Registrado por</th><th>Registrada</th><th>Ciudad</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+              <th></th>
+              <th class="sortable" @click="sort('title')">
+                Título
+                <span class="sort-icon" :class="{ active: sortKey === 'title' }">{{ sortKey === 'title' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th>Registrado por</th>
+              <th class="sortable" @click="sort('created_at')">
+                Registrada
+                <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th class="sortable" @click="sort('city')">
+                Ciudad
+                <span class="sort-icon" :class="{ active: sortKey === 'city' }">{{ sortKey === 'city' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th class="sortable" @click="sort('price')">
+                Precio
+                <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortKey === 'price' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th class="sortable" @click="sort('status')">
+                Estado
+                <span class="sort-icon" :class="{ active: sortKey === 'status' }">{{ sortKey === 'status' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="p in properties" :key="p.id">
+              <td class="td-thumb">
+                <img
+                  :src="getPropertyImage(p) || propertyFallback"
+                  :alt="p.title"
+                  @error="(e) => { e.target.src = propertyFallback }"
+                />
+              </td>
               <td class="td-title">{{ p.title }}</td>
               <td>
                 <span class="owner-name">{{ ownerName(p) }}</span>
@@ -172,16 +238,34 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
               <td>${{ Number(p.price).toLocaleString('es-MX') }}</td>
               <td><span :class="['badge', statusMap[p.status]?.cls]">{{ statusMap[p.status]?.label ?? p.status }}</span></td>
               <td class="actions">
-                <button class="view" @click="router.push(`/propiedades/${p.id}`)">Ver</button>
-                <button class="edit" @click="router.push(`/admin/propiedades/${p.id}/editar`)">Editar</button>
-                <button v-if="p.status === 'pending'" class="approve" @click="openConfirm('approve', p)">Aprobar</button>
-                <button v-if="p.status === 'pending'" class="reject" @click="openConfirm('reject', p)">Rechazar</button>
-                <button v-if="p.status === 'approved'" class="sold" @click="openConfirm('markSold', p)">Vendida</button>
-                <button class="delete" @click="openConfirm('remove', p)">Eliminar</button>
+                <button class="view" title="Ver" @click="router.push(`/propiedades/${p.id}`)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Ver
+                </button>
+                <button class="edit" title="Editar" @click="router.push(`/admin/propiedades/${p.id}/editar`)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editar
+                </button>
+                <button v-if="p.status === 'pending'" class="approve" title="Aprobar" @click="openConfirm('approve', p)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Aprobar
+                </button>
+                <button v-if="p.status === 'pending'" class="reject" title="Rechazar" @click="openConfirm('reject', p)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Rechazar
+                </button>
+                <button v-if="p.status === 'approved'" class="sold" title="Marcar vendida" @click="openConfirm('markSold', p)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  Vendida
+                </button>
+                <button class="delete" title="Eliminar" @click="openConfirm('remove', p)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Eliminar
+                </button>
               </td>
             </tr>
             <tr v-if="!properties.length">
-              <td colspan="7" class="empty">Sin propiedades</td>
+              <td colspan="8" class="empty">Sin propiedades</td>
             </tr>
           </tbody>
         </table>
@@ -205,8 +289,8 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
           <p class="modal-desc">¿Confirmas que deseas <strong>{{ confirmModal.action === 'remove' ? 'eliminar' : confirmModal.action === 'approve' ? 'aprobar' : confirmModal.action === 'reject' ? 'rechazar' : 'marcar como vendida' }}</strong> la propiedad <strong>"{{ confirmModal.title }}"</strong>?</p>
           <div class="modal-actions">
             <button class="btn-cancel" @click="confirmModal.show = false">Cancelar</button>
-            <button :class="['btn-confirm', confirmModal.action]" @click="executeConfirm">
-              {{ confirmModal.action === 'approve' ? 'Aprobar' : confirmModal.action === 'reject' ? 'Rechazar' : confirmModal.action === 'markSold' ? 'Vendida' : 'Eliminar' }}
+            <button :class="['btn-confirm', confirmModal.action]" :disabled="actionLoading" @click="executeConfirm">
+              {{ actionLoading ? '...' : confirmModal.action === 'approve' ? 'Aprobar' : confirmModal.action === 'reject' ? 'Rechazar' : confirmModal.action === 'markSold' ? 'Vendida' : 'Eliminar' }}
             </button>
           </div>
         </div>
@@ -227,6 +311,13 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); }
 th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .08em; }
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--color-navy); }
+.sort-icon { margin-left: 4px; font-size: 10px; opacity: .4; }
+.sort-icon.active { opacity: 1; color: var(--color-gold); }
+tr:hover { background: rgba(214, 168, 72, .05); }
+.td-thumb { width: 44px; padding-right: 8px; }
+.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; }
 .td-title { color: var(--color-navy); font-weight: 700; }
 .owner-name { display: block; color: var(--color-navy); font-weight: 700; }
 .owner-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
@@ -236,8 +327,8 @@ th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; lett
 .aprobada { background: #dff7e9; color: #166534; }
 .rechazada { background: #fee2e2; color: #991b1b; }
 .vendida { background: #e8edf0; color: var(--color-navy-2); }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 44px; }
-.actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; flex-shrink: 0; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 52px; }
+.actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
 .actions button:hover { filter: brightness(1.02); transform: translateY(-1px); }
 .view { background: #f7efe0; color: var(--color-navy-2); }
 .edit { background: #e8edf0; color: var(--color-navy-2); }

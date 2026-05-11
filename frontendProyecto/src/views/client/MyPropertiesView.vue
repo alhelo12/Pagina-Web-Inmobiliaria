@@ -25,6 +25,35 @@ const toastState = ref({ show: false, message: '', type: 'success' })
 let toastTimeout = null
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
+const actionLoading = ref(false)
+
+const sortKey = ref('created_at')
+const sortDir = ref('desc')
+
+const sort = (key) => {
+  if (sortKey.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortDir.value = 'desc'
+  }
+  page.value = 1
+  fetchPage()
+}
+
+const getPropertyImage = (property) => {
+  const img = property.images?.find(i => i.is_main) ?? property.images?.[0]
+  if (img) {
+    const url = img.image_url ?? img.url
+    if (!url) return null
+    if (/^(https?:|blob:|data:)/.test(url)) return url
+    const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`
+  }
+  return null
+}
+
+const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZGlzcGxheTpibG9jazsiIGNsYXNzPSJhIiBmaWxsPSIjZWRlY2VkIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgc3R5bGU9ImZpbGw6I2VkZWNlZCIgc3BhY2Y9Im5vbmUiLz48cGF0aCBkPSJNMjIgMzZoMjBjLTEuMSAwLTIgLjktMiAyIDAgMS4xLjkgMiAyIDIgMCAxLjEtLjkgMi0yIDJoLTIwYzEuMSAwIDItLjkgMi0yIDAtMS4xLS45LTItMi0yeiIgZmlsbD0iI2RkYzJkNSIvPjwvc3ZnPg=='
 
 // Popover de asesor
 const activeAdvisorPopover = ref(null)
@@ -88,7 +117,7 @@ const fetchPage = () => {
 const showToast = (message, type = 'success') => {
   clearTimeout(toastTimeout)
   toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
+  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 const changeFilter = (f) => {
@@ -114,6 +143,7 @@ const openConfirm = (action, p) => {
 const executeConfirm = async () => {
   const { action, propertyId } = confirmModal.value
   confirmModal.value.show = false
+  actionLoading.value = true
   try {
     if (action === 'remove') {
       await store.remove(propertyId)
@@ -122,6 +152,8 @@ const executeConfirm = async () => {
     fetchPage()
   } catch (err) {
     showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
+  } finally {
+    actionLoading.value = false
   }
 }
 
@@ -205,6 +237,8 @@ onUnmounted(() => {
       @search="(val) => search = val"
     />
 
+    <Breadcrumb :crumbs="[{ label: 'Mis Propiedades', path: '/cliente/mis-propiedades' }]" />
+
     <article class="table-card">
       <div class="filters">
         <button :class="{ active: currentStatus === 'all' }" @click="changeFilter('all')">Todas ({{ counts.all }})</button>
@@ -218,19 +252,23 @@ onUnmounted(() => {
 
       <div v-else class="table-wrap">
         <table>
-<thead>
-              <tr>
-                <th>Título</th>
-                <th>Fecha</th>
-                <th>Ciudad</th>
-                <th>Precio</th>
-                <th>Asesor</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+          <thead>
+            <tr>
+              <th></th>
+              <th class="sortable" @click="sort('title')">Título <span class="sort-icon" :class="{ active: sortKey === 'title' }">{{ sortKey === 'title' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" @click="sort('created_at')">Fecha <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" @click="sort('city')">Ciudad <span class="sort-icon" :class="{ active: sortKey === 'city' }">{{ sortKey === 'city' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" @click="sort('price')">Precio <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortKey === 'price' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th>Asesor</th>
+              <th class="sortable" @click="sort('status')">Estado <span class="sort-icon" :class="{ active: sortKey === 'status' }">{{ sortKey === 'status' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="p in filtered" :key="p.id">
+              <td class="td-thumb">
+                <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
+              </td>
               <td class="td-title">{{ p.title }}</td>
               <td class="registered-at">{{ formatRegisteredAt(p.created_at) }}</td>
               <td>{{ p.city }}</td>
@@ -282,13 +320,22 @@ onUnmounted(() => {
               </td>
               <td><span :class="['badge', statusMap[p.status]?.cls]">{{ statusMap[p.status]?.label ?? p.status }}</span></td>
               <td class="actions">
-                <button class="view" @click="handleView(p.id)">Ver</button>
-                <button class="edit" @click="handleEdit(p.id)">Editar</button>
-                <button class="delete" @click="openConfirm('remove', p)">Eliminar</button>
+                <button class="view" title="Ver" @click="handleView(p.id)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Ver
+                </button>
+                <button class="edit" title="Editar" @click="handleEdit(p.id)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editar
+                </button>
+                <button class="delete" title="Eliminar" :disabled="actionLoading" @click="openConfirm('remove', p)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  {{ actionLoading ? '...' : 'Eliminar' }}
+                </button>
               </td>
             </tr>
             <tr v-if="!filtered.length">
-              <td colspan="7" class="empty">No tienes propiedades {{ currentStatus !== 'all' ? currentStatus : '' }}</td>
+              <td colspan="8" class="empty">No tienes propiedades {{ currentStatus !== 'all' ? currentStatus : '' }}</td>
             </tr>
           </tbody>
         </table>
@@ -312,7 +359,9 @@ onUnmounted(() => {
           <p class="modal-desc">¿Confirmas que deseas <strong>eliminar</strong> la propiedad <strong>"{{ confirmModal.title }}"</strong>?</p>
           <div class="modal-actions">
             <button class="btn-cancel" @click="confirmModal.show = false">Cancelar</button>
-            <button class="btn-confirm remove" @click="executeConfirm">Eliminar</button>
+            <button class="btn-confirm remove" :disabled="actionLoading" @click="executeConfirm">
+              {{ actionLoading ? 'Eliminando...' : 'Eliminar' }}
+            </button>
           </div>
         </div>
       </div>
@@ -333,14 +382,21 @@ onUnmounted(() => {
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); }
 th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .08em; }
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--color-navy); }
+.sort-icon { margin-left: 4px; font-size: 10px; opacity: .4; }
+.sort-icon.active { opacity: 1; color: var(--color-gold); }
+tr:hover { background: rgba(214, 168, 72, .05); }
+.td-thumb { width: 44px; padding-right: 8px; }
+.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; }
 .td-title { color: var(--color-navy); font-weight: 700; }
 .registered-at { color: var(--color-navy-2); font-weight: 600; white-space: nowrap; }
 .badge { padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .pendiente { background: #fff3ce; color: #8a5a00; }
 .aprobada { background: #dff7e9; color: #166534; }
 .rechazada { background: #fee2e2; color: #991b1b; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 44px; }
-.actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; flex-shrink: 0; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 52px; }
+.actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
 .actions button:hover { filter: brightness(1.02); transform: translateY(-1px); }
 .view { background: #f7efe0; color: var(--color-navy-2); }
 .edit { background: #e8edf0; color: var(--color-navy-2); }

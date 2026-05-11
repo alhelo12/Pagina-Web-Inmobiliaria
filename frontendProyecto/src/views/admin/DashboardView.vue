@@ -9,6 +9,7 @@ import AdminMetricCards from '@/components/admin/dashboard/AdminMetricCards.vue'
 import AdminStatusChart from '@/components/admin/dashboard/AdminStatusChart.vue'
 import AdminRightPanel from '@/components/admin/dashboard/AdminRightPanel.vue'
 import AdminRecentList from '@/components/admin/dashboard/AdminRecentList.vue'
+import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -113,6 +114,8 @@ const formatRelativeTime = (timestamp) => {
       :profile-email="auth.userEmail || ''"
       @add="router.push('/crear-propiedad')"
     />
+
+    <Breadcrumb :crumbs="[{ label: 'Panel', path: '/admin/dashboard' }]" />
 
     <div v-if="loading" class="state">Cargando resumen...</div>
     <div v-else-if="error" class="state error-msg">{{ error }}</div>
