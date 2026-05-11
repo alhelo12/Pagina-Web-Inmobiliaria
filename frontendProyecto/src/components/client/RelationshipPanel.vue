@@ -1,13 +1,12 @@
 <script setup>
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const props = defineProps({
   advisor: Object,
   stats: Object
 })
-
-const router = useRouter()
 
 const advisorName = computed(() => props.advisor?.name || 'Sin asesor asignado')
 const advisorEmail = computed(() => props.advisor?.email || '')
@@ -17,7 +16,7 @@ const advisorPhone = computed(() => props.advisor?.phone || 'Sin teléfono')
 <template>
   <div class="relationship-panel">
     <div class="panel-header">
-      <h3>Tu Asesor</h3>
+      <h3>Resumen</h3>
       <span class="status-badge" v-if="advisor">Activo</span>
     </div>
 
@@ -30,32 +29,32 @@ const advisorPhone = computed(() => props.advisor?.phone || 'Sin teléfono')
     </div>
 
     <div v-else class="no-advisor">
-      <p>No tienes un asesor asignado</p>
+      <p>Sin asesor asignado</p>
       <small>Contacta para solicitar uno</small>
     </div>
 
     <div v-if="stats" class="stats-row">
       <div class="stat">
         <span class="stat-value">{{ stats.appointments || 0 }}</span>
-        <span class="stat-label">Citas</span>
+        <span class="stat-label">Citas activas</span>
       </div>
       <div class="stat">
-        <span class="stat-value">{{ stats.messages || 0 }}</span>
-        <span class="stat-label">Mensajes</span>
+        <span class="stat-value">{{ stats.pending || 0 }}</span>
+        <span class="stat-label">En revisión</span>
       </div>
       <div class="stat">
         <span class="stat-value">{{ stats.properties || 0 }}</span>
-        <span class="stat-label">Propiedades</span>
+        <span class="stat-label">Publicadas</span>
       </div>
     </div>
 
     <div class="quick-actions">
       <RouterLink to="/cliente/citas" class="action-link">
-        <span class="action-icon">📅</span>
+        <span class="action-icon"><AppIcon name="calendar" :size="16" /></span>
         <span>Ver Citas</span>
       </RouterLink>
       <RouterLink to="/cliente/mensajes" class="action-link">
-        <span class="action-icon">💬</span>
+        <span class="action-icon"><AppIcon name="chat" :size="16" /></span>
         <span>Enviar Mensaje</span>
       </RouterLink>
     </div>
@@ -74,22 +73,22 @@ const advisorPhone = computed(() => props.advisor?.phone || 'Sin teléfono')
 .status-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #d1fae5; color: #059669; }
 
 .advisor-info { display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 10px; margin-bottom: 16px; }
-.advisor-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
-.advisor-details { display: flex; flex-direction: column; }
-.advisor-name { font-weight: 600; color: var(--color-navy); }
-.advisor-contact { font-size: 13px; color: var(--color-muted); }
+.advisor-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+.advisor-details { display: flex; flex-direction: column; min-width: 0; }
+.advisor-name { font-weight: 600; color: var(--color-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.advisor-contact { font-size: 13px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .no-advisor { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 16px; }
 .no-advisor p { font-weight: 600; color: var(--color-navy); margin: 0 0 4px; }
 .no-advisor small { color: var(--color-muted); font-size: 13px; }
 
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-.stat { text-align: center; padding: 12px; background: #f8f9fa; border-radius: 8px; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat { text-align: center; padding: 12px 8px; background: #f8f9fa; border-radius: 8px; }
 .stat-value { display: block; font-size: 20px; font-weight: 800; color: var(--color-navy); }
 .stat-label { font-size: 11px; color: var(--color-muted); text-transform: uppercase; }
 
 .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .action-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--color-line); background: white; color: var(--color-navy); text-decoration: none; font-weight: 600; font-size: 13px; transition: .2s; }
 .action-link:hover { border-color: var(--color-gold); background: #fdfcf8; }
-.action-icon { font-size: 16px; }
+.action-icon { color: var(--color-navy-2); display: flex; align-items: center; }
 </style>

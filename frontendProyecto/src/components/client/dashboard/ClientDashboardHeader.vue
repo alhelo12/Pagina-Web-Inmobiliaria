@@ -2,15 +2,11 @@
 defineProps({
   eyebrow: { type: String, default: '' },
   title: { type: String, default: '' },
-  showSearch: { type: Boolean, default: false },
-  showExport: { type: Boolean, default: false },
   showAdd: { type: Boolean, default: false },
-  addLabel: { type: String, default: 'Agregar' },
-  profileName: { type: String, default: '' },
-  profileEmail: { type: String, default: '' }
+  addLabel: { type: String, default: 'Agregar' }
 })
 
-const emit = defineEmits(['search', 'export', 'add'])
+const emit = defineEmits(['add'])
 </script>
 
 <template>
@@ -21,25 +17,10 @@ const emit = defineEmits(['search', 'export', 'add'])
     </div>
 
     <div class="header-right">
-      <div v-if="showSearch" class="search-box">
-        <input type="text" placeholder="Buscar..." @input="emit('search', $event.target.value)" />
-      </div>
-
-      <button v-if="showExport" class="btn-secondary" @click="emit('export')">
-        Exportar
-      </button>
-
       <button v-if="showAdd" class="btn-primary" @click="emit('add')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         {{ addLabel }}
       </button>
-
-      <div v-if="profileName" class="profile-pill">
-        <div class="avatar">{{ profileName.charAt(0).toUpperCase() }}</div>
-        <div class="profile-info">
-          <strong>{{ profileName }}</strong>
-          <small>{{ profileEmail }}</small>
-        </div>
-      </div>
     </div>
   </header>
 </template>
@@ -60,62 +41,24 @@ const emit = defineEmits(['search', 'export', 'add'])
 .eyebrow { margin: 0; color: var(--color-gold); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 h1 { margin: 0; color: var(--color-navy); font-size: 24px; font-weight: 700; }
 .header-right { display: flex; align-items: center; gap: 12px; }
-.search-box input {
-  padding: 10px 14px;
-  border: 1px solid var(--color-line);
-  border-radius: 8px;
-  font-size: 14px;
-  min-width: 200px;
-}
-.search-box input:focus { outline: none; border-color: var(--color-gold); }
-.btn-secondary {
-  padding: 10px 16px;
-  border-radius: 8px;
-  background: var(--color-cream);
-  color: var(--color-navy);
-  font-weight: 700;
-  border: 1px solid var(--color-line);
-  cursor: pointer;
-  transition: .2s ease;
-}
-.btn-secondary:hover { background: #eae6de; }
 .btn-primary {
-  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
   border-radius: 8px;
   background: var(--color-navy);
   color: #fff;
   font-weight: 700;
+  font-size: 14px;
   border: none;
   cursor: pointer;
   transition: .2s ease;
 }
 .btn-primary:hover { background: var(--color-navy-2); }
-.profile-pill {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 12px 6px 6px;
-  background: var(--color-cream);
-  border: 1px solid var(--color-line);
-  border-radius: 999px;
-}
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--color-gold);
-  color: var(--color-navy);
-  display: grid;
-  place-items: center;
-  font-weight: 900;
-  font-size: 14px;
-}
-.profile-info { display: flex; flex-direction: column; }
-.profile-info strong { font-size: 13px; color: var(--color-navy); }
-.profile-info small { font-size: 11px; color: var(--color-muted); }
 @media (max-width: 768px) {
   .dashboard-header { flex-direction: column; align-items: flex-start; }
-  .header-right { flex-wrap: wrap; width: 100%; }
-  .search-box input { min-width: 100%; }
+  .header-right { width: 100%; }
+  .btn-primary { width: 100%; justify-content: center; }
 }
 </style>
