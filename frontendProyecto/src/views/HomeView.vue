@@ -1,398 +1,775 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import Hero from '../components/home/Hero.vue'
+import { usePropertyStore } from '@/stores/propertyStore'
+import { useFavoritesStore } from '@/stores/favoritesStore'
+import { useAuthStore } from '@/stores/authStore'
 import PropertyCard from '@/components/PropertyCard.vue'
-import { propertiesApi } from '@/api/properties'
-import { favoritesApi } from '@/api/favorites'
 import { getPropertyImage } from '@/utils/propertyImages'
 
-const loading = ref(true)
-const popularProperties = ref([])
-const featuredProperties = ref([])
+const propertyStore = usePropertyStore()
+const favoritesStore = useFavoritesStore()
+const authStore = useAuthStore()
 
-const highlights = [
-  {
-    title: 'Budget Friendly',
-    text: 'Propiedades bien valoradas con excelente relacion entre ubicacion y precio.'
-  },
-  {
-    title: 'Prime Location',
-    text: 'Opciones en zonas con crecimiento y conectividad para inversion inteligente.'
-  },
-  {
-    title: 'Trusted By Clients',
-    text: 'Operacion guiada con respaldo juridico y acompanamiento profesional.'
-  }
+const filters = ref({
+  city: '',
+  property_type: '',
+  min_price: '',
+  max_price: '',
+  bedrooms: ''
+})
+
+const categories = [
+  { key: 'house', label: 'Casas', note: 'Residencial familiar' },
+  { key: 'apartment', label: 'Apartamentos', note: 'Ciudad y comodidad' },
+  { key: 'commercial', label: 'Oficina', note: 'Espacio empresarial' },
+  { key: 'land', label: 'Otro', note: 'Terrenos y mas' }
 ]
 
-const allCount = computed(() => popularProperties.value.length + featuredProperties.value.length)
+const selectedCategory = ref('')
 
+const approvedProperties = computed(() =>
+  (propertyStore.properties ?? []).filter((p) => p.status === 'approved')
+)
+
+const cityOptions = computed(() =>
+  [...new Set(approvedProperties.value.map((p) => p.city).filter(Boolean))]
+)
+
+const heroProperty = computed(() => approvedProperties.value[0] ?? null)
+
+const highlightedProperties = computed(() => {
+  let list = approvedProperties.value
+
+  if (selectedCategory.value) {
+    list = list.filter((p) => p.property_type === selectedCategory.value)
+  }
+
+  return list
+    .filter((p) => {
+      if (filters.value.city && p.city !== filters.value.city) return false
+      if (filters.value.property_type && p.property_type !== filters.value.property_type) return false
+      if (filters.value.min_price && Number(p.price) < Number(filters.value.min_price)) return false
+      if (filters.value.max_price && Number(p.price) > Number(filters.value.max_price)) return false
+      if (filters.value.bedrooms && Number(p.bedrooms) < Number(filters.value.bedrooms)) return false
+      return true
+    })
+    .slice(0, 3)
+})
+
+const selectCategory = (value) => {
+  selectedCategory.value = selectedCategory.value === value ? '' : value
+}
 
 onMounted(async () => {
-  loading.value = true
-  try {
-    const { data } = await propertiesApi.getAll({ status: 'approved', limit: 40 })
-    const raw = data.properties ?? data.items ?? data ?? []
-
-    const withCounts = await Promise.all(
-      raw.map(async (property) => {
-        let favoritesCount = 0
-        try {
-          const { data: favData } = await favoritesApi.getPropertyCount(property.id)
-          favoritesCount = favData.favorites_count ?? 0
-        } catch {
-          favoritesCount = 0
-        }
-
-        return {
-          ...property,
-          favoritesCount,
-          image: getPropertyImage(property)
-        }
-      })
-    )
-
-    withCounts.sort((a, b) => b.favoritesCount - a.favoritesCount || b.id - a.id)
-    popularProperties.value = withCounts.slice(0, 3)
-
-    const usedIds = new Set(popularProperties.value.map((p) => p.id))
-    featuredProperties.value = withCounts.filter((p) => !usedIds.has(p.id)).slice(0, 6)
-  } catch {
-    popularProperties.value = []
-    featuredProperties.value = []
-  } finally {
-    loading.value = false
+  await propertyStore.fetchProperties({ status: 'approved', limit: 40 })
+  if (authStore.isLogged && authStore.role === 'client') {
+    await favoritesStore.fetchFavorites()
   }
 })
 </script>
 
 <template>
-  <Hero />
+  <main class="home-page">
+    <header class="hero reveal">
+      <img
+        class="hero-image"
+        :src="heroProperty ? getPropertyImage(heroProperty) : 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1800&q=80'"
+        alt="Propiedad principal"
+      />
+      <div class="hero-overlay"></div>
 
-  <section class="home-shell">
-    <section class="popular">
+      <div class="hero-content">
+        <p class="eyebrow">INICIO PREMIUM</p>
+        <h1>HOGARES QUE INSPIRAN TU VIDA</h1>
+        <p>
+          Explora propiedades reales con diseno, ubicacion y valor. Filtra en segundos y descubre la opcion ideal para ti.
+        </p>
+        <div class="hero-actions">
+          <RouterLink to="/propiedades" class="cta-primary">Explorar propiedades</RouterLink>
+          <RouterLink to="/nosotros" class="cta-outline">Conocer mas</RouterLink>
+        </div>
+        <div class="search-shell">
+          <div class="search-bar">
+            <div class="search-field">
+          
+              <span class="field-label">Tipo</span>
+              <select v-model="filters.property_type">
+                <option value="">Cualquier tipo</option>
+                <option value="house">Casa</option>
+                <option value="apartment">Apartamento</option>
+                <option value="commercial">Oficina</option>
+                <option value="land">Otro</option>
+              </select>
+            </div>
+            <div class="search-divider"></div>
+            <div class="search-field">
+              <span class="field-label">Precio min</span>
+              <input v-model="filters.min_price" type="number" placeholder="Minimo" />
+            </div>
+            <div class="search-divider"></div>
+            <div class="search-field">
+              <span class="field-label">Precio max</span>
+              <input v-model="filters.max_price" type="number" placeholder="Maximo" />
+            </div>
+        
+            <RouterLink to="/propiedades" class="search-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Buscar
+            </RouterLink>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-curve">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,60 C480,120 960,0 1440,60 L1440,120 L0,120 Z" fill="#f5f2ec"/>
+        </svg>
+      </div>
+    </header>
+
+    <section class="about reveal">
+      <div class="about-img-wrap">
+        <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Habitacion elegante" />
+        <button type="button" class="play-btn" aria-label="Reproducir video">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="#fff"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="about-content">
+        <p class="eyebrow">ABOUT US</p>
+        <h2>We Can Help You Feel More Comfortable!</h2>
+        <p class="about-copy">
+          Need a home that reflects elegance and modern style? Explore expertly curated spaces that elevate your lifestyle and bring comfort to every moment.
+        </p>
+        <article class="rating-card">
+          <strong class="rating-value">4.9/5 Rating</strong>
+          <p>Trusted by families and investors with a personalized buying experience.</p>
+        </article>
+        <article class="contact-card">
+          <div>
+            <small>For More Information, Please Contact Us By Telephone Or Email</small>
+            <strong>+598 123 47 509</strong>
+          </div>
+          <RouterLink class="contact-btn" to="/contacto">CALL US</RouterLink>
+        </article>
+      </div>
+    </section>
+
+    <section class="featured reveal">
       <div class="section-head">
-        <span>Popular Properties</span>
-        <h2>Propiedades mas destacadas</h2>
+        <h3>Propiedades destacadas</h3>
+        <RouterLink to="/propiedades" class="link-all">Ver todas las propiedades</RouterLink>
       </div>
 
-      <div v-if="loading" class="skeleton-grid">
-        <div v-for="n in 3" :key="n" class="skeleton-card"></div>
-      </div>
-
-      <div v-else-if="popularProperties.length" class="cards-grid three">
-        <RouterLink v-for="p in popularProperties" :key="p.id" :to="`/propiedades/${p.id}`" class="card-link">
+      <div v-if="propertyStore.loading" class="state">Cargando propiedades...</div>
+      <div v-else-if="!highlightedProperties.length" class="state">No encontramos resultados con esos filtros.</div>
+      <div v-else class="cards-grid">
+        <RouterLink v-for="p in highlightedProperties" :key="p.id" :to="`/propiedades/${p.id}`" class="card-link">
           <PropertyCard
             :id="p.id"
             :title="p.title"
             :price="p.price"
             :city="p.city"
             :type="p.property_type"
-            :image="p.image"
+            :transaction-type="p.transaction_type"
+            :bedrooms="p.bedrooms"
+            :bathrooms="p.bathrooms"
+            :square-meters="p.square_meters"
+            :image="getPropertyImage(p)"
+            :show-cta="true"
           />
-          <small class="fav-tag">{{ p.favoritesCount }} favoritos</small>
         </RouterLink>
       </div>
-
-      <p v-else class="empty">Aun no hay propiedades aprobadas para mostrar.</p>
     </section>
 
-    <section class="editorial">
-      <div class="editorial-media">
-        <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=80" alt="Interior premium" />
-        <img class="floating" src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80" alt="Casa moderna" />
+    <section class="bottom-banner reveal">
+      <div class="banner-copy">
+        <p class="comfort-label">OUR SERVICES</p>
+        <h2>Comfort Are Perfectly Combined Here !</h2>
+        <p>
+          Special home finder offers premium interior and lifestyle value around your needs. Discover curated residences and personalized support.
+        </p>
       </div>
-
-      <div class="editorial-copy">
-        <span class="kicker">Why choose us</span>
-        <h2>We Provide Latest Properties For Our Valuable Clients</h2>
-        <div class="highlight-list">
-          <article v-for="item in highlights" :key="item.title">
-            <h4>{{ item.title }}</h4>
-            <p>{{ item.text }}</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="featured">
-      <div class="section-head inline">
-        <div>
-          <span>Featured Properties</span>
-          <h2>Mas opciones para explorar</h2>
-        </div>
-        <RouterLink to="/propiedades" class="see-all">Ver todo</RouterLink>
-      </div>
-
-      <div v-if="loading" class="skeleton-grid six">
-        <div v-for="n in 6" :key="n" class="skeleton-card small"></div>
-      </div>
-
-      <div v-else-if="featuredProperties.length" class="cards-grid six">
-        <RouterLink v-for="p in featuredProperties" :key="p.id" :to="`/propiedades/${p.id}`" class="card-link compact">
-          <img :src="p.image" :alt="p.title" loading="lazy" />
-          <div class="compact-body">
-            <h3>{{ p.title }}</h3>
-            <p>{{ p.city }} · {{ p.property_type }}</p>
-            <strong>${{ Number(p.price).toLocaleString('es-MX') }}</strong>
+      <div class="banner-cards">
+        <article class="mini-card" v-for="p in highlightedProperties.slice(0, 2)" :key="`mini-${p.id}`">
+          <img :src="getPropertyImage(p)" :alt="p.title" />
+          <div>
+            <strong>{{ p.title }}</strong>
+            <small>{{ p.city }} · ${{ Number(p.price).toLocaleString('es-MX') }}</small>
           </div>
-        </RouterLink>
+        </article>
       </div>
-
-      <div v-else class="empty">Cuando existan mas propiedades aprobadas apareceran aqui.</div>
     </section>
-
-    <section v-if="allCount" class="bottom-cta">
-      <h3>¿Buscas una propiedad especifica?</h3>
-      <p>Explora el catalogo completo y aplica filtros para encontrar tu mejor opcion.</p>
-      <RouterLink to="/propiedades">Ir a propiedades</RouterLink>
-    </section>
-  </section>
+  </main>
 </template>
 
 <style scoped>
-.home-shell {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 74px 24px;
-  display: grid;
-  gap: 74px;
+.home-page {
+  font-family: 'Poppins', sans-serif;
+  background: #f5f2ec;
+  color: #07182c;
+  padding: 0 0 64px;
+  overflow: hidden;
 }
 
-.section-head span,
-.kicker {
-  display: inline-block;
-  color: #d6a848;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  font-weight: 800;
-  margin-bottom: 10px;
-}
-
-.section-head h2,
-.editorial-copy h2 {
-  margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #07172d;
-  font-size: clamp(30px, 4vw, 46px);
-  line-height: 1.08;
-}
-
-.cards-grid {
-  margin-top: 28px;
-  display: grid;
-  gap: 20px;
-}
-
-.cards-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.cards-grid.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-
-.card-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
+.hero {
   position: relative;
-}
-
-.fav-tag {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  background: rgba(7, 23, 45, .85);
-  color: #f2c46d;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  z-index: 2;
-}
-
-.editorial {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 26px;
-  align-items: center;
-}
-
-.editorial-media {
-  position: relative;
-  min-height: 360px;
-}
-
-.editorial-media > img {
-  width: 78%;
-  border-radius: 28px;
-  border: 3px solid #ffffff;
-  box-shadow: 0 20px 34px rgba(7, 23, 45, .18);
-}
-
-.editorial-media .floating {
-  position: absolute;
-  right: 0;
-  bottom: 16px;
-  width: 52%;
+  max-width: 1180px;
+  margin: 18px auto 0;
+  min-height: 640px;
+  overflow: hidden;
+  background: #07182c;
   border-radius: 22px;
 }
 
-.editorial-copy h2 {
-  max-width: 560px;
-}
-
-.highlight-list {
-  margin-top: 22px;
-  display: grid;
-  gap: 14px;
-}
-
-.highlight-list article {
-  background: #fffdf8;
-  border: 1px solid rgba(7, 23, 45, .08);
-  border-radius: 12px;
-  padding: 14px;
-}
-
-.highlight-list h4 {
-  margin: 0 0 6px;
-  color: #0f2c4c;
-}
-
-.highlight-list p {
-  margin: 0;
-  color: #667381;
-  line-height: 1.6;
-}
-
-.section-head.inline {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 14px;
-}
-
-.see-all {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 16px;
-  border-radius: 8px;
-  background: #07172d;
-  color: #fff;
-  font-weight: 700;
-}
-
-.compact {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(7, 23, 45, .08);
-  background: #fffdf8;
-  box-shadow: 0 10px 24px rgba(7, 23, 45, .08);
-}
-
-.compact img {
-  width: 100%;
-  height: 160px;
+.hero-image {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 55%;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
-.compact-body {
-  padding: 12px;
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(to right, #07182c 0%, transparent 100%);
 }
 
-.compact-body h3 {
-  margin: 0;
-  font-size: 16px;
-  color: #07172d;
-}
-
-.compact-body p {
-  margin: 6px 0;
-  color: #667381;
-  font-size: 13px;
-}
-
-.compact-body strong {
-  color: #0f2c4c;
-}
-
-.bottom-cta {
-  text-align: center;
-  background: linear-gradient(120deg, #07172d, #0f2c4c);
+.hero-content {
+  position: static;
+  z-index: 4;
+  max-width: 560px;
+  padding: 90px 32px 80px;
   color: #fff;
-  border-radius: 14px;
-  padding: 34px 22px;
+  grid-column: 1 / 2;
 }
 
-.bottom-cta h3 { margin: 0 0 8px; font-size: 32px; }
-.bottom-cta p { margin: 0 0 16px; color: rgba(255,255,255,.82); }
-.bottom-cta a {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  padding: 0 18px;
-  border-radius: 8px;
-  background: #d6a848;
-  color: #07172d;
+.hero-content h1 {
+  margin: 0 0 12px;
+  font-size: clamp(42px, 5.4vw, 72px);
+  line-height: 0.95;
   font-weight: 800;
 }
 
-.empty {
-  margin-top: 18px;
-  color: #6b7784;
+.hero-content p {
+  margin: 0;
+  max-width: 470px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.86);
 }
 
-.skeleton-grid {
+.eyebrow {
+  margin: 0 0 14px;
+  color: #d8a54d;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hero-actions {
   margin-top: 28px;
+  display: flex;
+  gap: 12px;
+}
+
+.cta-primary,
+.cta-outline {
+  min-height: 54px;
+  padding: 0 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.cta-primary {
+  background: #d8a54d;
+  color: #07182c;
+}
+
+.cta-outline {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+}
+
+.hero-curve {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  z-index: 2;        /* MENOR que el buscador */
+  line-height: 0;
+  pointer-events: none;
+}
+
+.hero-curve svg {
+  width: 100%;
+  height: 120px;
+  display: block;
+}
+
+.cta-primary:hover,
+.cta-outline:hover {
+  transform: translateY(-2px);
+}
+
+.search-shell {
+  position: absolute;
+  bottom: 100px;
+  left: auto;
+  right: 8px;
+  transform: none;
+  width: 650px;
+  max-width: calc(100% - 16px);
+  z-index: 5;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  padding: 8px 8px 8px 28px;
+  gap: 0;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 14px;
+}
+
+.field-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #0e2b57;
+  white-space: nowrap;
+}
+
+.search-field select,
+.search-field input {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #334;
+  padding: 2px 0;
+  outline: none;
+  width: 100%;
+  min-height: unset;
+  box-shadow: none;
+}
+
+.search-divider {
+  width: 1px;
+  height: 32px;
+  background: #d8e2f0;
+  flex-shrink: 0;
+}
+
+input,
+select {
+  height: 42px;
+  border: 1px solid #dfe5ec;
+  border-radius: 8px;
+  padding: 0 11px;
+  font: inherit;
+  font-size: 13px;
+  background: #fff;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #d8a54d;
+  box-shadow: 0 0 0 3px rgba(216, 165, 77, 0.18);
+}
+
+.search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(120deg, #0a355e, #11497d);
+  color: #fff;
+  border-radius: 999px;
+  padding: 14px 26px;
+  font-weight: 700;
+  font-size: 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all .2s ease;
+  text-decoration: none;
+}
+
+.search-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 20px rgba(10, 53, 94, 0.35);
+}
+
+.about,
+.featured,
+.bottom-banner {
+  max-width: 1120px;
+  margin: 70px auto 0;
+}
+
+.about {
   display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.about-img-wrap {
+  position: relative;
+}
+
+.about-img-wrap img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.play-btn {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #0e6b6b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.about-content h2 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.1;
+  color: #132846;
+}
+
+.about-copy {
+  margin: 12px 0 0;
+  color: #4d627c;
+  line-height: 1.6;
+}
+
+.rating-card,
+.contact-card {
+  background: #f7faff;
+  border-radius: 14px;
+  margin-top: 14px;
+  padding: 16px 20px;
+}
+
+.rating-card strong,
+.contact-card strong {
+  color: #113963;
+}
+
+.rating-value {
+  color: #d8a54d !important;
+}
+
+.rating-card p,
+.contact-card small {
+  margin: 8px 0 0;
+  color: #667c96;
+}
+
+.contact-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.contact-btn {
+  min-height: 52px;
+  padding: 0 28px;
+  background: #0a355e;
+  color: #fff;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.featured {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e3e9f2;
+  padding: 24px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-head h3 {
+  margin: 0;
+  color: #143057;
+  font-size: clamp(24px, 3vw, 36px);
+}
+
+.link-all {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7a8da4;
+}
+
+.state {
+  padding: 12px 0 20px;
+  color: #61748c;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 18px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.skeleton-grid.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-
-.skeleton-card {
-  height: 340px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #eee7da 25%, #fffaf1 50%, #eee7da 75%);
-  background-size: 300% 100%;
-  animation: shimmer 1.4s linear infinite;
+.card-link {
+  color: inherit;
+  transition: transform .22s ease;
 }
 
-.skeleton-card.small { height: 250px; }
+.card-link:hover {
+  transform: translateY(-4px);
+}
 
-@keyframes shimmer { to { background-position: -300% 0; } }
+.bottom-banner {
+  background: linear-gradient(120deg, #07182c 0%, #0b2744 100%);
+  border-radius: 14px;
+  padding: 40px 28px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
 
-@media (max-width: 980px) {
-  .cards-grid.three,
-  .cards-grid.six,
-  .skeleton-grid,
-  .skeleton-grid.six,
-  .editorial {
+.banner-copy h2 {
+  margin: 0;
+  color: #fff;
+  line-height: 1.1;
+  font-size: clamp(30px, 4vw, 50px);
+}
+
+.banner-copy p {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.83);
+  max-width: 500px;
+}
+
+.banner-cards {
+  display: grid;
+  gap: 14px;
+}
+
+.mini-card {
+  border-radius: 14px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 94px 1fr;
+  gap: 12px;
+  padding: 10px;
+  align-items: center;
+}
+
+.mini-card img {
+  width: 94px;
+  height: 94px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.mini-card strong {
+  color: #102c4f;
+}
+
+.mini-card small {
+  display: block;
+  margin-top: 6px;
+  color: #6d7f94;
+}
+
+.reveal {
+  animation: fadeUp .7s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 860px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .bottom-banner {
+    grid-template-columns: 1.1fr .9fr;
+    align-items: center;
+  }
+
+  .banner-cards {
+    justify-self: end;
+    width: min(100%, 360px);
+  }
+}
+
+@media (min-width: 900px) {
+  .about {
     grid-template-columns: 1fr 1fr;
+    gap: 48px;
   }
 }
 
-@media (max-width: 680px) {
-  .home-shell { padding: 58px 18px; gap: 54px; }
-  .cards-grid.three,
-  .cards-grid.six,
-  .skeleton-grid,
-  .skeleton-grid.six,
-  .editorial {
+@media (max-width: 1023px) {
+  .search-shell {
+    width: calc(100% - 32px);
+    bottom: 80px;
+  }
+
+  .search-field {
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 859px) {
+  .home-page {
+    padding-bottom: 44px;
+  }
+
+  .hero {
     grid-template-columns: 1fr;
+    min-height: 680px;
   }
 
-  .editorial-media > img { width: 100%; }
-  .editorial-media .floating {
-    width: 58%;
-    right: 6px;
-    bottom: -6px;
+  .hero-image {
+    width: 100%;
+    object-position: center;
   }
 
-  .section-head.inline {
+  .hero-overlay {
+    background: linear-gradient(180deg, rgba(7, 24, 44, 0.86) 0%, rgba(7, 24, 44, 0.62) 48%, rgba(7, 24, 44, 0.9) 100%);
+  }
+
+  .hero-content {
+    padding: 120px 20px 40px;
+  }
+
+  .about,
+  .featured,
+  .bottom-banner {
+    margin-top: 30px;
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .search-shell {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    border-radius: 16px;
+    padding: 12px;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .search-divider {
+    display: none;
+  }
+
+  .search-field {
+    padding: 8px 12px;
+    border: 1px solid #e2e9f4;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .search-btn {
+    border-radius: 10px;
+    justify-content: center;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero {
+    min-height: 730px;
+  }
+
+  .hero-content h1 {
+    font-size: clamp(34px, 12vw, 46px);
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .cta-primary,
+  .cta-outline {
+    width: 100%;
+  }
+
+  .section-head {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .contact-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .banner-copy h2 {
+    font-size: clamp(28px, 9vw, 42px);
   }
 }
 </style>
