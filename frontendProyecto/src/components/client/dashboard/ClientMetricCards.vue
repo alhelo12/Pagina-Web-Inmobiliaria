@@ -26,12 +26,12 @@
       <small>En revisión</small>
     </article>
     <article class="card">
-      <div class="card-icon explore-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <div class="card-icon message-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </div>
-      <span>Exploradas</span>
-      <strong>{{ metrics.exploredCount || 0 }}</strong>
-      <small>Visitas realizadas</small>
+      <span>Mensajes</span>
+      <strong>0</strong>
+      <small>Sin leer</small>
     </article>
   </section>
 </template>
@@ -40,7 +40,7 @@
 defineProps({
   metrics: {
     type: Object,
-    default: () => ({ favoritesCount: 0, myPropertiesCount: 0, pendingCount: 0, exploredCount: 0, unreadNotifications: 0 })
+    default: () => ({ favoritesCount: 0, myPropertiesCount: 0, pendingCount: 0, unreadNotifications: 0 })
   }
 })
 </script>
@@ -71,6 +71,7 @@ defineProps({
 .home-icon { background: #e8edf0; color: var(--color-navy-2); }
 .pending-icon { background: #fff3ce; color: #856404; }
 .explore-icon { background: #d4edda; color: #155724; }
+.message-icon { background: #e0e7ff; color: #4338ca; }
 .card span { color: var(--color-muted); font-size: 13px; font-weight: 600; }
 .card strong { display: block; margin-top: 8px; color: var(--color-navy); font-size: 30px; font-weight: 700; }
 .card small { color: #87909b; font-size: 12px; }

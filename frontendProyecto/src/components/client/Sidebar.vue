@@ -16,6 +16,8 @@ const { unreadCount } = storeToRefs(store)
     <nav>
       <RouterLink to="/cliente/dashboard"><i></i>Dashboard</RouterLink>
       <RouterLink to="/cliente/mis-propiedades"><i></i>Mis Propiedades</RouterLink>
+      <RouterLink to="/cliente/citas"><i></i>Citas</RouterLink>
+      <RouterLink to="/cliente/mensajes"><i></i>Mensajes</RouterLink>
       <RouterLink to="/cliente/perfil"><i></i>Mi Perfil</RouterLink>
       <RouterLink to="/cliente/notificaciones">
         <i></i>Notificaciones

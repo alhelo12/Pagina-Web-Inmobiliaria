@@ -65,7 +65,6 @@ def create_appointment(
 
 @router.get("", response_model=AppointmentListResponse)
 def get_my_appointments(
-    client_id: int = Query(..., description="ID del cliente"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     status_filter: Optional[str] = Query(None, description="Filtrar por status"),
@@ -75,23 +74,26 @@ def get_my_appointments(
     """
     Listar citas del cliente (autenticado)
     
-    El cliente ve sus propias citas.
+    El cliente ve sus propias citas. Se obtiene el client_id del token JWT.
     """
-    # Verificar ownership o admin
-    if not current_user.is_admin() and current_user.id != client_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No puedes ver citas de otros usuarios"
-        )
+    # Usar el ID del usuario autenticado directamente
+    client_id = current_user.id
     
-    result = appointmentService.get_client_appointments(
+    appointments = appointmentService.get_appointments(
         db,
-        client_id,
         skip=skip,
         limit=limit,
-        status_filter=status_filter
+        client_id=client_id,
+        status=status_filter
     )
-    return result
+    total = appointmentService.count_appointments(db, client_id=client_id, status=status_filter)
+    
+    return AppointmentListResponse(
+        total=total,
+        page=(skip // limit) + 1,
+        per_page=limit,
+        items=appointments
+    )
 
 
 @router.get("/{appointment_id}", response_model=AppointmentResponse)
@@ -225,14 +227,23 @@ def get_advisor_appointments(
             detail="Usuario no tiene perfil de advisor"
         )
     
-    result = appointmentService.get_advisor_appointments(
+    advisor_id = current_user.advisor.id
+    
+    appointments = appointmentService.get_appointments(
         db,
-        current_user.advisor.id,
         skip=skip,
         limit=limit,
-        status_filter=status_filter
+        advisor_id=advisor_id,
+        status=status_filter
     )
-    return result
+    total = appointmentService.count_appointments(db, advisor_id=advisor_id, status=status_filter)
+    
+    return AppointmentListResponse(
+        total=total,
+        page=(skip // limit) + 1,
+        per_page=limit,
+        items=appointments
+    )
 
 
 @router.patch("/{appointment_id}/confirm", response_model=AppointmentResponse)
