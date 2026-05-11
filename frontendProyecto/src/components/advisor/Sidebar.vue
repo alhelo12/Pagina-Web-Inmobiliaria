@@ -9,6 +9,7 @@
       <RouterLink to="/advisor/dashboard"><i></i>Dashboard</RouterLink>
       <RouterLink to="/advisor/panel"><i></i>Mis Propiedades</RouterLink>
       <RouterLink to="/advisor/clientes"><i></i>Clientes</RouterLink>
+      <RouterLink to="/advisor/perfil"><i></i>Mi Perfil</RouterLink>
     </nav>
 
     <div class="sidebar-card">

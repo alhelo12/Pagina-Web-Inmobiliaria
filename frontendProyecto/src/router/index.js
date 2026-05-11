@@ -59,7 +59,8 @@ const router = createRouter({
         { path: '', redirect: '/advisor/dashboard' },
         { path: 'dashboard', component: () => import('@/views/advisor/AdvisorDashboard.vue') },
         { path: 'panel', component: () => import('@/views/advisor/AdvisorPanel.vue') },
-        { path: 'clientes', component: () => import('@/views/advisor/AdvisorClientsView.vue') }
+        { path: 'clientes', component: () => import('@/views/advisor/AdvisorClientsView.vue') },
+        { path: 'perfil', component: () => import('@/views/advisor/AdvisorProfileView.vue') }
       ]
     },
 
