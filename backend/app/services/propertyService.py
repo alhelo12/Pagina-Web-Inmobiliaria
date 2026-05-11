@@ -10,7 +10,7 @@ from sqlalchemy import func, and_, or_
 from typing import Optional, List, Tuple
 from fastapi import HTTPException, status
 
-from app.models import Property, PropertyImage, User, Advisor
+from app.models import Property, PropertyImage, User, Advisor, Conversation, Message
 from app.schemas import PropertyCreate, PropertyUpdate, PropertySearchFilters
 from app.services import notificationService
 
@@ -795,12 +795,44 @@ def take_property(db: Session, property_id: int, advisor_id: int) -> Property:
     db_property.advisor_id = advisor_id
     db.commit()
     db.refresh(db_property)
-    
+
     # Crear notificación al propietario
     try:
         notificationService.notify_property_taken(db, property_id, advisor_id)
     except Exception:
         pass  # No fallar si no se puede crear la notificación
+
+    # Crear conversación y mensaje automático
+    try:
+        advisor = db.query(Advisor).filter(Advisor.id == advisor_id).first()
+        advisor_name = advisor.user.full_name if advisor and advisor.user else "un asesor"
+        owner_name = db_property.owner.full_name if db_property.owner else "el cliente"
+
+        # Verificar si la conversación ya existe
+        existing_conv = db.query(Conversation).filter(
+            Conversation.user_id == db_property.submitted_by_user_id,
+            Conversation.advisor_id == advisor_id
+        ).first()
+
+        if not existing_conv:
+            conversation = Conversation(
+                user_id=db_property.submitted_by_user_id,
+                advisor_id=advisor_id
+            )
+            db.add(conversation)
+            db.flush()
+
+            auto_message = Message(
+                conversation_id=conversation.id,
+                sender_id=db_property.submitted_by_user_id,
+                content=f"¡Buena noticia! El asesor {advisor_name} acaba de tomar tu propiedad \"{db_property.title}\" y comenzará a revisarla pronto.",
+                is_read=True
+            )
+            db.add(auto_message)
+            conversation.last_message_at = auto_message.created_at.strftime("%Y-%m-%dT%H:%M:%S")
+            db.commit()
+    except Exception:
+        pass  # No fallar si falla la conversación
     
     return db_property
 
