@@ -1,10 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
+import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
 
 const router = useRouter()
+const auth = useAuthStore()
 const store = useNotificationsStore()
 const { notifications, loading, unreadCount } = storeToRefs(store)
 
@@ -20,10 +23,7 @@ const typeIcons = {
 
 const filters = [
   { key: 'all', label: 'Todas' },
-  { key: 'unread', label: 'No leídas' },
-  { key: 'approved', label: 'Aprobadas' },
-  { key: 'rejected', label: 'Rechazadas' },
-  { key: 'sold', label: 'Vendidas' }
+  { key: 'unread', label: 'No leídas' }
 ]
 
 const filteredNotifications = computed(() => {
@@ -44,6 +44,14 @@ const stats = computed(() => ({
   approved: notifications.value.filter(n => n.type === 'approved').length,
   rejected: notifications.value.filter(n => n.type === 'rejected').length,
   sold: notifications.value.filter(n => n.type === 'sold').length
+}))
+
+const metrics = computed(() => ({
+  total: stats.value.total,
+  unread: stats.value.unread,
+  approved: stats.value.approved,
+  rejected: stats.value.rejected,
+  sold: stats.value.sold
 }))
 
 const formatDate = (timestamp) => {
@@ -77,50 +85,48 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="notifications-page">
-    <header class="page-header">
-      <div>
-        <p class="kicker">PANEL DE CLIENTE</p>
-        <h1>Notificaciones</h1>
+  <section class="notifications-page">
+    <ClientDashboardHeader
+      eyebrow="Panel de Cliente"
+      title="Notificaciones"
+      :profile-name="auth.userEmail?.split('@')?.[0] || 'Cliente'"
+      :profile-email="auth.userEmail || ''"
+    />
+
+    <div class="section-header">
+      <div class="filters">
+        <button
+          v-for="filter in filters"
+          :key="filter.key"
+          :class="['filter-btn', { active: activeFilter === filter.key }]"
+          @click="activeFilter = filter.key"
+        >
+          {{ filter.label }}
+        </button>
       </div>
       <button v-if="unreadCount > 0" class="mark-all-btn" @click="handleMarkAllRead">
         Marcar todas como leídas
       </button>
-    </header>
-
-    <div class="stats-row">
-      <div class="stat-card">
-        <span class="stat-value">{{ stats.total }}</span>
-        <span class="stat-label">Total</span>
-      </div>
-      <div class="stat-card highlight">
-        <span class="stat-value">{{ stats.unread }}</span>
-        <span class="stat-label">Sin leer</span>
-      </div>
-      <div class="stat-card green">
-        <span class="stat-value">{{ stats.approved }}</span>
-        <span class="stat-label">Aprobadas</span>
-      </div>
-      <div class="stat-card red">
-        <span class="stat-value">{{ stats.rejected }}</span>
-        <span class="stat-label">Rechazadas</span>
-      </div>
-      <div class="stat-card purple">
-        <span class="stat-value">{{ stats.sold }}</span>
-        <span class="stat-label">Vendidas</span>
-      </div>
     </div>
 
-    <div class="filters">
-      <button
-        v-for="filter in filters"
-        :key="filter.key"
-        :class="['filter-btn', { active: activeFilter === filter.key }]"
-        @click="activeFilter = filter.key"
-      >
-        {{ filter.label }}
-      </button>
-    </div>
+    <section class="metrics">
+      <article class="card">
+        <div class="card-icon total-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <span>Total</span>
+        <strong>{{ metrics.total }}</strong>
+        <small>Notificaciones</small>
+      </article>
+      <article class="card highlight">
+        <div class="card-icon unread-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <span>Sin leer</span>
+        <strong>{{ metrics.unread }}</strong>
+        <small>Nuevas</small>
+      </article>
+    </section>
 
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
@@ -165,132 +171,28 @@ onMounted(() => {
         </div>
       </article>
     </div>
-  </div>
+  </section>
 </template>
 
 <style scoped>
 .notifications-page {
-  padding: 32px;
-  max-width: 1000px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.page-header {
+.section-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 28px;
-}
-
-.page-header p {
-  margin: 0 0 4px;
-  color: var(--color-gold);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.page-header h1 {
-  margin: 0;
-  color: var(--color-navy);
-  font-size: 28px;
-  font-weight: 800;
-}
-
-.mark-all-btn {
-  background: var(--color-navy);
-  color: var(--color-gold);
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.mark-all-btn:hover {
-  background: #0a1525;
-}
-
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-line);
-  border-radius: 10px;
-  padding: 16px;
-  text-align: center;
-  transition: 0.3s ease;
-}
-
-.stat-card:hover {
-  border-color: var(--color-gold);
-}
-
-.stat-value {
-  display: block;
-  color: var(--color-navy);
-  font-size: 24px;
-  font-weight: 800;
-}
-
-.stat-label {
-  color: var(--color-muted);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.stat-card.highlight {
-  background: #fef3c7;
-  border-color: #fcd34d;
-}
-
-.stat-card.highlight .stat-value {
-  color: #b45309;
-}
-
-.stat-card.green {
-  background: #dcfce7;
-  border-color: #86efac;
-}
-
-.stat-card.green .stat-value {
-  color: #15803d;
-}
-
-.stat-card.red {
-  background: #fee2e2;
-  border-color: #fca5a5;
-}
-
-.stat-card.red .stat-value {
-  color: #dc2626;
-}
-
-.stat-card.purple {
-  background: #ede9fe;
-  border-color: #c4b5fd;
-}
-
-.stat-card.purple .stat-value {
-  color: #7c3aed;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .filters {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-line);
 }
 
 .filter-btn {
@@ -314,6 +216,81 @@ onMounted(() => {
   background: var(--color-navy);
   border-color: var(--color-navy);
   color: var(--color-gold);
+}
+
+.mark-all-btn {
+  background: var(--color-gold);
+  color: var(--color-navy);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.mark-all-btn:hover {
+  filter: brightness(1.03);
+  box-shadow: 0 10px 18px rgba(7, 23, 45, 0.12);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 10px 24px rgba(7, 23, 45, 0.08);
+  transition: 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(7, 23, 45, 0.12);
+}
+
+.card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.total-icon { background: #e8edf0; color: var(--color-navy-2); }
+.unread-icon { background: #fef3c7; color: #b45309; }
+
+.card span {
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.card strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--color-navy);
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.card small {
+  color: #87909b;
+  font-size: 12px;
+}
+
+.highlight {
+  background: linear-gradient(150deg, rgba(214, 168, 72, 0.2) 0%, var(--color-card) 100%);
 }
 
 .loading {
@@ -452,22 +429,20 @@ onMounted(() => {
   background: var(--color-gold);
 }
 
-@media (max-width: 768px) {
-  .notifications-page {
-    padding: 20px;
+@media (max-width: 600px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .metrics {
+    grid-template-columns: 1fr;
   }
 
-  .stats-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .page-header {
+  .section-header {
     flex-direction: column;
-    gap: 16px;
-  }
-
-  .page-header h1 {
-    font-size: 22px;
+    align-items: stretch;
   }
 
   .mark-all-btn {
