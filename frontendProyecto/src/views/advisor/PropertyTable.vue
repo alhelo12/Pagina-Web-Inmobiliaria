@@ -80,13 +80,13 @@ const formatRegisteredAt = (value) => {
   width: 100%; border-collapse: collapse; background: white;
   border-radius: 14px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.05);
 }
-th { background: #0d2c54; color: white; text-align: left; padding: 14px; font-size: 14px; }
-td { padding: 14px; border-bottom: 1px solid #eee; font-size: 14px; }
+th { background: var(--color-navy); color: white; text-align: left; padding: 14px; font-size: 14px; }
+td { padding: 14px; border-bottom: 1px solid var(--color-line); font-size: 14px; }
 .title { font-weight: 600; }
-.price { font-weight: bold; color: #0d2c54; }
-.owner-name { display: block; font-weight: 600; color: #1f2937; }
-.owner-email { display: block; color: #64748b; font-size: 12px; margin-top: 2px; }
-.registered-at { color: #475569; font-weight: 600; white-space: nowrap; }
+.price { font-weight: bold; color: var(--color-navy); }
+.owner-name { display: block; font-weight: 600; color: var(--color-navy); }
+.owner-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
+.registered-at { color: var(--color-navy-2); font-weight: 600; white-space: nowrap; }
 
 .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: capitalize; }
 .pending  { background: #fff3cd; color: #856404; }

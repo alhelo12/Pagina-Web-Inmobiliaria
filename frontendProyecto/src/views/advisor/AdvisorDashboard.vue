@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
-import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
+import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
 import AdvisorMetricCards from '@/components/advisor/dashboard/AdvisorMetricCards.vue'
 import AdvisorStatusChart from '@/components/admin/dashboard/AdminStatusChart.vue'
 import AdvisorRightPanel from '@/components/advisor/dashboard/AdvisorRightPanel.vue'
@@ -77,14 +77,14 @@ onMounted(async () => {
 
 <template>
   <section class="dashboard">
-    <AdvisorDashboardHeader
+    <AdminDashboardHeader
       eyebrow="Dashboard"
       title="Panel del Asesor"
       :show-add="true"
       add-label="Nueva propiedad"
       :profile-name="auth.userEmail?.split('@')?.[0] || 'Asesor'"
       :profile-email="auth.userEmail || ''"
-      @add="router.push('/crear-propiedad')"
+      @add="router.push('/advisor/publicar')"
     />
 
     <div v-if="loadingDashboard" class="state">Cargando resumen...</div>

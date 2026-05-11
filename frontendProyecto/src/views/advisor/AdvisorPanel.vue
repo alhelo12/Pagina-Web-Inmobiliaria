@@ -175,7 +175,7 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       add-label="Agregar propiedad"
       :profile-name="auth.userEmail?.split('@')?.[0] || 'Asesor'"
       :profile-email="auth.userEmail || ''"
-      @add="router.push('/crear-propiedad')"
+      @add="router.push('/advisor/publicar')"
       @export="exportCsv"
     />
 
@@ -350,7 +350,7 @@ th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; lett
 .property-count { display: inline-block; padding: 6px 12px; border-radius: 20px; background: #f7efe0; color: var(--color-navy-2); font-size: 12px; font-weight: 700; }
 
 .pagination { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--color-line); flex-wrap: wrap; }
-.pagination button { padding: 6px 11px; border-radius: 7px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid rgba(7, 23, 45, .14); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
+.pagination button { padding: 6px 11px; border-radius: 999px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid rgba(7, 23, 45, .14); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
 .pagination button:hover:not(:disabled) { border-color: var(--color-navy); color: var(--color-navy); }
 .pagination button.active { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
 .pagination button:disabled { opacity: .4; cursor: not-allowed; }
