@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api/auth'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 
@@ -53,7 +54,7 @@ const submit = async () => {
 
       <!-- ÉXITO -->
       <div v-if="success" class="alert-success">
-        ✅ Cuenta creada correctamente. Redirigiendo al login...
+        <AppIcon name="check-circle" :size="20" /> Cuenta creada correctamente. Redirigiendo al login...
       </div>
 
       <template v-else>

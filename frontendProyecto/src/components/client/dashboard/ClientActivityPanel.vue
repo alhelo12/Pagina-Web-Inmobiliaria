@@ -3,17 +3,18 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 const store = useNotificationsStore()
 const { notifications, loading } = storeToRefs(store)
 
 const typeIcons = {
-  advisor_assigned: { icon: '👤', color: '#d6a848', label: 'Asesor asignado' },
-  approved: { icon: '✅', color: '#22c55e', label: 'Aprobada' },
-  rejected: { icon: '❌', color: '#dc2626', label: 'Rechazada' },
-  sold: { icon: '🏠', color: '#7c3aed', label: 'Vendida' },
-  property_updated: { icon: '✏️', color: '#3b82f6', label: 'Actualizada' }
+  advisor_assigned: { icon: 'user', color: '#d6a848', label: 'Asesor asignado' },
+  approved: { icon: 'check', color: '#22c55e', label: 'Aprobada' },
+  rejected: { icon: 'x-circle', color: '#dc2626', label: 'Rechazada' },
+  sold: { icon: 'home', color: '#7c3aed', label: 'Vendida' },
+  property_updated: { icon: 'pencil', color: '#3b82f6', label: 'Actualizada' }
 }
 
 const formatRelativeTime = (timestamp) => {
@@ -56,7 +57,7 @@ onMounted(() => {
     <div v-if="loading" class="loading">Cargando...</div>
 
     <div v-else-if="!notifications.length" class="empty">
-      <span class="empty-icon">🔔</span>
+      <span class="empty-icon"><AppIcon name="bell" :size="32" /></span>
       <p>No tienes actividad reciente</p>
       <small>Las notificaciones sobre tus propiedades aparecerán aquí</small>
     </div>
@@ -72,7 +73,7 @@ onMounted(() => {
           class="type-icon"
           :style="{ backgroundColor: typeIcons[notification.type]?.color + '20', color: typeIcons[notification.type]?.color }"
         >
-          {{ typeIcons[notification.type]?.icon || '📢' }}
+          <AppIcon :name="typeIcons[notification.type]?.icon || 'megaphone'" :size="18" />
         </div>
         <div class="activity-content">
           <div class="activity-header">
@@ -133,7 +134,7 @@ onMounted(() => {
 }
 
 .empty { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.empty-icon { font-size: 32px; }
+.empty-icon { color: var(--color-gold); }
 .empty p { margin: 0; color: var(--color-navy); font-weight: 600; }
 .empty small { font-size: 12px; }
 
