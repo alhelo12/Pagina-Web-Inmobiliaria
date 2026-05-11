@@ -97,7 +97,7 @@ onUnmounted(() => {
               <div v-if="dropdownOpen" class="dropdown">
                 <button type="button" @click="goDashboard">Dashboard</button>
                 <button v-if="auth.role === 'client'" type="button" @click="() => { router.push('/favoritos'); closeAll() }">Mis favoritos</button>
-                <button type="button" @click="logout">Cerrar sesion</button>
+                <button type="button" @click="logout">Cerrar sesión</button>
               </div>
             </transition>
           </div>
@@ -109,7 +109,7 @@ onUnmounted(() => {
           class="btn-login"
           @click="closeAll"
         >
-          Iniciar sesion
+          Iniciar sesión
         </RouterLink>
       </nav>
     </div>

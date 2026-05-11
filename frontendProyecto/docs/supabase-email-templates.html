@@ -1,0 +1,33 @@
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plantillas de Correo Supabase - JAKEDA</title>
+  </head>
+  <body style="margin:0;padding:24px;background:#f5f2ec;font-family:Poppins,Arial,sans-serif;color:#07182C;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;margin:0 auto;background:#fff;border:1px solid #e7dfd0;border-radius:16px;padding:28px;">
+      <tr><td>
+        <h1 style="margin:0 0 10px 0;font-size:36px;line-height:1.05;color:#07182C;">Confirma tu cuenta</h1>
+        <p style="margin:0 0 14px 0;color:#4f6074;font-size:18px;">Gracias por registrarte en JAKEDA. Haz clic para verificar tu correo.</p>
+        <p style="margin:16px 0 0 0;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#D8A54D;color:#07182C;text-decoration:none;font-weight:700;font-size:18px;padding:12px 22px;border-radius:10px;">
+            Confirmar mi correo
+          </a>
+        </p>
+      </td></tr>
+    </table>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;margin:20px auto 0;background:#fff;border:1px solid #e7dfd0;border-radius:16px;padding:28px;">
+      <tr><td>
+        <h1 style="margin:0 0 10px 0;font-size:36px;line-height:1.05;color:#07182C;">Restablecer contraseña</h1>
+        <p style="margin:0 0 14px 0;color:#4f6074;font-size:18px;">Solicitaste cambiar tu contraseña. Usa este enlace para crear una nueva.</p>
+        <p style="margin:16px 0 0 0;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#D8A54D;color:#07182C;text-decoration:none;font-weight:700;font-size:18px;padding:12px 22px;border-radius:10px;">
+            Actualizar contraseña
+          </a>
+        </p>
+      </td></tr>
+    </table>
+  </body>
+</html>

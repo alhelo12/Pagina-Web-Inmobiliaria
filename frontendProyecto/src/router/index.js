@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 import HomeView           from '../views/HomeView.vue'
 import RegisterView       from '../views/RegisterView.vue'
 import LoginView          from '../views/LoginView.vue'
@@ -7,12 +7,11 @@ import PropertyDetailView from '../views/PropertyDetailView.vue'
 import NosotrosView       from '../views/client/NosotrosView.vue'
 import ContactosView      from '../views/client/ContactosView.vue'
 import ServicesView       from '../views/client/ServicesView.vue'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-
-    // ── RUTAS PÚBLICAS ───────────────────────────────────────────────────────
     { path: '/',            name: 'home',            component: HomeView },
     { path: '/propiedades', name: 'properties',      component: PropertiesView },
     { path: '/propiedades/:id', name: 'property-detail', component: PropertyDetailView },
@@ -21,8 +20,10 @@ const router = createRouter({
     { path: '/servicios',   name: 'servicios',       component: ServicesView },
     { path: '/login',       name: 'login',           component: LoginView },
     { path: '/registro',    name: 'register',        component: RegisterView },
+    { path: '/verificado', component: () => import('@/views/VerificadoView.vue') },
+    { path: '/recuperar-contrasena', component: () => import('@/views/RecuperarContrasenaView.vue') },
+    { path: '/nueva-contrasena', component: () => import('@/views/NuevaContrasenaView.vue') },
 
-    // ── RUTAS DE CLIENTE ─────────────────────────────────────────────────────
     {
       path: '/cliente',
       component: () => import('@/views/client/ClientLayout.vue'),
@@ -51,8 +52,6 @@ const router = createRouter({
       component: () => import('@/views/client/FavoritesView.vue'),
       meta: { requiresAuth: true, role: 'client' }
     },
-
-    // ── RUTAS DE ASESOR ──────────────────────────────────────────────────────
     {
       path: '/advisor',
       component: () => import('@/views/advisor/AdvisorLayout.vue'),
@@ -69,8 +68,6 @@ const router = createRouter({
         { path: 'publicar', component: () => import('@/views/client/CreatePropertyView.vue') }
       ]
     },
-
-    // ── RUTAS DE ADMIN ───────────────────────────────────────────────────────
     {
       path: '/admin',
       component: () => import('@/views/admin/AdminLayout.vue'),
@@ -87,30 +84,17 @@ const router = createRouter({
   ]
 })
 
-// ── GUARD DE NAVEGACIÓN ──────────────────────────────────────────────────────
-import { useAuthStore } from '@/stores/authStore'
-
-function isTokenExpired(token) {
-  try {
-    const base64  = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    const { exp } = JSON.parse(atob(base64))
-    return exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
-
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
-  if (to.meta.requiresAuth) {
-    if (!auth.isLogged || !auth.token || isTokenExpired(auth.token)) {
-      auth.logout()
-      return next('/login')
-    }
+  if (!auth.isLogged) {
+    await auth.loadSession()
   }
 
-  // Verifica que el rol coincida (acepta string o array de roles)
+  if (to.meta.requiresAuth && !auth.isLogged) {
+    return next('/login')
+  }
+
   if (to.meta.role) {
     const allowed = Array.isArray(to.meta.role) ? to.meta.role : [to.meta.role]
     if (!allowed.includes(auth.role)) {
@@ -122,3 +106,4 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
+
