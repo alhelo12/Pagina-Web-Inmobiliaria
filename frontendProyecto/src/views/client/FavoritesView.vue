@@ -20,9 +20,6 @@ onMounted(() => favStore.fetchFavorites())
       <nav>
         <RouterLink to="/">Inicio</RouterLink>
         <RouterLink to="/favoritos">Favoritos</RouterLink>
-        <RouterLink to="/propiedades">Explorar</RouterLink>
-        <RouterLink to="/crear-propiedad">Publicar</RouterLink>
-        <RouterLink to="/contacto">Configuracion</RouterLink>
       </nav>
     </aside>
 
@@ -146,7 +143,7 @@ nav a:hover {
   color: white;
   background:
     linear-gradient(90deg, rgba(7,23,45,.96), rgba(16,46,79,.7)),
-    url('@/assets/images/fondo.webp') center/cover;
+    url('@/assets/images/fondo2.jpg') center/cover;
   box-shadow: var(--shadow-strong);
   margin-bottom: 24px;
 }
