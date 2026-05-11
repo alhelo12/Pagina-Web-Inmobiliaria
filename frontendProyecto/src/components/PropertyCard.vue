@@ -9,7 +9,27 @@ const props = defineProps({
   price: [Number, String],
   city: String,
   type: String,
-  image: String
+  image: String,
+  transactionType: {
+    type: String,
+    default: ''
+  },
+  bedrooms: {
+    type: [Number, String],
+    default: 0
+  },
+  bathrooms: {
+    type: [Number, String],
+    default: 0
+  },
+  squareMeters: {
+    type: [Number, String],
+    default: 0
+  },
+  showCta: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const auth = useAuthStore()
@@ -20,6 +40,11 @@ const typeLabel = {
   apartment: 'Departamento',
   land: 'Terreno',
   commercial: 'Comercial'
+}
+
+const operationLabel = {
+  sale: 'Venta',
+  rent: 'Renta'
 }
 
 const toggle = async (e) => {
@@ -40,7 +65,7 @@ const handleImageError = (event) => {
   <article class="card">
     <div class="media">
       <img :src="image || FALLBACK_PROPERTY_IMAGE" :alt="title" loading="lazy" @error="handleImageError" />
-      <span class="type-pill">{{ typeLabel[type] ?? type }}</span>
+      <span class="type-pill">{{ operationLabel[transactionType] ?? (typeLabel[type] ?? type) }}</span>
       <button
         class="fav-btn"
         :class="{ active: favStore.isFavorite(id) }"
@@ -54,10 +79,14 @@ const handleImageError = (event) => {
       <p class="city">{{ city }}</p>
       <h3>{{ title }}</h3>
       <div class="meta">
-        <span>Verificada</span>
-        <span>Asesor disponible</span>
+        <span>{{ Number(squareMeters || 0) }} m²</span>
+        <span>{{ Number(bedrooms || 0) }} Hab.</span>
+        <span>{{ Number(bathrooms || 0) }} Baños</span>
       </div>
-      <strong>${{ Number(price).toLocaleString('es-MX') }} MXN</strong>
+      <div class="bottom-row">
+        <strong>${{ Number(price).toLocaleString('es-MX') }} MXN</strong>
+        <span v-if="showCta" class="cta">Ver propiedad</span>
+      </div>
     </div>
   </article>
 </template>
@@ -179,5 +208,18 @@ const handleImageError = (event) => {
   display: block;
   color: #07172d;
   font-size: 21px;
+}
+
+.bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.cta {
+  color: #d6a848;
+  font-size: 13px;
+  font-weight: 800;
 }
 </style>
