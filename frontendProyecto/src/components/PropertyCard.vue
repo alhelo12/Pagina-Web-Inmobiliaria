@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { FALLBACK_PROPERTY_IMAGE } from '@/utils/propertyImages'
@@ -26,6 +27,10 @@ const props = defineProps({
     type: [Number, String],
     default: 0
   },
+  images: {
+    type: Array,
+    default: () => []
+  },
   showCta: {
     type: Boolean,
     default: false
@@ -47,6 +52,14 @@ const operationLabel = {
   rent: 'Renta'
 }
 
+const extrasLabels = computed(() => {
+  if (!props.images || !props.images.length) return []
+  return props.images
+    .filter(img => img.is_extra && img.label)
+    .map(img => img.label)
+    .slice(0, 3)
+})
+
 const toggle = async (e) => {
   e.preventDefault()
   e.stopPropagation()
@@ -65,14 +78,22 @@ const handleImageError = (event) => {
   <article class="card">
     <div class="media">
       <img :src="image || FALLBACK_PROPERTY_IMAGE" :alt="title" loading="lazy" @error="handleImageError" />
-      <span class="type-pill">{{ operationLabel[transactionType] ?? (typeLabel[type] ?? type) }}</span>
+      <span class="type-pill type-gold">{{ typeLabel[type] }}</span>
+      <span class="type-pill type-blue">{{ operationLabel[transactionType] }}</span>
       <button
         class="fav-btn"
         :class="{ active: favStore.isFavorite(id) }"
-        aria-label="Guardar favorito"
-        :title="auth.isLogged ? 'Guardar favorito' : 'Inicia sesion para guardar favoritos'"
+        :aria-label="favStore.isFavorite(id) ? 'Quitar de favoritos' : 'Guardar favorito'"
+        :title="auth.isLogged ? (favStore.isFavorite(id) ? 'Quitar de favoritos' : 'Guardar favorito') : 'Inicia sesión para guardar favoritos'"
         @click="toggle"
-      >♥</button>
+      >
+        <svg v-if="favStore.isFavorite(id)" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#d64545" stroke="#d64545" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
     </div>
 
     <div class="body">
@@ -82,6 +103,7 @@ const handleImageError = (event) => {
         <span>{{ Number(squareMeters || 0) }} m²</span>
         <span>{{ Number(bedrooms || 0) }} Hab.</span>
         <span>{{ Number(bathrooms || 0) }} Baños</span>
+        <span v-for="extra in extrasLabels" :key="extra" class="extra-tag">{{ extra }}</span>
       </div>
       <div class="bottom-row">
         <strong>${{ Number(price).toLocaleString('es-MX') }} MXN</strong>
@@ -139,32 +161,67 @@ const handleImageError = (event) => {
 }
 
 .type-pill {
-  left: 14px;
-  top: 14px;
+  position: absolute;
+  z-index: 1;
   padding: 7px 12px;
   border-radius: 999px;
-  background: #d6a848;
-  color: #07172d;
   font-size: 12px;
   font-weight: 900;
+}
+
+.type-gold {
+  left: 14px;
+  top: 14px;
+  background: #d6a848;
+  color: #07172d;
+}
+
+.type-blue {
+  left: 90px;
+  top: 14px;
+  background: #0a355e;
+  color: #fff;
 }
 
 .fav-btn {
   right: 14px;
   top: 14px;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(255,255,255,.92);
-  color: #87909b;
-  font-size: 18px;
-  box-shadow: 0 10px 22px rgba(7,23,45,.18);
-  transition: transform .2s ease, color .2s ease;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(7, 23, 45, 0.15);
+  transition: transform .25s ease, background .2s ease, box-shadow .2s ease;
+  z-index: 2;
+  color: #c4c4c4;
+}
+
+.fav-btn:hover {
+  transform: scale(1.12);
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(7, 23, 45, 0.25);
 }
 
 .fav-btn.active {
-  color: #d64545;
+  background: #fff;
   transform: scale(1.08);
+  animation: heartPop .35s ease;
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1.08); }
+}
+
+.fav-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .body {
@@ -202,6 +259,11 @@ const handleImageError = (event) => {
   color: #40566e;
   font-size: 12px;
   font-weight: 700;
+}
+
+.extra-tag {
+  background: linear-gradient(135deg, #0a355e 0%, #11497d 100%) !important;
+  color: #fff !important;
 }
 
 .body strong {
