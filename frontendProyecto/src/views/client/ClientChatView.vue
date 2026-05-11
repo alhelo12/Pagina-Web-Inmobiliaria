@@ -69,7 +69,6 @@ const sendMessage = async () => {
       headers: { ...auth.authHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         conversation_id: selectedConversation.value.id,
-        sender_id: auth.userId,
         content: newMessage.value.trim()
       })
     })
@@ -208,7 +207,7 @@ onUnmounted(() => {
 .conversations-list h3 { font-size: 14px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }
 .conversation-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; transition: .2s; }
 .conversation-item:hover, .conversation-item.active { background: rgba(214, 168, 72, .1); }
-.conv-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+.conv-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
 .conv-info { display: flex; flex-direction: column; overflow: hidden; }
 .conv-name { font-weight: 600; color: var(--color-navy); }
 .conv-preview { font-size: 13px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

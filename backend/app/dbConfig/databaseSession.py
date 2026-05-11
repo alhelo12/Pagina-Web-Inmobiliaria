@@ -1,51 +1,49 @@
-from sqlalchemy import create_engine, pool, event
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
-import logging
-from app.dbConfig.baseModels import Base
-from app.core.config import settings
 
 load_dotenv()
 
-# Configurar logging para el pool
-logging.basicConfig()
-logging.getLogger('sqlalchemy.pool').setLevel(logging.INFO)
+from sqlalchemy import create_engine, pool, event
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import logging
+from app.dbConfig.baseModels import Base
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
-# ==========================================
-# CONFIGURACIÓN OPTIMIZADA DE POOLING
-# ==========================================
+DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
+DB_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+DB_POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "1800"))
+DB_POOL_PRE_PING = os.getenv("DB_POOL_PRE_PING", "true").lower() == "true"
+DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 
 if ENVIRONMENT == "production":
     engine = create_engine(
         DATABASE_URL,
         poolclass=pool.QueuePool,
-        pool_size=20,                                   # Conexiones permanentes
-        max_overflow=30,                                # Conexiones adicionales
-        pool_recycle=settings.DB_POOL_RECYCLE,          # Reciclar cada 30 min
-        pool_pre_ping=settings.DB_POOL_PRE_PING,        # Verificar antes de usar
-        pool_timeout=30,                                # Timeout al esperar conexión
-        echo=settings.DB_ECHO,                          # Sin debug SQL
-        echo_pool=False,                                # Sin debug pool
+        pool_size=DB_POOL_SIZE,
+        max_overflow=DB_MAX_OVERFLOW,
+        pool_recycle=DB_POOL_RECYCLE,
+        pool_pre_ping=DB_POOL_PRE_PING,
+        pool_timeout=30,
+        echo=DB_ECHO,
+        echo_pool=False,
         connect_args={
             "connect_timeout": 10,
             "application_name": "inmobiliaria_api_prod"
         }
     )
-else:  # development
+else:
     engine = create_engine(
         DATABASE_URL,
         poolclass=pool.QueuePool,
-        pool_size=settings.DB_POOL_SIZE,                # Menos conexiones en dev
-        max_overflow=settings.DB_MAX_OVERFLOW,
-        pool_recycle=settings.DB_POOL_RECYCLE,
-        pool_pre_ping=settings.DB_POOL_PRE_PING,
+        pool_size=DB_POOL_SIZE,
+        max_overflow=DB_MAX_OVERFLOW,
+        pool_recycle=DB_POOL_RECYCLE,
+        pool_pre_ping=DB_POOL_PRE_PING,
         pool_timeout=30,
-        echo=True,  # Mantener echo en desarrollo       # Ver queries en desarrollo
+        echo=True,
         echo_pool=False,
         connect_args={
             "connect_timeout": 10,

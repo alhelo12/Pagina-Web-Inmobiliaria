@@ -154,27 +154,26 @@ def send_message(
         content=content
     )
     db.add(message)
+    db.commit()
+    db.refresh(message)
 
     conversation = db.query(Conversation).filter(
         Conversation.id == conversation_id
     ).first()
     if conversation:
-        conversation.last_message_at = message.created_at.strftime("%Y-%m-%dT%H:%M:%S")
+        conversation.last_message_at = message.created_at
 
     db.commit()
-    db.refresh(message)
 
     # Notificar al receptor del mensaje
     try:
         if conversation:
-            recipient_id = (
-                conversation.user_id
-                if conversation.user_id != sender_id
-                else None
-            )
+            sender = db.query(User).filter(User.id == sender_id).first()
+            sender_name = sender.full_name if sender else "Un usuario"
+            # Find recipient: if sender is the user, recipient is advisor; if sender is advisor, recipient is user
+            sender_is_user = conversation.user_id == sender_id
+            recipient_id = conversation.advisor_id if sender_is_user else conversation.user_id
             if recipient_id:
-                sender = db.query(User).filter(User.id == sender_id).first()
-                sender_name = sender.full_name if sender else "Un usuario"
                 notificationService.create_notification(
                     db=db,
                     user_id=recipient_id,

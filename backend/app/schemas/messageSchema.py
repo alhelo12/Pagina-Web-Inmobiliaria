@@ -37,7 +37,7 @@ class ConversationResponse(BaseModel):
     id: int
     user_id: int
     advisor_id: int
-    last_message_at: Optional[str] = None
+    last_message_at: Optional[datetime] = None
     last_message: Optional[str] = None
     unread_count: int = 0
     created_at: datetime

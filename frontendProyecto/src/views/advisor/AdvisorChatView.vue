@@ -61,7 +61,6 @@ const sendMessage = async () => {
       headers: { ...auth.authHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         conversation_id: selectedConversation.value.id,
-        sender_id: auth.userId,
         content: newMessage.value.trim()
       })
     })

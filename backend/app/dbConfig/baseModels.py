@@ -104,35 +104,12 @@ class BaseModel(Base):
 # ==========================================
 # IMPORTAR TODOS LOS MODELOS AQUÍ
 # ==========================================
-from app.models.roleModel import Role
-from app.models.userModel import User
-from app.models.advisorModel import Advisor
-from app.models.propertyModel import Property
-from app.models.propertyImageModel import PropertyImage
-from app.models.appointmentModel import Appointment
-from app.models.favoriteModel import Favorite
-from app.models.notificationModel import Notification
-from app.models.messageModel import Conversation, Message
-
-# ==========================================
-# EXPORTAR PARA ALEMBIC Y OTROS MÓDULOS
-# ==========================================
-# Esta lista ayuda a:
-# - Alembic encontrar todos los modelos para migraciones
-# - Otros módulos importar fácilmente: from baseModels import *
+# NOTA: Esta importacion esta comentada para evitar imports circulares.
+# Los modelos se importan individualmente desde roleModel, userModel, etc.
+# que heredan de BaseModel sin necesidad de importar desde este archivo.
 # ==========================================
 
 __all__ = [
     'Base',
     'BaseModel',
-    'Role',
-    'User',
-    'Advisor',
-    'Property',
-    'PropertyImage',
-    'Appointment',
-    'Favorite',
-    'Notification',
-    'Conversation',
-    'Message',
 ]
