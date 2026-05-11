@@ -92,7 +92,7 @@ def get_my_appointments(
         total=total,
         page=(skip // limit) + 1,
         per_page=limit,
-        items=appointments
+        appointments=appointments
     )
 
 
@@ -242,7 +242,7 @@ def get_advisor_appointments(
         total=total,
         page=(skip // limit) + 1,
         per_page=limit,
-        items=appointments
+        appointments=appointments
     )
 
 
