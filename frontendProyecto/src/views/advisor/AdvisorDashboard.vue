@@ -114,7 +114,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.dashboard { display: grid; gap: 16px; }
+.dashboard { display: grid; gap: 16px; max-width: 1400px; width: 100%; }
 .middle-grid { display: grid; gap: 14px; grid-template-columns: 2fr 1fr; }
 .overview-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
 .state { padding: 18px; color: var(--color-muted); background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; }
@@ -124,6 +124,7 @@ onMounted(async () => {
   .overview-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 700px) {
+  .middle-grid,
   .overview-grid { grid-template-columns: 1fr; }
 }
 </style>

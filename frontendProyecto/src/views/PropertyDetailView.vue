@@ -280,7 +280,7 @@ const txLabel   = { sale: 'En Venta', rent: 'En Renta' }
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 
 * { box-sizing: border-box; }
 
@@ -469,6 +469,8 @@ const txLabel   = { sale: 'En Venta', rent: 'En Renta' }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 28px;
 }
 
@@ -651,8 +653,16 @@ const txLabel   = { sale: 'En Venta', rent: 'En Renta' }
 
 @media (max-width: 480px) {
   .carousel-main { height: 260px; }
+  .carousel-title-box { left: 16px; right: 16px; bottom: 16px; }
+  .carousel-title-box h1 { font-size: 18px; }
   .thumb-btn { width: 80px; height: 54px; }
-  .price { font-size: 26px; }
+  .price { font-size: 22px; }
+  .price span { font-size: 14px; }
+  .content-grid { padding: 20px 14px 36px; }
+  .feat-card { min-width: 100%; }
+  .contact-card { padding: 20px 16px; }
+  .btn-primary { font-size: 14px; padding: 12px; }
+  .btn-fav { width: 100%; justify-content: center; }
 }
 
 /* ── ZOOM HINT ── */

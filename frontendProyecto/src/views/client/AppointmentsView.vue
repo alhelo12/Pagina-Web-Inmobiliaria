@@ -615,9 +615,22 @@ onUnmounted(() => {
 .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .verify-sent { margin-top: 12px !important; color: #065f46 !important; font-weight: 600; }
 
+@media (max-width: 768px) {
+  .verify-card { padding: 40px 24px; }
+}
 @media (max-width: 600px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+  .form-grid { grid-template-columns: 1fr; }
+  .appointment-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .appointment-header { padding: 14px 16px 10px; }
+  .appointment-body { padding: 0 16px 14px; }
+  .appointment-actions { padding: 0 16px 14px; }
+  .btn-add { width: 100%; }
+  .header-actions { justify-content: stretch; }
+  .form-actions { flex-direction: column; }
+  .btn-save { width: 100%; }
+}
+@media (max-width: 480px) {
+  .verify-card { padding: 32px 16px; }
+  .verify-card h2 { font-size: 18px; }
 }
 </style>

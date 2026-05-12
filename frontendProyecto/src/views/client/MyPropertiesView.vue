@@ -350,6 +350,30 @@ onUnmounted(() => {
         </table>
       </div>
 
+      <!-- Mobile cards -->
+      <div class="mobile-cards">
+        <div v-for="p in filtered" :key="p.id" class="mobile-card">
+          <div class="mc-header">
+            <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
+            <div class="mc-title-group">
+              <strong class="mc-title">{{ p.title }}</strong>
+              <small class="mc-date">{{ formatRegisteredAt(p.created_at) }}</small>
+            </div>
+            <span :class="['badge', statusMap[p.status]?.cls]">{{ statusMap[p.status]?.label ?? p.status }}</span>
+          </div>
+          <div class="mc-body">
+            <span><strong>Ciudad:</strong> {{ p.city }}</span>
+            <span><strong>Precio:</strong> ${{ Number(p.price).toLocaleString('es-MX') }}</span>
+            <span class="advisor-cell"><strong>Asesor:</strong> {{ getAdvisorName(p) }}</span>
+          </div>
+          <div class="mc-actions">
+            <button class="view" @click="handleView(p.id)">Ver</button>
+            <button class="edit" @click="handleEdit(p.id)">Editar</button>
+            <button class="delete" :disabled="actionLoading" @click="openConfirm('remove', p)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
       <div class="pagination">
         <button :disabled="page <= 1" @click="goToPage(page - 1)">Anterior</button>
         <template v-for="p in totalPages" :key="p">
@@ -562,9 +586,31 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .verify-toast-btn { border: none; border-radius: 8px; padding: 8px 16px; background: var(--color-gold); color: var(--color-navy); font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .verify-toast-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+.mobile-cards { display: none; }
+.mobile-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; padding: 14px; }
+.mc-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.mc-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #f0ece4; flex-shrink: 0; }
+.mc-title-group { flex: 1; min-width: 0; }
+.mc-title { display: block; color: var(--color-navy); font-size: 14px; }
+.mc-date { display: block; color: var(--color-muted); font-size: 11px; margin-top: 2px; }
+.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
+.mc-body span strong { color: var(--color-muted); font-weight: 600; }
+.mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mc-actions button { border: none; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
 @media (max-width: 768px) {
-  .filters { overflow-x: auto; flex-wrap: nowrap; }
-  .filters button { flex: 0 0 auto; }
+  .table-wrap { display: none; }
+  .mobile-cards { display: flex; flex-direction: column; gap: 12px; }
+  .filters { flex-wrap: wrap; }
+  .filters button { font-size: 12px; padding: 6px 10px; }
   .advisor-popover { min-width: 220px; }
+  .pagination-info { width: 100%; text-align: center; margin-left: 0; }
+}
+@media (max-width: 480px) {
+  .my-properties { gap: 12px; }
+  .table-card { padding: 12px; }
+  .pagination { justify-content: center; }
+  .verify-toast { left: 16px; right: 16px; transform: none; max-width: none; }
+  .verify-toast-content { flex-direction: column; text-align: center; }
 }
 </style>

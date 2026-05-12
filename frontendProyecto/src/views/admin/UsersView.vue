@@ -326,6 +326,30 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       </table>
     </div>
 
+    <!-- Mobile cards -->
+    <div class="mobile-cards">
+      <div v-for="u in filtered" :key="u.id" class="mobile-card">
+        <div class="mc-header">
+          <div class="mc-avatar">{{ u.full_name?.charAt(0) }}</div>
+          <div class="mc-title-group">
+            <strong class="mc-name">{{ u.full_name }}</strong>
+            <span class="mc-email">{{ u.email }}</span>
+            <small class="mc-phone">{{ u.phone ?? 'Sin teléfono' }}</small>
+          </div>
+          <span :class="['status', u.is_active ? 'on' : 'off']">{{ u.is_active ? 'Activo' : 'Inactivo' }}</span>
+        </div>
+        <div class="mc-body">
+          <span><strong>Rol:</strong> <span class="role-badge">{{ roleLabel[u.role?.name] ?? u.role?.name }}</span></span>
+          <span><strong>Creación:</strong> {{ formatDate(u.created_at) }}</span>
+        </div>
+        <div class="mc-actions">
+          <button class="edit" :disabled="actionLoading" @click="openModal(u)">Editar</button>
+          <button class="toggle" :disabled="actionLoading === `toggle-${u.id}`" @click="openConfirm('toggle', u)">{{ u.is_active ? 'Desactivar' : 'Activar' }}</button>
+          <button class="delete" :disabled="actionLoading === `delete-${u.id}`" @click="openConfirm('delete', u)">Eliminar</button>
+        </div>
+      </div>
+    </div>
+
     <div class="pagination">
       <button :disabled="page <= 1" @click="goToPage(page - 1)">Anterior</button>
       <template v-for="p in totalPages" :key="p">
@@ -475,4 +499,35 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .btn-confirm { padding: 0 18px; min-height: 44px; border-radius: 8px; font-weight: 900; cursor: pointer; border: none; }
 .btn-confirm.remove { background: #07172d; color: #fff; }
 .btn-confirm.toggle { background: #eef4fb; color: #102e4f; }
+
+.mobile-cards { display: none; }
+.mobile-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; padding: 14px; }
+.mc-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.mc-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--color-navy); color: var(--color-gold); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+.mc-title-group { flex: 1; min-width: 0; }
+.mc-name { display: block; color: var(--color-navy); font-size: 14px; }
+.mc-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; word-break: break-all; }
+.mc-phone { display: block; color: var(--color-muted); font-size: 11px; }
+.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
+.mc-body span strong { color: var(--color-muted); font-weight: 600; }
+.mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mc-actions button { border: none; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+@media (max-width: 900px) {
+  td { max-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+@media (max-width: 768px) {
+  .table-container { display: none; }
+  .mobile-cards { display: flex; flex-direction: column; gap: 12px; }
+}
+@media (max-width: 640px) {
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 12px; }
+  .filters-group { flex-wrap: wrap; }
+  .filters button { font-size: 12px; padding: 7px 10px; }
+  .pagination-info { width: 100%; text-align: center; margin-left: 0; }
+  .modal { padding: 24px 20px; }
+  .modal h2 { font-size: 20px; }
+  .modal-actions { flex-direction: column; }
+  .btn-cancel, .btn-confirm, .btn-save { width: 100%; justify-content: center; }
+}
 </style>

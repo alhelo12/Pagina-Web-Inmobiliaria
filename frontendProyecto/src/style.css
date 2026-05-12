@@ -60,3 +60,58 @@ img {
   max-width: 100%;
   display: block;
 }
+
+/* UTILIDADES RESPONSIVE GLOBALES */
+.container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
+@media (max-width: 900px) {
+  .container { padding: 0 18px; }
+}
+@media (max-width: 480px) {
+  .container { padding: 0 14px; }
+}
+
+.responsive-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+}
+@media (min-width: 769px) {
+  .hide-desktop { display: none !important; }
+}
+
+.text-responsive {
+  font-size: clamp(14px, 2.5vw, 16px);
+}
+
+h1.responsive {
+  font-size: clamp(24px, 5vw, 42px);
+}
+
+h2.responsive {
+  font-size: clamp(20px, 3.5vw, 32px);
+}
+
+/* Scroll horizontal suave */
+.smooth-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* Breakpoints estándar:
+   - 480px:  móvil pequeño
+   - 768px:  móvil/tablet
+   - 900px:  tablet
+   - 1024px: tablet/desktop pequeño
+   - 1200px: desktop
+*/

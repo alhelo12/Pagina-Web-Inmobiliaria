@@ -94,7 +94,6 @@ const submit = async () => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 * { box-sizing: border-box; }
 .login-page { min-height: 100vh; display: flex; font-family: 'Poppins', sans-serif; background: #f5f2ec; }
 .login-right { width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 24px; background: linear-gradient(to bottom, rgba(5, 15, 35, 0.62) 0%, rgba(7, 23, 45, 0.55) 60%, rgba(5, 15, 35, 0.72) 100%), url('@/assets/images/fondo2.jpg') center center / cover no-repeat; }
@@ -126,7 +125,16 @@ const submit = async () => {
 .register-text { font-size: 13.5px; color: #65717e; text-align: center; margin: 0 0 12px; }
 .register-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background: #07172d; color: white; border-radius: 9px; font-size: 14px; font-weight: 500; text-decoration: none; }
 .register-btn:hover { background: #051525; }
-@media (max-width: 768px) { .login-card { padding: 36px 28px; } }
-@media (max-width: 480px) { .login-right { padding: 24px 16px; } .login-card { padding: 28px 20px; } }
+@media (max-width: 768px) { .login-card { padding: 36px 28px; } .card-header h1 { font-size: 26px; } }
+@media (max-width: 480px) {
+  .login-right { padding: 16px 12px; }
+  .login-card { padding: 24px 16px; }
+  .card-header h1 { font-size: 22px; }
+  .card-header { margin-bottom: 24px; }
+  .field { margin-bottom: 14px; }
+  .input-wrapper input { padding: 10px 12px 10px 36px; font-size: 13px; }
+  .login-btn { padding: 11px; font-size: 14px; }
+  .divider { margin: 20px 0 16px; }
+}
 </style>
 

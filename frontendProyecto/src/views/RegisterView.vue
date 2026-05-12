@@ -79,5 +79,18 @@ button:hover { background: #b8892e; }
 button:disabled { opacity: .6; cursor: not-allowed; }
 .login-link { margin-top: 18px; text-align: center; font-size: 14px; }
 .login-link a { color: #D8A54D; font-weight: 600; }
+
+@media (max-width: 768px) {
+  .card { padding: 24px 20px; }
+  .card h2 { font-size: 24px; }
+  .subtitle { font-size: 13px; }
+}
+@media (max-width: 480px) {
+  .register { min-height: 85vh; padding: 20px 16px; }
+  .card { padding: 20px 16px; }
+  .card h2 { font-size: 22px; }
+  input { padding: 10px; font-size: 13px; }
+  button { padding: 11px; }
+}
 </style>
 

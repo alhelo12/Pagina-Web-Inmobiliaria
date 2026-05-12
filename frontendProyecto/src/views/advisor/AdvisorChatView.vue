@@ -16,6 +16,7 @@ const newMessage = ref('')
 const loading = ref(true)
 const sending = ref(false)
 const polling = ref(null)
+const showConversations = ref(true)
 
 const fetchConversations = async () => {
   try {
@@ -50,9 +51,14 @@ const fetchMessages = async (conversationId) => {
 
 const selectConversation = async (conv) => {
   selectedConversation.value = conv
+  showConversations.value = false
   await messagesStore.markConversationRead(conv.id)
   fetchMessages(conv.id)
   startPolling()
+}
+
+const backToConversations = () => {
+  showConversations.value = true
 }
 
 const sendMessage = async () => {
@@ -150,7 +156,7 @@ onUnmounted(() => {
     <Breadcrumb :crumbs="[{ label: 'Mensajes', path: '/advisor/mensajes' }]" />
 
     <div class="chat-container">
-      <aside class="conversations-list">
+      <aside class="conversations-list" :class="{ 'mobile-show': showConversations }">
         <h3>Conversaciones</h3>
         
         <div v-if="loading" class="loading fancy-loading">
@@ -195,6 +201,9 @@ onUnmounted(() => {
         <template v-else>
           <header class="chat-header">
             <div class="chat-user">
+              <button class="back-btn" @click="backToConversations" title="Volver a conversaciones">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              </button>
               <div class="user-avatar">{{ getConversationName(selectedConversation).charAt(0) }}</div>
               <span>{{ getConversationName(selectedConversation) }}</span>
             </div>
@@ -254,6 +263,7 @@ onUnmounted(() => {
 .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--color-line); }
 .chat-user { display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--color-navy); }
 .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.back-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(7, 24, 44, 0.08); color: var(--color-navy); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 .messages-container {
   flex: 1;
@@ -309,8 +319,25 @@ onUnmounted(() => {
   100% { background-position: -200% 0; }
 }
 
+@media (max-width: 900px) {
+  .chat-container { height: 500px; }
+}
 @media (max-width: 768px) {
-  .chat-container { grid-template-columns: 1fr; }
+  .chat-container { grid-template-columns: 1fr; height: calc(100vh - 180px); min-height: 400px; }
   .conversations-list { display: none; }
+  .conversations-list.mobile-show { display: block; }
+  .chat-area { border-radius: 16px; }
+  .back-btn { display: flex; }
+  .message { max-width: 88%; }
+  .message-bubble { padding: 10px 14px; font-size: 13px; }
+  .chat-input { padding: 12px 16px; }
+  .chat-input input { padding: 10px 14px; font-size: 13px; }
+}
+@media (min-width: 769px) {
+  .back-btn { display: none; }
+}
+@media (max-width: 480px) {
+  .messages-container { padding: 12px; }
+  .chat-header { padding: 12px 16px; }
 }
 </style>

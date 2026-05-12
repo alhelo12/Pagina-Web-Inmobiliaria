@@ -434,9 +434,15 @@ const changePassword = async () => {
   cursor: not-allowed;
 }
 
+@media (max-width: 768px) {
+  .cards-grid { grid-template-columns: 1fr; }
+  .page-header h1 { font-size: 24px; }
+}
 @media (max-width: 480px) {
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
+  .profile-page { padding: 16px; }
+  .card { padding: 16px; }
+  .card-content h3 { font-size: 16px; }
+  .field input { padding: 10px 12px; font-size: 13px; }
+  .btn-save { width: 100%; }
 }
 </style>

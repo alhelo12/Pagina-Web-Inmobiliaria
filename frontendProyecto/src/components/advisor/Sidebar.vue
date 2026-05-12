@@ -180,6 +180,8 @@ nav { display: grid; gap: 6px; }
 @media (max-width: 900px) {
   .sidebar { position: static; width: 100%; height: auto; flex: none; }
   nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav-item { font-size: 13px; padding: 10px 12px; gap: 8px; }
+  .nav-badge { font-size: 9px; min-width: 16px; height: 16px; }
   .sidebar-card { display: none; }
 }
 </style>
