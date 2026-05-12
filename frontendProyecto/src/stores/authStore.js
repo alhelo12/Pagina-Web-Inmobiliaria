@@ -70,6 +70,16 @@ export const useAuthStore = defineStore('auth', {
         this.isSupabaseUser = true
         this.isEmailVerified = data.user.email_confirmed_at ? true : false
         await supabase.auth.signOut()
+      } else if (this.role === 'client' && !this.isSupabaseUser) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + '/verificado' }
+        })
+        if (!signUpError) {
+          this.isSupabaseUser = true
+          this.isEmailVerified = false
+        }
       }
       this.persistSession()
     },
