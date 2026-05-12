@@ -1,8 +1,26 @@
-﻿<template>
+﻿<script setup>
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+onMounted(() => {
+  if (auth.isLogged && auth.isSupabaseUser) {
+    auth.isEmailVerified = true
+    auth.persistSession()
+    setTimeout(() => router.push('/cliente/dashboard'), 2000)
+  }
+})
+</script>
+
+<template>
   <section class="state-wrap">
     <article class="state-card">
       <h1>Tu correo ha sido verificado.</h1>
-      <p>Ya puedes iniciar sesión.</p>
+      <p v-if="auth.isLogged">Redirigiendo a tu panel...</p>
+      <p v-else>Ya puedes iniciar sesión.</p>
       <RouterLink to="/login" class="state-btn">Ir a login</RouterLink>
     </article>
   </section>

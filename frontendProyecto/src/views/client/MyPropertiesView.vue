@@ -27,6 +27,28 @@ let toastTimeout = null
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
 const actionLoading = ref(false)
+const verifyToast = ref({ show: false })
+let verifyToastTimeout = null
+const sendingEmail = ref(false)
+const emailSent = ref(false)
+
+const needsEmailVerification = computed(() =>
+  auth.role === 'client' && auth.isSupabaseUser && !auth.isEmailVerified
+)
+
+const resendEmail = async () => {
+  sendingEmail.value = true
+  emailSent.value = false
+  try {
+    await auth.resendVerificationEmail(auth.userEmail)
+    emailSent.value = true
+    setTimeout(() => { emailSent.value = false }, 5000)
+  } catch {
+    // silent
+  } finally {
+    sendingEmail.value = false
+  }
+}
 
 const sortKey = ref('created_at')
 const sortDir = ref('desc')
@@ -146,6 +168,12 @@ watch(search, (val) => {
 })
 
 const openConfirm = (action, p) => {
+  if (action === 'remove' && needsEmailVerification.value) {
+    verifyToast.value = { show: true }
+    clearTimeout(verifyToastTimeout)
+    verifyToastTimeout = setTimeout(() => { verifyToast.value.show = false }, 5000)
+    return
+  }
   confirmModal.value = { show: true, action, propertyId: p.id, title: p.title }
 }
 
@@ -386,6 +414,15 @@ onUnmounted(() => {
       </div>
     </Teleport>
 
+    <div v-if="verifyToast.show" class="verify-toast">
+      <div class="verify-toast-content">
+        <strong>Debes verificar tu correo</strong> para eliminar propiedades.
+        <button class="verify-toast-btn" :disabled="sendingEmail" @click="resendEmail">
+          {{ sendingEmail ? '...' : emailSent ? '¡Enviado!' : 'Reenviar verificación' }}
+        </button>
+      </div>
+    </div>
+
     <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
@@ -519,6 +556,11 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .pagination .dots { color: var(--color-muted); font-size: 13px; padding: 0 2px; }
 .pagination-info { margin-left: auto; color: var(--color-muted); font-size: 13px; }
+
+.verify-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 24px; box-shadow: 0 16px 48px rgba(7,23,45,0.2); max-width: 480px; }
+.verify-toast-content { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #991b1b; flex-wrap: wrap; }
+.verify-toast-btn { border: none; border-radius: 8px; padding: 8px 16px; background: var(--color-gold); color: var(--color-navy); font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.verify-toast-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 @media (max-width: 768px) {
   .filters { overflow-x: auto; flex-wrap: nowrap; }

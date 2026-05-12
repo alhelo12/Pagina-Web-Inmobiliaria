@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, nextTick, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import L from 'leaflet'
 import { propertiesApi } from '@/api/properties'
 import { normalizeImageUrl } from '@/utils/propertyImages'
@@ -10,8 +11,29 @@ import AppIcon from '@/components/shared/AppIcon.vue'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 const propertyId = computed(() => route.params.id)
 const isEdit = computed(() => Boolean(propertyId.value))
+
+const needsEmailVerification = computed(() =>
+  auth.role === 'client' && auth.isSupabaseUser && !auth.isEmailVerified
+)
+
+const sendingEmail = ref(false)
+const emailSent = ref(false)
+
+const resendEmail = async () => {
+  sendingEmail.value = true
+  emailSent.value = false
+  try {
+    await auth.resendVerificationEmail(auth.userEmail)
+    emailSent.value = true
+  } catch {
+    // silent
+  } finally {
+    sendingEmail.value = false
+  }
+}
 
 const steps = [
   'Informacion',
@@ -630,6 +652,17 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
         Cargando propiedad...
       </div>
 
+      <div v-else-if="needsEmailVerification" class="verify-card">
+        <div class="verify-icon">✉</div>
+        <h2>Verifica tu correo electrónico</h2>
+        <p>Para publicar una propiedad, primero debes verificar tu correo <strong>{{ auth.userEmail }}</strong>.</p>
+        <p class="verify-hint">Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificación.</p>
+        <button class="verify-btn" :disabled="sendingEmail" @click="resendEmail">
+          {{ sendingEmail ? 'Enviando...' : emailSent ? '¡Enviado! Revisa tu correo' : 'Reenviar email de verificación' }}
+        </button>
+        <p v-if="emailSent" class="verify-sent">Email reenviado correctamente</p>
+      </div>
+
       <template v-else-if="!success">
 
         <div class="wizard-nav">
@@ -1032,6 +1065,16 @@ input::placeholder, textarea::placeholder { color: #b5ae9f; }
 .btn-next:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 .btn-publish { background: var(--gold); color: var(--navy); box-shadow: 0 4px 14px rgba(212,163,74,0.35); }
 .btn-publish:hover { background: var(--gold-light); }
+
+/* VERIFY GATE */
+.verify-card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 60px 40px; text-align: center; box-shadow: 0 4px 24px rgba(7,23,45,0.08); max-width: 480px; margin: 40px auto; }
+.verify-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: var(--navy); margin: 0 auto 20px; }
+.verify-card h2 { font-size: 22px; color: var(--navy); margin: 0 0 12px; }
+.verify-card p { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+.verify-hint { font-size: 13px; color: var(--muted); margin-bottom: 24px !important; }
+.verify-btn { padding: 12px 28px; border: none; border-radius: 10px; background: var(--gold); color: var(--navy); font-size: 14px; font-weight: 700; cursor: pointer; }
+.verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.verify-sent { margin-top: 12px !important; color: #065f46 !important; font-weight: 600; }
 
 /* SUCCESS */
 .success-card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 60px 40px; text-align: center; box-shadow: 0 4px 24px rgba(7,23,45,0.08); }

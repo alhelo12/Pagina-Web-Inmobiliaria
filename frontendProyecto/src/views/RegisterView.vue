@@ -26,7 +26,7 @@ const submit = async () => {
 
   loading.value = true
   try {
-    await auth.register(form.value.email, form.value.password)
+    await auth.register(form.value.email, form.value.password, form.value.full_name, form.value.phone)
     success.value = true
   } catch (err) {
     error.value = err?.message ?? 'Error al crear cuenta'
