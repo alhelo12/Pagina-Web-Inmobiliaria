@@ -395,9 +395,18 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .filters button { border: 1px solid rgba(7, 23, 45, .14); background: #fff; padding: 7px 12px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: .3s ease; cursor: pointer; }
 .filters button.active, .filters button:hover { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
-.table-wrap { overflow-x: auto; }
-table { width: 100%; min-width: 920px; border-collapse: collapse; }
-th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); }
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 46, 79, .35) transparent;
+}
+.table-wrap::-webkit-scrollbar { height: 8px; }
+.table-wrap::-webkit-scrollbar-thumb { background: rgba(16, 46, 79, .35); border-radius: 999px; }
+table { width: max(100%, 980px); border-collapse: collapse; table-layout: auto; }
+th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); white-space: nowrap; vertical-align: middle; }
 th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .08em; }
 .sortable { cursor: pointer; user-select: none; }
 .sortable:hover { color: var(--color-navy); }
@@ -406,16 +415,16 @@ th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; lett
 tr:hover { background: rgba(214, 168, 72, .05); }
 .td-thumb { width: 44px; padding-right: 8px; }
 .td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; }
-.td-title { color: var(--color-navy); font-weight: 700; }
+.td-title { color: var(--color-navy); font-weight: 700; min-width: 220px; white-space: normal; }
 .owner-name { display: block; color: var(--color-navy); font-weight: 700; }
-.owner-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
+.owner-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; white-space: normal; }
 .registered-at { color: var(--color-navy-2); font-weight: 600; white-space: nowrap; }
 .badge { padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .pendiente { background: #fff3ce; color: #8a5a00; }
 .aprobada { background: #dff7e9; color: #166534; }
 .rechazada { background: #fee2e2; color: #991b1b; }
 .vendida { background: #e8edf0; color: var(--color-navy-2); }
-.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 52px; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 52px; min-width: 220px; }
 .actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
 .actions button:hover { filter: brightness(1.02); transform: translateY(-1px); }
 .view { background: #f7efe0; color: var(--color-navy-2); }
