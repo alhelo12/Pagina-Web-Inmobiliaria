@@ -9,8 +9,8 @@ const apiClient = axios.create({
 // â”€â”€ Request: agrega el token JWT si existe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 apiClient.interceptors.request.use((config) => {
   const auth = useAuthStore()
-  if (auth.token) {
-    config.headers.Authorization = `Bearer ${auth.token}`
+  if (auth.backendToken || auth.token) {
+    config.headers.Authorization = `Bearer ${auth.backendToken || auth.token}`
   }
   return config
 })

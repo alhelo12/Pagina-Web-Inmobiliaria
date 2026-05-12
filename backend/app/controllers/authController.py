@@ -8,10 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
+from jose import jwt
 
 from app.dbConfig.databaseSession import get_db
 from app.services import authService, userService
 from app.core.security import create_token_for_user
+from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.schemas import (
     UserCreate,
@@ -26,6 +28,10 @@ from app.models import User
 # ── Schemas locales para los endpoints de validación ────────────────────────
 class EmailCheckRequest(BaseModel):
     email: EmailStr
+
+
+class SupabaseExchangeRequest(BaseModel):
+    supabase_token: str
 
 class PasswordValidateRequest(BaseModel):
     password: str
@@ -160,6 +166,96 @@ def login(
         role_name=user.role.name
     )
     
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+
+@router.post("/exchange", response_model=Token)
+def exchange_supabase_token(
+    body: SupabaseExchangeRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Intercambia un token de Supabase por un token JWT del backend.
+
+    El frontend debe llamar este endpoint DESPUÉS de hacer login con Supabase,
+    usando el token de Supabase para obtener un token del backend.
+
+    Flujo:
+    1. Frontend hace login con Supabase → obtiene Supabase token
+    2. Frontend llama /auth/exchange con el Supabase token
+    3. Backend valida el token con Supabase
+    4. Backend busca/crea el usuario por email en su DB
+    5. Backend devuelve JWT propio con user ID entero
+    6. Frontend usa el JWT del backend para todas las llamadas API
+    """
+    supabase_url = settings.SUPABASE_URL
+    supabase_anon_key = settings.SUPABASE_ANON_KEY
+
+    if not supabase_url or not supabase_anon_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Supabase no está configurado en el backend"
+        )
+
+    supabase_token = body.supabase_token
+
+    try:
+        payload = jwt.decode(
+            supabase_token,
+            supabase_anon_key,
+            algorithms=["HS256"],
+            options={"verify_signature": True}
+        )
+        email = payload.get("email")
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token de Supabase inválido: sin email"
+            )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de Supabase inválido o expirado"
+        )
+
+    user = userService.get_user_by_email(db, email)
+    if not user:
+        from app.models import Role
+        client_role = db.query(Role).filter(Role.name == "client").first()
+        if not client_role:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Rol 'client' no existe en la base de datos"
+            )
+
+        from app.schemas import UserCreate
+        from app.services.authService import hash_password
+        import secrets
+        temp_password = secrets.token_urlsafe(16)
+        user_data = UserCreate(
+            full_name=email.split("@")[0],
+            email=email,
+            password=temp_password,
+            phone=None,
+            role_id=client_role.id
+        )
+        user = userService.create_user(db, user_data, hash_password(temp_password))
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario inactivo. Contacta al administrador."
+        )
+
+    access_token = create_token_for_user(
+        user_id=user.id,
+        email=user.email,
+        role_name=user.role.name
+    )
+
     return {
         "access_token": access_token,
         "token_type": "bearer"

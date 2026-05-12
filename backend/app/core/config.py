@@ -78,6 +78,12 @@ class Settings(BaseSettings):
     ALLOWED_IMAGE_EXTENSIONS: list[str] = [".jpg", ".jpeg", ".png", ".webp"]
     
     # ==========================================
+    # SUPABASE
+    # ==========================================
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_ANON_KEY: Optional[str] = None
+
+    # ==========================================
     # EMAIL (futuro)
     # ==========================================
     SMTP_HOST: Optional[str] = None

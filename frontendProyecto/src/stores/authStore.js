@@ -1,19 +1,22 @@
 ﻿import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
+import apiClient from '@/api/axios'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     role: null,
     isLogged: false,
     token: null,
+    backendToken: null,
     userId: null,
     userEmail: null
   }),
 
   getters: {
     authHeaders: (state) => {
-      if (!state.token) return {}
-      return { Authorization: `Bearer ${state.token}` }
+      const token = state.backendToken || state.token
+      if (!token) return {}
+      return { Authorization: `Bearer ${token}` }
     }
   },
 
@@ -53,17 +56,31 @@ export const useAuthStore = defineStore('auth', {
       this.isLogged = true
 
       localStorage.setItem('role', this.role)
+
+      await this.exchangeToken()
       return data
     },
 
+    async exchangeToken() {
+      try {
+        const { data } = await apiClient.post('/auth/exchange', {
+          supabase_token: this.token
+        })
+        this.backendToken = data.access_token
+      } catch {
+        console.warn('Token exchange failed, using Supabase token directly')
+      }
+    },
+
     async logout() {
-      await supabase.auth.signOut()
+      this.backendToken = null
       this.token = null
       this.role = null
       this.userId = null
       this.userEmail = null
       this.isLogged = false
       localStorage.removeItem('role')
+      await supabase.auth.signOut()
     },
 
     async loadSession() {
@@ -77,6 +94,10 @@ export const useAuthStore = defineStore('auth', {
       this.userId = user.id
       this.userEmail = user.email
       this.isLogged = true
+
+      if (!this.backendToken) {
+        await this.exchangeToken()
+      }
     },
 
     async forgotPassword(email) {
