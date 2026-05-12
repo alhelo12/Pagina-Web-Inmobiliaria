@@ -70,6 +70,9 @@ export const useAuthStore = defineStore('auth', {
         this.isSupabaseUser = true
         this.isEmailVerified = data.user.email_confirmed_at ? true : false
         await supabase.auth.signOut()
+      } else if (error?.message?.toLowerCase().includes('email not confirmed')) {
+        this.isSupabaseUser = true
+        this.isEmailVerified = false
       } else if (this.role === 'client' && !this.isSupabaseUser) {
         const { error: signUpError } = await supabase.auth.signUp({
           email,
