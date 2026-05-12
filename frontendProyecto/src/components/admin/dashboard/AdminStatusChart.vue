@@ -29,11 +29,18 @@ const points = computed(() => {
 <style scoped>
 .chart-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
 h3 { margin: 0 0 16px; color: var(--color-navy); font-weight: 700; }
-.bars { height: 240px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: end; }
-.bar-item { text-align: center; }
+.bars { height: 240px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.bar-item { text-align: center; min-width: 0; }
 .bar-wrap { height: 180px; display: flex; align-items: flex-end; justify-content: center; }
 .bar { width: 36px; border-radius: 10px 10px 6px 6px; background: var(--color-gold); transition: .2s; }
 .bar:hover { filter: brightness(1.08); }
-small { display: block; margin-top: 8px; color: var(--color-muted); }
+small { display: block; margin-top: 8px; color: var(--color-muted); overflow-wrap: anywhere; }
 strong { color: var(--color-navy); font-size: 13px; }
+@media (max-width: 560px) {
+  .chart-card { padding: 16px 12px; }
+  .bars { height: 212px; gap: 8px; }
+  .bar-wrap { height: 150px; }
+  .bar { width: 26px; }
+  small { font-size: 12px; }
+}
 </style>

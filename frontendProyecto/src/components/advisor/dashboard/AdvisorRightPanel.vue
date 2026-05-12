@@ -33,10 +33,11 @@ defineEmits(['go-to-properties'])
 h3 { margin: 0 0 16px; color: var(--color-navy); font-weight: 700; }
 .actions-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
 .action-item { padding: 12px; border-radius: 8px; background: #faf9f7; border: 1px solid var(--color-line); }
-.action-info strong { display: block; color: var(--color-navy); font-size: 14px; margin-bottom: 4px; }
-.action-info span { display: block; color: var(--color-muted); font-size: 12px; }
+.action-info { min-width: 0; }
+.action-info strong { display: block; color: var(--color-navy); font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.action-info span { display: block; color: var(--color-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .action-info small { display: block; color: var(--color-navy); font-weight: 700; font-size: 13px; margin-top: 4px; }
 .empty { color: var(--color-muted); font-size: 14px; text-align: center; padding: 20px 0; flex: 1; }
-.review-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: var(--color-navy); color: #fff; font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: .2s; }
+.review-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: var(--color-navy); color: #fff; font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: .2s; width: 100%; }
 .review-btn:hover { filter: brightness(1.1); }
 </style>

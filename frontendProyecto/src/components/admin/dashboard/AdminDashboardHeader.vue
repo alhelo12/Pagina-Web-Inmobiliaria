@@ -46,22 +46,35 @@ const avatarInitial = computed(() => {
 </script>
 
 <style scoped>
-.dash-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 24px; border-radius: 12px; background: var(--color-card); border: 1px solid var(--color-line); box-shadow: var(--shadow-soft); }
+.dash-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 24px; border-radius: 12px; background: var(--color-card); border: 1px solid var(--color-line); box-shadow: var(--shadow-soft); overflow: hidden; }
+.title-wrap { min-width: 0; }
 .title-wrap p { margin: 0; color: var(--color-gold); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 12px; }
 .title-wrap h1 { margin: 4px 0 0; color: var(--color-navy); font-size: clamp(24px, 3vw, 34px); font-weight: 700; }
-.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-.search-box input { width: 260px; border: 1px solid rgba(7, 23, 45, .14); border-radius: 8px; padding: 10px 12px; background: #fff; color: var(--color-navy); }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
+.actions > * { min-width: 0; }
+.search-box { flex: 1 1 240px; min-width: min(240px, 100%); }
+.search-box input { width: 100%; max-width: 100%; border: 1px solid rgba(7, 23, 45, .14); border-radius: 8px; padding: 10px 12px; background: #fff; color: var(--color-navy); }
 .search-box input:focus { outline: none; border-color: var(--color-gold); box-shadow: 0 0 0 3px rgba(214, 168, 72, .18); }
-button { border-radius: 8px; padding: 10px 14px; font-weight: 700; border: 1px solid transparent; transition: .3s ease; }
+button { border-radius: 8px; padding: 10px 14px; font-weight: 700; border: 1px solid transparent; transition: .3s ease; white-space: nowrap; }
 .ghost { background: #f2eadc; color: var(--color-navy-2); border-color: rgba(214, 168, 72, .22); }
 .primary { background: var(--color-gold); color: var(--color-navy); }
 button:hover { filter: brightness(1.03); box-shadow: 0 10px 18px rgba(7, 23, 45, 0.12); transform: translateY(-1px); }
-.profile { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #fff; border: 1px solid var(--color-line); border-radius: 10px; }
+.profile { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #fff; border: 1px solid var(--color-line); border-radius: 10px; min-width: 0; max-width: 100%; flex: 1 1 250px; }
 .avatar { width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; background: var(--color-navy); color: var(--color-gold); font-weight: 800; }
-.profile strong { display: block; color: var(--color-navy); font-size: 12px; line-height: 1.1; }
-.profile small { color: var(--color-muted); font-size: 11px; }
+.profile > div { min-width: 0; }
+.profile strong { display: block; color: var(--color-navy); font-size: 12px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.profile small { display: block; color: var(--color-muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 1100px) {
   .dash-header { flex-direction: column; align-items: stretch; }
+  .actions { width: 100%; justify-content: flex-start; }
+  .profile { flex-basis: 100%; }
+}
+@media (max-width: 640px) {
+  .dash-header { padding: 18px 16px; }
+  .actions { display: grid; grid-template-columns: 1fr; }
+  .ghost,
+  .primary,
+  .profile { width: 100%; }
   .search-box input { width: 100%; }
 }
 </style>

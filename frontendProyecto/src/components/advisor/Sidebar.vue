@@ -88,8 +88,8 @@ const handleLogout = () => {
 <style scoped>
 .sidebar {
   position: sticky;
-  top: 82px;
-  height: calc(100vh - 82px);
+  top: 0;
+  height: 100vh;
   width: 280px;
   flex: 0 0 280px;
   background: var(--color-card);
@@ -100,6 +100,7 @@ const handleLogout = () => {
   gap: 20px;
   border-right: 1px solid var(--color-line);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 .brand { display: flex; align-items: center; gap: 12px; color: var(--color-navy); text-decoration: none; }
 .logo-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--color-gold); box-shadow: 0 0 0 6px rgba(214, 168, 72, 0.18); }
@@ -178,10 +179,15 @@ nav { display: grid; gap: 6px; }
 .logout-btn:hover { background: rgba(153, 27, 27, .08); color: #991b1b; }
 
 @media (max-width: 900px) {
-  .sidebar { position: static; width: 100%; height: auto; flex: none; }
+  .sidebar { position: static; width: 100%; height: auto; flex: none; padding: 18px; }
   nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nav-item { font-size: 13px; padding: 10px 12px; gap: 8px; }
   .nav-badge { font-size: 9px; min-width: 16px; height: 16px; }
   .sidebar-card { display: none; }
 }
+@media (max-width: 560px) {
+  nav { grid-template-columns: 1fr; }
+}
 </style>
+
+

@@ -4,8 +4,9 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from '@/stores/authStore'
 import { registerSW } from 'virtual:pwa-register'
+import './style.css'
 
-// CSS de Leaflet — obligatorio para que el mapa y sus controles se vean correctamente
+// Leaflet CSS required so map and controls render correctly
 import 'leaflet/dist/leaflet.css'
 
 const app = createApp(App)

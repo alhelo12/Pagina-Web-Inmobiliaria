@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, onMounted, onUnmounted, ref, nextTick, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
@@ -74,7 +74,7 @@ const MEXICO_CITIES = [
   'San Nicolas de los Garza', 'San Pedro Garza Garcia', 'Santa Catarina',
   'Santiago Ixcuintla', 'Santiago Papasquiaro', 'Santo Tomas Ajoloapan',
   'Tampico', 'Tapachula', 'Taxco de Alarcon', 'Tecate', 'Tecamac',
-  'Texcoco de Mora', 'Tijuana', 'Tlaxcala', 'Toluca', 'Tonalá', 'Torreon',
+  'Texcoco de Mora', 'Tijuana', 'Tlaxcala', 'Toluca', 'TonalÃ¡', 'Torreon',
   'Tuxtla Gutierrez',
   'Uruapan', 'Uriu',
   'Valladolid', 'Veracruz', 'Villahermosa', 'Xalapa', 'Zamora', 'Zihuatanejo',
@@ -441,7 +441,7 @@ const validateStep = () => {
 
 onBeforeRouteLeave((to, from, next) => {
   if (isDirty.value && !success.value) {
-    const answer = window.confirm('Tienes cambios sin guardar. ¿Salir de todas formas?')
+    const answer = window.confirm('Tienes cambios sin guardar. Â¿Salir de todas formas?')
     if (!answer) return next(false)
   }
   next()
@@ -514,7 +514,7 @@ const uploadPropertyImages = async (propertyId) => {
     if (!photo?.file) continue
     try {
       await propertiesApi.uploadImage(propertyId, photo.file, false, {
-        label: `Baño ${i + 1}`,
+        label: `BaÃ±o ${i + 1}`,
         image_type: 'bathroom'
       })
     } catch {
@@ -609,7 +609,7 @@ const submit = async () => {
     const uploadErrors = await uploadPropertyImages(saved.id)
 
     if (uploadErrors > 0) {
-      warning.value = `La propiedad se guardó, pero ${uploadErrors} imagen(es) no se pudieron subir.`
+      warning.value = `La propiedad se guardÃ³, pero ${uploadErrors} imagen(es) no se pudieron subir.`
     }
 
     const msg = isEdit.value ? 'Propiedad actualizada correctamente' : 'Propiedad publicada correctamente'
@@ -643,7 +643,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
       </header>
 
       <div v-if="success" class="success-card">
-        <div class="success-icon">✓</div>
+        <div class="success-icon">âœ“</div>
         <h2>{{ isEdit ? 'Propiedad actualizada' : 'Propiedad publicada' }}</h2>
         <p>{{ isEdit ? 'Los cambios se guardaron correctamente. Redirigiendo...' : 'Quedara pendiente hasta ser aprobada. Redirigiendo...' }}</p>
       </div>
@@ -653,12 +653,12 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
       </div>
 
       <div v-else-if="needsEmailVerification" class="verify-card">
-        <div class="verify-icon">✉</div>
-        <h2>Verifica tu correo electrónico</h2>
+        <div class="verify-icon">âœ‰</div>
+        <h2>Verifica tu correo electrÃ³nico</h2>
         <p>Para publicar una propiedad, primero debes verificar tu correo <strong>{{ auth.userEmail }}</strong>.</p>
-        <p class="verify-hint">Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificación.</p>
+        <p class="verify-hint">Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificaciÃ³n.</p>
         <button class="verify-btn" :disabled="sendingEmail" @click="resendEmail">
-          {{ sendingEmail ? 'Enviando...' : emailSent ? '¡Enviado! Revisa tu correo' : 'Reenviar email de verificación' }}
+          {{ sendingEmail ? 'Enviando...' : emailSent ? 'Â¡Enviado! Revisa tu correo' : 'Reenviar email de verificaciÃ³n' }}
         </button>
         <p v-if="emailSent" class="verify-sent">Email reenviado correctamente</p>
       </div>
@@ -675,7 +675,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
             @click="index < currentStep && (currentStep = index)"
           >
             <span class="step-circle">
-              <span v-if="currentStep > index">✓</span>
+              <span v-if="currentStep > index">âœ“</span>
               <span v-else>{{ index + 1 }}</span>
             </span>
             <span class="step-label">{{ step }}</span>
@@ -687,14 +687,14 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
         </div>
 
         <div v-if="error" class="alert alert-error"><AppIcon name="warning" :size="16" /> {{ error }}</div>
-        <div v-if="warning" class="alert alert-warning">⚡ {{ warning }}</div>
+        <div v-if="warning" class="alert alert-warning">âš¡ {{ warning }}</div>
 
         <form @submit.prevent="submit" class="form">
 
           <!-- STEP 1 -->
           <div v-if="currentStep === 0" class="step-panel">
             <div class="panel-header">
-              <span class="panel-icon">📋</span>
+              <span class="panel-icon">ðŸ“‹</span>
               <div><h2>Informacion general</h2><p>Datos basicos de la propiedad</p></div>
             </div>
             <div class="fields-grid">
@@ -730,16 +730,16 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
           <!-- STEP 2 -->
           <div v-if="currentStep === 1" class="step-panel">
             <div class="panel-header">
-              <span class="panel-icon">📷</span>
+              <span class="panel-icon">ðŸ“·</span>
               <div><h2>Fotos generales</h2><p>La primera imagen sera la principal</p></div>
             </div>
             <label class="upload-zone">
               <input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onGeneralFilesChange" />
               <div class="upload-content">
-                <div class="upload-icon">🖼</div>
+                <div class="upload-icon">ðŸ–¼</div>
                 <strong>{{ isEdit ? 'Agrega nuevas fotos' : 'Arrastra tus fotos aqui' }}</strong>
                 <span>o haz clic para seleccionar</span>
-                <small>{{ isEdit ? 'Las fotos actuales se conservan' : `JPG, PNG, WEBP � Max ${MAX_GENERAL_FILES} fotos � ${MAX_SIZE_MB}MB c/u` }}</small>
+                <small>{{ isEdit ? 'Las fotos actuales se conservan' : `JPG, PNG, WEBP ï¿½ Max ${MAX_GENERAL_FILES} fotos ï¿½ ${MAX_SIZE_MB}MB c/u` }}</small>
               </div>
             </label>
             <div v-if="generalPreviews.length" class="preview-grid">
@@ -753,7 +753,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
           <!-- STEP 3 -->
           <div v-if="currentStep === 2" class="step-panel">
             <div class="panel-header">
-              <span class="panel-icon">📍</span>
+              <span class="panel-icon">ðŸ“</span>
               <div><h2>Ubicacion</h2><p>Donde se encuentra la propiedad</p></div>
             </div>
             <div class="location-layout">
@@ -763,7 +763,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
                   <div class="city-select-wrapper">
                     <div class="city-display" @click="showCityDropdown = !showCityDropdown">
                       <span>{{ form.city || 'Selecciona una ciudad' }}</span>
-                      <span class="city-arrow">{{ showCityDropdown ? '▲' : '▼' }}</span>
+                      <span class="city-arrow">{{ showCityDropdown ? 'â–²' : 'â–¼' }}</span>
                     </div>
                     <div v-if="showCityDropdown" class="city-dropdown">
                       <input
@@ -810,18 +810,18 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
             </div>
             <div class="features-cards">
               <div class="feature-card">
-                <span class="feature-emoji">🛏</span>
+                <span class="feature-emoji">ðŸ›</span>
                 <label>Recamaras</label>
                 <input v-model="form.bedrooms" type="number" min="0" placeholder="0" />
               </div>
               <div class="feature-card">
-                <span class="feature-emoji">🛁</span>
-                <label>Baños</label>
+                <span class="feature-emoji">ðŸ›</span>
+                <label>BaÃ±os</label>
                 <input v-model="form.bathrooms" type="number" min="0" placeholder="0" />
               </div>
               <div class="feature-card">
-                <span class="feature-emoji">📐</span>
-                <label>Superficie m²</label>
+                <span class="feature-emoji">ðŸ“</span>
+                <label>Superficie mÂ²</label>
                 <input v-model="form.square_meters" type="number" min="0" placeholder="0" />
               </div>
             </div>
@@ -834,13 +834,13 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
           <!-- STEP 5 -->
           <div v-if="currentStep === 4" class="step-panel">
             <div class="panel-header">
-              <span class="panel-icon">🖼</span>
+              <span class="panel-icon">ðŸ–¼</span>
               <div><h2>Fotos por apartados</h2><p>Agrega fotos especificas de cada espacio</p></div>
             </div>
 
             <div v-if="bedroomsCount" class="section-block">
               <div class="section-block-header">
-                <span>🛏 Recamaras</span>
+                <span>ðŸ› Recamaras</span>
                 <span class="count-badge">{{ bedroomsCount }} foto(s)</span>
               </div>
               <div class="slot-grid">
@@ -855,13 +855,13 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
 
             <div v-if="bathroomsCount" class="section-block">
               <div class="section-block-header">
-                <span>🛁 Baños</span>
+                <span>ðŸ› BaÃ±os</span>
                 <span class="count-badge">{{ bathroomsCount }} foto(s)</span>
               </div>
               <div class="slot-grid">
                 <label v-for="index in bathroomsCount" :key="`bath-${index}`" class="photo-slot">
-                  <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`Baño ${index}`" />
-                  <div v-else class="slot-empty"><span>+</span><small>Baño {{ index }}</small></div>
+                  <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`BaÃ±o ${index}`" />
+                  <div v-else class="slot-empty"><span>+</span><small>BaÃ±o {{ index }}</small></div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bathroomPhotos, index - 1)" />
                   <button v-if="bathroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBathroomPhoto(index - 1)"><AppIcon name="x" :size="12" /></button>
                 </label>
@@ -870,7 +870,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
 
             <div class="section-block">
               <div class="section-block-header">
-                <span>✨ Extras</span>
+                <span>âœ¨ Extras</span>
                 <button type="button" class="add-extra-btn" @click="addExtra">+ Agregar espacio</button>
               </div>
               <div v-for="(extra, index) in extras" :key="index" class="extra-row">
@@ -888,11 +888,11 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
 
           <!-- ACTIONS -->
           <div class="actions">
-            <button v-if="currentStep > 0" class="btn-back" type="button" :disabled="loading" @click="prevStep">← Atras</button>
+            <button v-if="currentStep > 0" class="btn-back" type="button" :disabled="loading" @click="prevStep">â† Atras</button>
             <div class="actions-right">
               <span class="step-hint">Paso {{ currentStep + 1 }} de {{ steps.length }}</span>
-              <button v-if="!isLastStep" class="btn-next" type="button" :disabled="loading" @click="nextStep">Siguiente →</button>
-              <button v-else class="btn-next btn-publish" type="submit" :disabled="loading">{{ loading ? "Guardando..." : (isEdit ? "✓ Guardar cambios" : "✓ Publicar propiedad") }}</button>
+              <button v-if="!isLastStep" class="btn-next" type="button" :disabled="loading" @click="nextStep">Siguiente â†’</button>
+              <button v-else class="btn-next btn-publish" type="submit" :disabled="loading">{{ loading ? "Guardando..." : (isEdit ? "âœ“ Guardar cambios" : "âœ“ Publicar propiedad") }}</button>
             </div>
           </div>
 
@@ -1099,3 +1099,4 @@ input::placeholder, textarea::placeholder { color: #b5ae9f; }
   .page-header { flex-direction: column; gap: 8px; }
 }
 </style>
+

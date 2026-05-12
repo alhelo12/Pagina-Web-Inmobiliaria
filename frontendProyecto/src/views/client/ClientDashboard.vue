@@ -140,6 +140,7 @@ onMounted(async () => {
     "publications publications";
   gap: 16px;
 }
+.overview-grid > * { min-width: 0; }
 
 .grid-area-activity { grid-area: activity; }
 .grid-area-favorites { grid-area: favorites; }

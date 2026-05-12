@@ -69,7 +69,7 @@ const activeClients = computed(() => props.clients?.filter(c => c.is_active).len
   border-radius: 12px;
   padding: 20px;
 }
-.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
 .panel-header h3 { font-size: 14px; font-weight: 700; color: var(--color-navy); text-transform: uppercase; letter-spacing: .5px; margin: 0; }
 .client-count { font-size: 12px; color: var(--color-muted); }
 
@@ -92,4 +92,8 @@ const activeClients = computed(() => props.clients?.filter(c => c.is_active).len
 .action-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--color-line); background: white; color: var(--color-navy); text-decoration: none; font-weight: 600; font-size: 13px; transition: .2s; }
 .action-link:hover { border-color: var(--color-gold); background: #fdfcf8; }
 .action-icon { font-size: 16px; }
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: 1fr; }
+}
 </style>

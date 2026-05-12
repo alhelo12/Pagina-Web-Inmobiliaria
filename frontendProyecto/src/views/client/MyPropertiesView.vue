@@ -459,7 +459,7 @@ onUnmounted(() => {
 .filters button { border: 1px solid rgba(7, 23, 45, .14); background: #fff; padding: 7px 12px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: .3s ease; cursor: pointer; }
 .filters button.active, .filters button:hover { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
 .table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; min-width: 900px; border-collapse: collapse; }
 th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); }
 th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .08em; }
 .sortable { cursor: pointer; user-select: none; }

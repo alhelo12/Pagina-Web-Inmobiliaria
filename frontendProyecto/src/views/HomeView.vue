@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
@@ -91,11 +91,11 @@ onMounted(async () => {
         <p class="eyebrow">INICIO PREMIUM</p>
         <h1>HOGARES QUE INSPIRAN TU VIDA</h1>
         <p>
-          Explora propiedades reales con diseno, ubicacion y valor. Filtra en segundos y descubre la opcion ideal para ti.
+          Explora propiedades reales con diseño, ubicación y valor. Filtra en segundos y descubre la opción ideal para ti.
         </p>
         <div class="hero-actions">
           <RouterLink to="/propiedades" class="cta-primary">Explorar propiedades</RouterLink>
-          <RouterLink to="/nosotros" class="cta-outline">Conocer mas</RouterLink>
+          <RouterLink to="/nosotros" class="cta-outline">Conocer más</RouterLink>
         </div>
         <div class="search-shell">
           <div class="search-bar">
@@ -285,20 +285,26 @@ onMounted(async () => {
 
 .hero-actions {
   margin-top: 28px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  width: min(520px, 100%);
 }
 
 .cta-primary,
 .cta-outline {
-  min-height: 54px;
-  padding: 0 28px;
+  min-height: clamp(46px, 5.4vw, 54px);
+  padding: 0 clamp(16px, 2.5vw, 28px);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: clamp(15px, 1.7vw, 16px);
   font-weight: 700;
+  text-align: center;
   transition: transform .2s ease, opacity .2s ease;
 }
 
@@ -339,9 +345,20 @@ onMounted(async () => {
   left: auto;
   right: 8px;
   transform: none;
-  width: 650px;
-  max-width: calc(100% - 16px);
+  width: min(650px, calc(100% - 16px));
   z-index: 5;
+}
+
+@media (min-width: 1024px) {
+  .hero-actions {
+    width: min(500px, 100%);
+  }
+
+  .search-shell {
+    right: 16px;
+    bottom: 44px;
+    width: min(700px, calc(100% - 32px));
+  }
 }
 
 .search-bar {
@@ -369,7 +386,7 @@ onMounted(async () => {
   text-transform: uppercase;
   letter-spacing: .08em;
   color: #0e2b57;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .search-field select,
@@ -564,7 +581,7 @@ select:focus {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 18px;
 }
 
@@ -647,10 +664,6 @@ select:focus {
 }
 
 @media (min-width: 860px) {
-  .cards-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
   .bottom-banner {
     grid-template-columns: 1.1fr .9fr;
     align-items: center;
@@ -670,24 +683,11 @@ select:focus {
 }
 
 @media (max-width: 1023px) {
-  .search-shell {
-    width: calc(100% - 32px);
-    bottom: 80px;
-  }
-
-  .search-field {
-    padding: 4px 8px;
-  }
-}
-
-@media (max-width: 859px) {
-  .home-page {
-    padding-bottom: 44px;
-  }
-
   .hero {
     grid-template-columns: 1fr;
-    min-height: 680px;
+    min-height: 700px;
+    margin-top: 0;
+    border-radius: 0 0 22px 22px;
   }
 
   .hero-image {
@@ -700,25 +700,21 @@ select:focus {
   }
 
   .hero-content {
-    padding: 120px 20px 40px;
+    max-width: 100%;
+    padding: 128px 20px 34px;
   }
 
-  .about,
-  .featured,
-  .bottom-banner {
-    margin-top: 30px;
-    margin-left: 12px;
-    margin-right: 12px;
+  .hero-actions {
+    grid-template-columns: 1fr;
+    width: 100%;
   }
-}
 
-@media (max-width: 767px) {
   .search-shell {
     position: relative;
     bottom: auto;
-    left: auto;
-    transform: none;
+    right: auto;
     width: 100%;
+    max-width: 100%;
     margin-top: 16px;
   }
 
@@ -748,22 +744,32 @@ select:focus {
   }
 }
 
+@media (max-width: 859px) {
+  .home-page {
+    padding-bottom: 44px;
+  }
+
+  .about,
+  .featured,
+  .bottom-banner {
+    margin-top: 30px;
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+}
+
 @media (max-width: 620px) {
   .hero {
     min-height: 730px;
   }
 
+  .hero-content {
+    padding-top: 140px;
+  }
+
   .hero-content h1 {
     font-size: clamp(34px, 12vw, 46px);
-  }
-
-  .hero-actions {
-    flex-direction: column;
-  }
-
-  .cta-primary,
-  .cta-outline {
-    width: 100%;
+    line-height: 1.02;
   }
 
   .section-head {
@@ -781,3 +787,4 @@ select:focus {
   }
 }
 </style>
+

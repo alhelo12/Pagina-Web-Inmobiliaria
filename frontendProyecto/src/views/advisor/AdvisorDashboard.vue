@@ -117,6 +117,8 @@ onMounted(async () => {
 .dashboard { display: grid; gap: 16px; max-width: 1400px; width: 100%; }
 .middle-grid { display: grid; gap: 14px; grid-template-columns: 2fr 1fr; }
 .overview-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+.middle-grid > *,
+.overview-grid > * { min-width: 0; }
 .state { padding: 18px; color: var(--color-muted); background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; }
 .error-msg { color: #991b1b; }
 @media (max-width: 1050px) {
