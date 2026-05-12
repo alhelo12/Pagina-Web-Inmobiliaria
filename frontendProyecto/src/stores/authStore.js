@@ -208,6 +208,12 @@ export const useAuthStore = defineStore('auth', {
       const savedAuthMethod = localStorage.getItem('authMethod')
 
       if (savedBackendToken && savedUserId && savedRole) {
+        const payload = decodeJwtPayload(savedBackendToken)
+        if (payload?.exp && payload.exp * 1000 < Date.now()) {
+          await this.logout()
+          return
+        }
+
         this.authMethod = savedAuthMethod || 'backend'
         this.token = savedBackendToken
         this.backendToken = savedBackendToken
