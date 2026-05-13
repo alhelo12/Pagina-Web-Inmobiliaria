@@ -342,9 +342,18 @@ h1 {
 }
 
 @media (max-width: 980px) {
-  .split,
-  .stats,
+  .split { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr; }
   .testimonial-grid,
   .team-grid { grid-template-columns: 1fr; }
+  .hero { padding: 80px 18px 60px; min-height: auto; }
+  h1 { font-size: clamp(28px, 6vw, 40px); }
+}
+@media (max-width: 480px) {
+  .hero { padding: 70px 14px 50px; }
+  .cta { width: 100%; }
+  .stat-card strong { font-size: 32px; }
+  .testimonial, .member { padding: 14px; }
+  .avatar { width: 52px; height: 52px; }
 }
 </style>

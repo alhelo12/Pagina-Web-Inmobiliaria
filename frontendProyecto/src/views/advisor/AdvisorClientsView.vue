@@ -148,4 +148,12 @@ onMounted(() => {
   .client-properties { text-align: left; }
   .property-tags { justify-content: flex-start; }
 }
+@media (max-width: 480px) {
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .search-wrap { min-width: 0; }
+  .result-count { text-align: right; }
+  .table-card { padding: 12px; }
+  .client-avatar { width: 40px; height: 40px; font-size: 15px; }
+  .client-row { padding: 12px; }
+}
 </style>

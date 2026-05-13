@@ -27,6 +27,28 @@ let toastTimeout = null
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
 const actionLoading = ref(false)
+const verifyToast = ref({ show: false })
+let verifyToastTimeout = null
+const sendingEmail = ref(false)
+const emailSent = ref(false)
+
+const needsEmailVerification = computed(() =>
+  auth.role === 'client' && auth.isSupabaseUser && !auth.isEmailVerified
+)
+
+const resendEmail = async () => {
+  sendingEmail.value = true
+  emailSent.value = false
+  try {
+    await auth.resendVerificationEmail(auth.userEmail)
+    emailSent.value = true
+    setTimeout(() => { emailSent.value = false }, 5000)
+  } catch {
+    // silent
+  } finally {
+    sendingEmail.value = false
+  }
+}
 
 const sortKey = ref('created_at')
 const sortDir = ref('desc')
@@ -146,6 +168,12 @@ watch(search, (val) => {
 })
 
 const openConfirm = (action, p) => {
+  if (action === 'remove' && needsEmailVerification.value) {
+    verifyToast.value = { show: true }
+    clearTimeout(verifyToastTimeout)
+    verifyToastTimeout = setTimeout(() => { verifyToast.value.show = false }, 5000)
+    return
+  }
   confirmModal.value = { show: true, action, propertyId: p.id, title: p.title }
 }
 
@@ -322,6 +350,30 @@ onUnmounted(() => {
         </table>
       </div>
 
+      <!-- Mobile cards -->
+      <div class="mobile-cards">
+        <div v-for="p in filtered" :key="p.id" class="mobile-card">
+          <div class="mc-header">
+            <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
+            <div class="mc-title-group">
+              <strong class="mc-title">{{ p.title }}</strong>
+              <small class="mc-date">{{ formatRegisteredAt(p.created_at) }}</small>
+            </div>
+            <span :class="['badge', statusMap[p.status]?.cls]">{{ statusMap[p.status]?.label ?? p.status }}</span>
+          </div>
+          <div class="mc-body">
+            <span><strong>Ciudad:</strong> {{ p.city }}</span>
+            <span><strong>Precio:</strong> ${{ Number(p.price).toLocaleString('es-MX') }}</span>
+            <span class="advisor-cell"><strong>Asesor:</strong> {{ getAdvisorName(p) }}</span>
+          </div>
+          <div class="mc-actions">
+            <button class="view" @click="handleView(p.id)">Ver</button>
+            <button class="edit" @click="handleEdit(p.id)">Editar</button>
+            <button class="delete" :disabled="actionLoading" @click="openConfirm('remove', p)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
       <div class="pagination">
         <button :disabled="page <= 1" @click="goToPage(page - 1)">Anterior</button>
         <template v-for="p in totalPages" :key="p">
@@ -386,6 +438,15 @@ onUnmounted(() => {
       </div>
     </Teleport>
 
+    <div v-if="verifyToast.show" class="verify-toast">
+      <div class="verify-toast-content">
+        <strong>Debes verificar tu correo</strong> para eliminar propiedades.
+        <button class="verify-toast-btn" :disabled="sendingEmail" @click="resendEmail">
+          {{ sendingEmail ? '...' : emailSent ? '¡Enviado!' : 'Reenviar verificación' }}
+        </button>
+      </div>
+    </div>
+
     <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
@@ -397,9 +458,18 @@ onUnmounted(() => {
 .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .filters button { border: 1px solid rgba(7, 23, 45, .14); background: #fff; padding: 7px 12px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: .3s ease; cursor: pointer; }
 .filters button.active, .filters button:hover { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); }
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 46, 79, .35) transparent;
+}
+.table-wrap::-webkit-scrollbar { height: 8px; }
+.table-wrap::-webkit-scrollbar-thumb { background: rgba(16, 46, 79, .35); border-radius: 999px; }
+table { width: max(100%, 980px); border-collapse: collapse; table-layout: auto; }
+th, td { padding: 12px; font-size: 14px; text-align: left; border-bottom: 1px solid rgba(7, 23, 45, .08); white-space: nowrap; vertical-align: middle; }
 th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .08em; }
 .sortable { cursor: pointer; user-select: none; }
 .sortable:hover { color: var(--color-navy); }
@@ -408,13 +478,13 @@ th { font-size: 12px; color: var(--color-muted); text-transform: uppercase; lett
 tr:hover { background: rgba(214, 168, 72, .05); }
 .td-thumb { width: 44px; padding-right: 8px; }
 .td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; }
-.td-title { color: var(--color-navy); font-weight: 700; }
+.td-title { color: var(--color-navy); font-weight: 700; min-width: 220px; white-space: normal; }
 .registered-at { color: var(--color-navy-2); font-weight: 600; white-space: nowrap; }
 .badge { padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .pendiente { background: #fff3ce; color: #8a5a00; }
 .aprobada { background: #dff7e9; color: #166534; }
 .rechazada { background: #fee2e2; color: #991b1b; }
-.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 52px; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; align-content: center; min-height: 52px; min-width: 210px; }
 .actions button { border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: .3s ease; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
 .actions button:hover { filter: brightness(1.02); transform: translateY(-1px); }
 .view { background: #f7efe0; color: var(--color-navy-2); }
@@ -520,9 +590,36 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .pagination .dots { color: var(--color-muted); font-size: 13px; padding: 0 2px; }
 .pagination-info { margin-left: auto; color: var(--color-muted); font-size: 13px; }
 
+.verify-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 24px; box-shadow: 0 16px 48px rgba(7,23,45,0.2); max-width: 480px; }
+.verify-toast-content { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #991b1b; flex-wrap: wrap; }
+.verify-toast-btn { border: none; border-radius: 8px; padding: 8px 16px; background: var(--color-gold); color: var(--color-navy); font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.verify-toast-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.mobile-cards { display: none; }
+.mobile-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; padding: 14px; }
+.mc-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.mc-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #f0ece4; flex-shrink: 0; }
+.mc-title-group { flex: 1; min-width: 0; }
+.mc-title { display: block; color: var(--color-navy); font-size: 14px; }
+.mc-date { display: block; color: var(--color-muted); font-size: 11px; margin-top: 2px; }
+.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
+.mc-body span strong { color: var(--color-muted); font-weight: 600; }
+.mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mc-actions button { border: none; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
 @media (max-width: 768px) {
-  .filters { overflow-x: auto; flex-wrap: nowrap; }
-  .filters button { flex: 0 0 auto; }
+  .table-wrap { display: none; }
+  .mobile-cards { display: flex; flex-direction: column; gap: 12px; }
+  .filters { flex-wrap: wrap; }
+  .filters button { font-size: 12px; padding: 6px 10px; }
   .advisor-popover { min-width: 220px; }
+  .pagination-info { width: 100%; text-align: center; margin-left: 0; }
+}
+@media (max-width: 480px) {
+  .my-properties { gap: 12px; }
+  .table-card { padding: 12px; }
+  .pagination { justify-content: center; }
+  .verify-toast { left: 16px; right: 16px; transform: none; max-width: none; }
+  .verify-toast-content { flex-direction: column; text-align: center; }
 }
 </style>

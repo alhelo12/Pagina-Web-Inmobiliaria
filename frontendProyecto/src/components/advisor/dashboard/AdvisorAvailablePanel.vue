@@ -42,11 +42,11 @@ const formatPrice = (price) => Number(price || 0).toLocaleString('es-MX')
 
 <style scoped>
 .available-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
-.available-head { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.available-head { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
 .available-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.available-head h3 { margin: 0; color: var(--color-navy); font-size: 18px; }
+.available-head h3 { margin: 0; color: var(--color-navy); font-size: 18px; min-width: 0; }
 .available-list { display: grid; gap: 10px; }
-.available-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-line); background: #fff; }
+.available-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-line); background: #fff; }
 .available-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: #f0ece4; }
 .available-thumb { width: 100%; height: 100%; object-fit: cover; }
 .available-info { flex: 1; min-width: 0; }
@@ -56,4 +56,10 @@ const formatPrice = (price) => Number(price || 0).toLocaleString('es-MX')
 .take-btn { padding: 6px 12px; border-radius: 6px; background: var(--color-gold); color: var(--color-navy); font-weight: 600; font-size: 12px; border: none; cursor: pointer; transition: .2s; }
 .take-btn:hover { filter: brightness(1.05); }
 .empty { margin: 0; color: var(--color-muted); }
+@media (max-width: 640px) {
+  .available-head h3 { font-size: 16px; }
+  .available-row { grid-template-columns: auto minmax(0, 1fr); }
+  .available-row small { grid-column: 2 / 3; }
+  .take-btn { grid-column: 1 / -1; width: 100%; }
+}
 </style>

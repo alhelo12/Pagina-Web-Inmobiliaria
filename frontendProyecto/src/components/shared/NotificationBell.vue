@@ -313,8 +313,9 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .dropdown {
-    width: calc(100vw - 32px);
-    right: -16px;
+    width: 100%;
+    right: 0;
+    left: 0;
   }
 }
 </style>

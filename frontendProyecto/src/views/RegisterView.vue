@@ -190,7 +190,7 @@ const submit = async () => {
       rgba(7, 23, 45, 0.55) 60%,
       rgba(5, 15, 35, 0.72) 100%
     ),
-    url('@/assets/images/fondo1.jpg') center center / cover no-repeat;
+    url('@/assets/images/fondo2.jpg') center center / cover no-repeat;
 }
 
 /* ── Card (mismo tamaño y bordes que login) ── */

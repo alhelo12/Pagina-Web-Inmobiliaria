@@ -404,5 +404,10 @@ onMounted(() => {
   .metrics { grid-template-columns: 1fr; }
   .section-header { flex-direction: column; align-items: stretch; }
   .mark-all-btn { width: 100%; }
+  .notification-card { flex-direction: column; gap: 12px; }
+  .type-icon { width: 36px; height: 36px; }
+  .notification-header { flex-direction: column; gap: 6px; }
+  .notification-header h3 { font-size: 14px; }
+  .card strong { font-size: 24px; }
 }
 </style>

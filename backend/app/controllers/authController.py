@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
-from jose import jwt
 
 from app.dbConfig.databaseSession import get_db
 from app.services import authService, userService
@@ -172,7 +171,7 @@ def login(
     }
 
 
-@router.post("/exchange", response_model=Token)
+@router.post("/exchange")
 def exchange_supabase_token(
     body: SupabaseExchangeRequest,
     db: Session = Depends(get_db)
@@ -203,18 +202,28 @@ def exchange_supabase_token(
     supabase_token = body.supabase_token
 
     try:
-        payload = jwt.decode(
-            supabase_token,
-            supabase_anon_key,
-            algorithms=["HS256"],
-            options={"verify_signature": True}
+        import urllib.request
+        import json as json_module
+
+        verify_url = supabase_url.rstrip("/") + "/auth/v1/user"
+        req = urllib.request.Request(
+            verify_url,
+            headers={
+                "apikey": supabase_anon_key,
+                "Authorization": f"Bearer {supabase_token}"
+            }
         )
-        email = payload.get("email")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            user_data = json_module.loads(resp.read().decode())
+
+        email = user_data.get("email")
         if not email:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token de Supabase inválido: sin email"
             )
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -258,7 +267,10 @@ def exchange_supabase_token(
 
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "role": user.role.name,
+        "user_id": user.id,
+        "email": user.email
     }
 
 

@@ -243,7 +243,7 @@ class PropertyResponse(PropertyBase):
     """
     id: int
     status: PropertyStatusEnum
-    submitted_by_user_id: int
+    submitted_by_user_id: Optional[int] = None
     advisor_id: Optional[int] = None
     owner: Optional[PropertyOwnerResponse] = None
     advisor: Optional[PropertyAdvisorResponse] = None

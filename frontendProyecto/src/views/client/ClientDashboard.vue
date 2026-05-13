@@ -129,7 +129,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.dashboard { display: grid; gap: 20px; }
+.dashboard { display: grid; gap: 20px; max-width: 1400px; width: 100%; }
 
 .overview-grid {
   display: grid;
@@ -140,6 +140,7 @@ onMounted(async () => {
     "publications publications";
   gap: 16px;
 }
+.overview-grid > * { min-width: 0; }
 
 .grid-area-activity { grid-area: activity; }
 .grid-area-favorites { grid-area: favorites; }
@@ -193,12 +194,18 @@ onMounted(async () => {
 }
 
 @media (max-width: 1200px) {
-  .overview-grid { grid-template-columns: 1fr 1fr; }
-  .grid-area-activity { grid-area: auto; }
-  .overview-grid { grid-template-areas: none; grid-template-columns: 1fr 1fr; }
+  .overview-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "activity favorites"
+      "activity relationship";
+  }
+  .grid-area-activity { grid-area: activity; }
+  .grid-area-publications { grid-area: auto; }
 }
 @media (max-width: 900px) {
   .overview-grid { grid-template-columns: 1fr; grid-template-areas: none; }
+  .overview-grid > * { grid-area: auto !important; }
   .actions-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {

@@ -57,4 +57,16 @@ const statusLabel = {
 .recent-status.rejected { background: #f8d7da; color: #721c24; }
 .recent-status.sold { background: #d1ecf1; color: #0c5460; }
 .empty { margin: 0; color: var(--color-muted); }
+@media (max-width: 560px) {
+  .recent-card { padding: 14px 12px; }
+  .recent-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 6px;
+  }
+  .recent-status {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
 </style>

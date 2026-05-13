@@ -26,6 +26,7 @@ import Sidebar from '@/components/client/Sidebar.vue'
   display: flex;
   background: var(--color-cream);
   font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
 }
 
 .client-layout :deep(button),
@@ -35,9 +36,10 @@ import Sidebar from '@/components/client/Sidebar.vue'
   font-family: inherit;
 }
 
-.content { flex: 1; min-width: 0; padding: 28px; background: var(--color-cream); }
+.content { flex: 1; min-width: 0; padding: 28px; background: var(--color-cream); overflow-x: hidden; }
 @media (max-width: 900px) {
   .client-layout { flex-direction: column; }
   .content { padding: 18px; }
 }
 </style>
+

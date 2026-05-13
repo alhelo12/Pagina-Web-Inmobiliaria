@@ -87,4 +87,16 @@ defineProps({
 .item-info span { display: block; margin-top: 2px; color: var(--color-muted); font-size: 12px; }
 .price { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; font-size: 13px; flex-shrink: 0; }
 .empty { margin: 0; color: var(--color-muted); font-size: 13px; }
+@media (max-width: 560px) {
+  .recent-list-card { padding: 14px 12px; }
+  .list-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 6px;
+  }
+  .price {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
 </style>

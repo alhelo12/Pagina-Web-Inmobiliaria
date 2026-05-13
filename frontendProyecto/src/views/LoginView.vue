@@ -1,6 +1,6 @@
 ﻿<script setup>
 import { ref } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '@/api/auth'
 
@@ -169,14 +169,13 @@ const submit = async () => {
 .login-page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 0.6fr 1fr;
+  grid-template-columns: 1fr 1fr;
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(to bottom, rgba(5, 15, 35, 0.65) 0%, rgba(7, 23, 45, 0.65) 60%, rgba(5, 15, 35, 0.65) 100%), url('@/assets/images/fondo2.jpg') center center / cover no-repeat fixed;
 }
 
 /* ── Panel izquierdo navy ── */
 .side-panel {
-  background: linear-gradient(to bottom, rgba(15, 42, 68, 0.65) 0%, rgba(15, 42, 68, 0.65) 100%);
+  background: #0f2a44;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -240,7 +239,7 @@ const submit = async () => {
 }
 
 .brand-name {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: 0.1em;
   color: #ffffff;
@@ -248,7 +247,7 @@ const submit = async () => {
 
 /* Copy */
 .side-copy h2 {
-  font-size: clamp(34px, 3.8vw, 42px);
+  font-size: clamp(28px, 3vw, 38px);
   font-weight: 800;
   color: #ffffff;
   line-height: 1.2;
@@ -258,8 +257,8 @@ const submit = async () => {
 .side-copy h2 span { color: #f2c94c; }
 
 .side-copy p {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
   line-height: 1.8;
   margin: 0;
 }
@@ -299,26 +298,24 @@ const submit = async () => {
 
 .perks li strong {
   display: block;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 2px;
 }
 
 .perks li span {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* ── Panel derecho ── */
 .login-right {
-  width: 100%;
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 40px;
-  background: linear-gradient(to bottom, rgba(5, 15, 35, 0.65) 0%, rgba(7, 23, 45, 0.65) 60%, rgba(5, 15, 35, 0.65) 100%);
+  background: #f5f2ec;
   overflow-y: auto;
 }
 
@@ -350,14 +347,14 @@ const submit = async () => {
 
 .card-header h1 {
   font-family: 'Poppins', sans-serif;
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 400;
   color: #07172d;
   margin: 0 0 8px;
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 13.5px;
   color: #65717e;
   line-height: 1.6;
   margin: 0;

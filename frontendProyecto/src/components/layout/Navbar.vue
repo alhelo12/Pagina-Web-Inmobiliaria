@@ -122,6 +122,7 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   width: 100%;
+  height: 60px;
   z-index: 1000;
   background: rgba(7, 24, 44, 0.46);
   backdrop-filter: blur(8px);
@@ -135,8 +136,9 @@ onUnmounted(() => {
 
 .nav-container {
   max-width: 1240px;
+  height: 100%;
   margin: 0 auto;
-  padding: 14px 22px;
+  padding: 0 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -313,6 +315,10 @@ onUnmounted(() => {
 }
 
 @media (max-width: 900px) {
+  .nav-container {
+    padding: 0 16px;
+  }
+
   .hamburger {
     display: flex;
   }

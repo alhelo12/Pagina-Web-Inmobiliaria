@@ -105,17 +105,26 @@ const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3
 </template>
 
 <style scoped>
-.table-wrapper { overflow-x: auto; }
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 46, 79, .35) transparent;
+}
+.table-wrapper::-webkit-scrollbar { height: 8px; }
+.table-wrapper::-webkit-scrollbar-thumb { background: rgba(16, 46, 79, .35); border-radius: 999px; }
 .table {
-  width: 100%; border-collapse: collapse; background: white;
+  width: max(100%, 1080px); border-collapse: collapse; table-layout: auto; background: white;
   border-radius: 14px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.05);
 }
-th { background: var(--color-navy); color: white; text-align: left; padding: 14px; font-size: 14px; }
-td { padding: 14px; border-bottom: 1px solid var(--color-line); font-size: 14px; }
+th { background: var(--color-navy); color: white; text-align: left; padding: 14px; font-size: 14px; white-space: nowrap; vertical-align: middle; }
+td { padding: 14px; border-bottom: 1px solid var(--color-line); font-size: 14px; white-space: nowrap; vertical-align: middle; }
 tr:hover { background: rgba(214, 168, 72, .05); }
 .td-thumb { width: 44px; padding-right: 8px; }
 .td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; }
-.title { font-weight: 600; color: var(--color-navy); }
+.title { font-weight: 600; color: var(--color-navy); min-width: 220px; white-space: normal; }
 .price { font-weight: bold; color: var(--color-navy); }
 .owner-name { display: block; font-weight: 600; color: var(--color-navy); }
 .owner-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
@@ -128,6 +137,7 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .sold     { background: #d1ecf1; color: #0c5460; }
 
 .actions, .card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.actions { min-width: 200px; }
 .actions button, .card-actions button {
   border: none; padding: 7px 10px; border-radius: 8px;
   cursor: pointer; font-weight: 600; transition: .2s; font-family: inherit; font-size: 13px;

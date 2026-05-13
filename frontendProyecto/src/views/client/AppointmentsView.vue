@@ -21,8 +21,28 @@ const saving = ref(false)
 const error = ref('')
 
 const showForm = ref(false)
+const showVerifyGate = ref(false)
+const sendingEmail = ref(false)
+const emailSent = ref(false)
 const toastState = ref({ show: false, message: '', type: 'success' })
 let toastTimeout = null
+
+const needsEmailVerification = computed(() =>
+  auth.role === 'client' && auth.isSupabaseUser && !auth.isEmailVerified
+)
+
+const resendEmail = async () => {
+  sendingEmail.value = true
+  emailSent.value = false
+  try {
+    await auth.resendVerificationEmail(auth.userEmail)
+    emailSent.value = true
+  } catch {
+    // silent
+  } finally {
+    sendingEmail.value = false
+  }
+}
 
 const showToast = (message, type = 'success') => {
   clearTimeout(toastTimeout)
@@ -166,12 +186,24 @@ onUnmounted(() => {
     <Breadcrumb :crumbs="[{ label: 'Citas', path: '/cliente/citas' }]" />
 
     <div class="header-actions">
-      <button v-if="!showForm" class="btn-add" @click="showForm = true">
+      <button v-if="!showForm && !showVerifyGate" class="btn-add" @click="needsEmailVerification ? showVerifyGate = true : showForm = true">
         + Solicitar nueva cita
       </button>
-      <button v-else class="btn-cancel" @click="showForm = false">
+      <button v-else class="btn-cancel" @click="showForm = false; showVerifyGate = false">
         <AppIcon name="x" :size="14" /> Cancelar
       </button>
+    </div>
+
+    <!-- Bloqueo por verificación -->
+    <div v-if="showVerifyGate" class="verify-card">
+      <div class="verify-icon">✉</div>
+      <h2>Verifica tu correo electrónico</h2>
+      <p>Para solicitar una cita, primero debes verificar tu correo <strong>{{ auth.userEmail }}</strong>.</p>
+      <p class="verify-hint">Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificación.</p>
+      <button class="verify-btn" :disabled="sendingEmail" @click="resendEmail">
+        {{ sendingEmail ? 'Enviando...' : emailSent ? '¡Enviado! Revisa tu correo' : 'Reenviar email de verificación' }}
+      </button>
+      <p v-if="emailSent" class="verify-sent">Email reenviado correctamente</p>
     </div>
 
     <!-- Formulario nueva cita -->
@@ -574,9 +606,31 @@ onUnmounted(() => {
   background: #0a1525;
 }
 
+.verify-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; padding: 60px 40px; text-align: center; box-shadow: 0 4px 24px rgba(7,23,45,0.08); max-width: 480px; margin: 0 auto; }
+.verify-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: var(--navy); margin: 0 auto 20px; }
+.verify-card h2 { font-size: 22px; color: var(--color-navy); margin: 0 0 12px; }
+.verify-card p { color: var(--color-muted); font-size: 14px; margin: 0 0 8px; }
+.verify-hint { font-size: 13px; color: var(--color-muted); margin-bottom: 24px !important; }
+.verify-btn { padding: 12px 28px; border: none; border-radius: 10px; background: var(--color-gold); color: var(--color-navy); font-size: 14px; font-weight: 700; cursor: pointer; }
+.verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.verify-sent { margin-top: 12px !important; color: #065f46 !important; font-weight: 600; }
+
+@media (max-width: 768px) {
+  .verify-card { padding: 40px 24px; }
+}
 @media (max-width: 600px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+  .form-grid { grid-template-columns: 1fr; }
+  .appointment-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .appointment-header { padding: 14px 16px 10px; }
+  .appointment-body { padding: 0 16px 14px; }
+  .appointment-actions { padding: 0 16px 14px; }
+  .btn-add { width: 100%; }
+  .header-actions { justify-content: stretch; }
+  .form-actions { flex-direction: column; }
+  .btn-save { width: 100%; }
+}
+@media (max-width: 480px) {
+  .verify-card { padding: 32px 16px; }
+  .verify-card h2 { font-size: 18px; }
 }
 </style>

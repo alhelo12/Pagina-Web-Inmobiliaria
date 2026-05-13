@@ -11,6 +11,12 @@ import { useAuthStore } from '@/stores/authStore'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    }
+    return { top: 0, left: 0 }
+  },
   routes: [
     { path: '/',            name: 'home',            component: HomeView },
     { path: '/propiedades', name: 'properties',      component: PropertiesView },
