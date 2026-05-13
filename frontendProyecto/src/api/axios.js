@@ -3,14 +3,19 @@ import { useAuthStore } from '@/stores/authStore'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
+  timeout: 15000,
   headers: { 'Content-Type': 'application/json' }
 })
 
 // â”€â”€ Request: agrega el token JWT si existe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 apiClient.interceptors.request.use((config) => {
-  const auth = useAuthStore()
-  if (auth.backendToken || auth.token) {
-    config.headers.Authorization = `Bearer ${auth.backendToken || auth.token}`
+  try {
+    const auth = useAuthStore()
+    if (auth.backendToken || auth.token) {
+      config.headers.Authorization = `Bearer ${auth.backendToken || auth.token}`
+    }
+  } catch (err) {
+    console.error('[Axios Request Interceptor]', err)
   }
   return config
 })
@@ -32,10 +37,15 @@ apiClient.interceptors.response.use(
     const currentPath = window.location.pathname
 
     if (error.response?.status === 401 && !isLoginEndpoint) {
-      const auth = useAuthStore()
+      try {
+        const auth = useAuthStore()
 
-      // Evita bucles de recarga en pantallas públicas/auth y cuando no hay sesión activa.
-      if (!auth.token || authRoutes.has(currentPath)) {
+        // Evita bucles de recarga en pantallas públicas/auth y cuando no hay sesión activa.
+        if (!auth.token || authRoutes.has(currentPath)) {
+          return Promise.reject(error)
+        }
+      } catch (err) {
+        console.error('[Axios Response Interceptor]', err)
         return Promise.reject(error)
       }
 

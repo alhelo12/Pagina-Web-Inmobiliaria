@@ -20,7 +20,8 @@ const load = async (filters = {}) => {
   try {
     const { data } = await propertiesApi.getAll({ status: 'approved', ...filters })
     properties.value = data.properties ?? data.items ?? data
-  } catch {
+  } catch (err) {
+    console.error('[PropertiesView] Error al cargar propiedades:', err)
     error.value = 'No se pudieron cargar las propiedades'
   } finally {
     loading.value = false
