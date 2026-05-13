@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { authApi } from '@/api/auth'
 
 const router = useRouter()
 const auth   = useAuthStore()
@@ -23,8 +22,7 @@ const submit = async () => {
   error.value   = ''
   loading.value = true
   try {
-    const { data } = await authApi.login(email.value, password.value)
-    auth.login(data.access_token)
+    await auth.login(email.value, password.value)
     router.push(roleRedirect[auth.role] ?? '/')
   } catch (err) {
     if (err.response) {
