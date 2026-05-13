@@ -196,9 +196,9 @@ const submit = async () => {
 /* ── Card (mismo tamaño y bordes que login) ── */
 .register-card {
   background: white;
-  padding: 48px 56px;
+  padding: 48px 44px;
   width: 100%;
-  max-width: 560px;
+  max-width: 480px;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
 }
@@ -227,7 +227,7 @@ const submit = async () => {
 
 .card-header h1 {
   font-family: 'Poppins', sans-serif;
-  font-size: 30px;
+  font-size: clamp(24px, 4vw, 30px);
   font-weight: 400;
   color: #07172d;
   margin: 0 0 8px;
@@ -286,12 +286,12 @@ const submit = async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .field-row .field { margin-bottom: 0; }
 
-.field { margin-bottom: 18px; }
+.field { margin-bottom: 16px; }
 
 .field label {
   display: block;
@@ -440,10 +440,16 @@ const submit = async () => {
 }
 
 /* ── Responsive ── */
+@media (max-width: 900px) {
+  .register-card { padding: 36px 32px; }
+}
 @media (max-width: 768px) {
   .register-card { padding: 36px 28px; }
 }
 
+@media (max-width: 640px) {
+  .field-row { grid-template-columns: 1fr; }
+}
 @media (max-width: 480px) {
   .register-right { padding: 24px 16px; }
   .register-card { padding: 28px 20px; }
