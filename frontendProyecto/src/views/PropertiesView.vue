@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import FiltersBar from '@/components/properties/FiltersBar.vue'
 import PropertyCard from '@/components/PropertyCard.vue'
 import { propertiesApi } from '@/api/properties'
@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { getPropertyImage } from '@/utils/propertyImages'
 
+const route = useRoute()
 const properties = ref([])
 const loading    = ref(false)
 const error      = ref('')
@@ -29,7 +30,7 @@ const load = async (filters = {}) => {
 }
 
 onMounted(async () => {
-  await load()
+  await load(route.query)
   if (auth.isLogged && auth.role === 'client') {
     await favStore.fetchFavorites()
   }

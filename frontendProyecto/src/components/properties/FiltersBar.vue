@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 const emit = defineEmits(['filter'])
 
-const city  = ref('')
+const city  = ref('Tuxtla Gutiérrez')
 const type  = ref('')
 const tx    = ref('')
 const maxPrice = ref('')
@@ -18,7 +18,8 @@ const apply = () => {
 }
 
 const reset = () => {
-  city.value = type.value = tx.value = maxPrice.value = ''
+  city.value = 'Tuxtla Gutiérrez'
+  type.value = tx.value = maxPrice.value = ''
   emit('filter', {})
 }
 </script>
@@ -32,8 +33,6 @@ const reset = () => {
         <option value="">Tipo</option>
         <option value="house">Casa</option>
         <option value="apartment">Departamento</option>
-        <option value="land">Terreno</option>
-        <option value="commercial">Local comercial</option>
       </select>
       <span class="divider"></span>
       <select v-model="tx" class="filter-select">
@@ -73,11 +72,11 @@ const reset = () => {
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 8px 8px 8px 24px;
+  padding: 8px 8px 8px 28px;
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
   border-radius: 999px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
 }
 
 .filter-input,
@@ -107,13 +106,14 @@ const reset = () => {
 .filter-input:focus,
 .filter-select:focus {
   outline: none;
+  box-shadow: 0 0 0 3px rgba(214, 168, 72, 0.18);
 }
 
 .divider {
   width: 1px;
-  height: 24px;
-  background: #e0e0e0;
-  margin: 0 8px;
+  height: 32px;
+  background: #d8e2f0;
+  flex-shrink: 0;
 }
 
 .filter-actions {
@@ -127,14 +127,14 @@ const reset = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 24px;
+  padding: 14px 26px;
   background: linear-gradient(135deg, #0a355e 0%, #11497d 100%);
   color: white;
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 16px;
   font-family: 'Poppins', sans-serif;
   transition: transform .2s, box-shadow .2s;
   white-space: nowrap;
@@ -172,7 +172,7 @@ const reset = () => {
 
   .filters-bar {
     flex-wrap: wrap;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 16px;
     gap: 8px;
     max-width: 100%;

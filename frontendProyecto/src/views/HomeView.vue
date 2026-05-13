@@ -1,29 +1,27 @@
 ﻿<script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { useAuthStore } from '@/stores/authStore'
 import PropertyCard from '@/components/PropertyCard.vue'
 import { getPropertyImage } from '@/utils/propertyImages'
 import homeFallbackImage from '@/assets/images/fondo2.jpg'
+const router = useRouter()
 const propertyStore = usePropertyStore()
 const favoritesStore = useFavoritesStore()
 const authStore = useAuthStore()
 
 const filters = ref({
-  city: '',
+  city: 'Tuxtla Gutiérrez',
   property_type: '',
-  min_price: '',
-  max_price: '',
-  bedrooms: ''
+  transaction_type: '',
+  max_price: ''
 })
 
 const categories = [
   { key: 'house', label: 'Casas', note: 'Residencial familiar' },
-  { key: 'apartment', label: 'Apartamentos', note: 'Ciudad y comodidad' },
-  { key: 'commercial', label: 'Oficina', note: 'Espacio empresarial' },
-  { key: 'land', label: 'Otro', note: 'Terrenos y mas' }
+  { key: 'apartment', label: 'Departamentos', note: 'Ciudad y comodidad' }
 ]
 
 const selectedCategory = ref('')
@@ -56,13 +54,30 @@ const highlightedProperties = computed(() => {
     .filter((p) => {
       if (filters.value.city && p.city !== filters.value.city) return false
       if (filters.value.property_type && p.property_type !== filters.value.property_type) return false
-      if (filters.value.min_price && Number(p.price) < Number(filters.value.min_price)) return false
+      if (filters.value.transaction_type && p.transaction_type !== filters.value.transaction_type) return false
       if (filters.value.max_price && Number(p.price) > Number(filters.value.max_price)) return false
-      if (filters.value.bedrooms && Number(p.bedrooms) < Number(filters.value.bedrooms)) return false
       return true
     })
     .slice(0, 3)
 })
+
+const goToProperties = (extra = {}) => {
+  const query = { ...extra }
+  if (filters.value.city) query.city = filters.value.city
+  if (filters.value.property_type) query.property_type = filters.value.property_type
+  if (filters.value.transaction_type) query.transaction_type = filters.value.transaction_type
+  if (filters.value.max_price) query.max_price = Number(filters.value.max_price)
+  router.push({ path: '/propiedades', query })
+}
+
+const resetFilters = () => {
+  filters.value = {
+    city: 'Tuxtla Gutiérrez',
+    property_type: '',
+    transaction_type: '',
+    max_price: ''
+  }
+}
 
 const selectCategory = (value) => {
   selectedCategory.value = selectedCategory.value === value ? '' : value
@@ -99,32 +114,30 @@ onMounted(async () => {
         </div>
         <div class="search-shell">
           <div class="search-bar">
-            <div class="search-field">
-          
-              <span class="field-label">Tipo</span>
-              <select v-model="filters.property_type">
-                <option value="">Cualquier tipo</option>
-                <option value="house">Casa</option>
-                <option value="apartment">Apartamento</option>
-                <option value="commercial">Oficina</option>
-                <option value="land">Otro</option>
-              </select>
+            <input v-model="filters.city" type="text" placeholder="Ciudad" class="search-input search-input-city" />
+            <span class="search-divider"></span>
+            <select v-model="filters.property_type" class="search-select">
+              <option value="">Tipo</option>
+              <option value="house">Casa</option>
+              <option value="apartment">Departamento</option>
+            </select>
+            <span class="search-divider"></span>
+            <select v-model="filters.transaction_type" class="search-select">
+              <option value="">Operación</option>
+              <option value="sale">Venta</option>
+              <option value="rent">Renta</option>
+            </select>
+            <span class="search-divider"></span>
+            <input v-model="filters.max_price" type="number" placeholder="Precio max" class="search-input" />
+            <div class="search-actions">
+              <button class="search-btn" @click="goToProperties">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                Buscar
+              </button>
+              <button class="search-reset" @click="resetFilters" title="Limpiar filtros">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
-            <div class="search-divider"></div>
-            <div class="search-field">
-              <span class="field-label">Precio min</span>
-              <input v-model="filters.min_price" type="number" placeholder="Minimo" />
-            </div>
-            <div class="search-divider"></div>
-            <div class="search-field">
-              <span class="field-label">Precio max</span>
-              <input v-model="filters.max_price" type="number" placeholder="Maximo" />
-            </div>
-        
-            <RouterLink to="/propiedades" class="search-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              Buscar
-            </RouterLink>
           </div>
         </div>
       </div>
@@ -356,7 +369,7 @@ onMounted(async () => {
 
   .search-shell {
     right: 16px;
-    bottom: 44px;
+    bottom: 540px;
     width: min(700px, calc(100% - 32px));
   }
 }
@@ -372,34 +385,39 @@ onMounted(async () => {
   gap: 0;
 }
 
-.search-field {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  padding: 6px 14px;
-}
-
-.field-label {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: #0e2b57;
-  overflow-wrap: anywhere;
-}
-
-.search-field select,
-.search-field input {
+.search-input,
+.search-select {
+  padding: 10px 4px;
   border: none;
   background: transparent;
   font-size: 14px;
-  color: #334;
-  padding: 2px 0;
+  font-family: 'Poppins', sans-serif;
+  color: #07182c;
+  min-width: 100px;
   outline: none;
-  width: 100%;
-  min-height: unset;
-  box-shadow: none;
+  flex: 1;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input-city {
+  min-width: 130px;
+}
+
+.search-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2307182c' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  padding-right: 20px;
+}
+
+.search-input:focus,
+.search-select:focus {
+  box-shadow: 0 0 0 3px rgba(214, 168, 72, 0.18);
 }
 
 .search-divider {
@@ -418,34 +436,64 @@ select {
   font: inherit;
   font-size: 13px;
   background: #fff;
+  outline: none;
 }
 
 input:focus,
 select:focus {
-  outline: none;
   border-color: #d8a54d;
   box-shadow: 0 0 0 3px rgba(216, 165, 77, 0.18);
+}
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
 }
 
 .search-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(120deg, #0a355e, #11497d);
+  background: linear-gradient(135deg, #0a355e 0%, #11497d 100%);
   color: #fff;
+  border: none;
   border-radius: 999px;
   padding: 14px 26px;
   font-weight: 700;
   font-size: 16px;
   white-space: nowrap;
   flex-shrink: 0;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
   transition: all .2s ease;
-  text-decoration: none;
 }
 
 .search-btn:hover {
   transform: scale(1.03);
   box-shadow: 0 8px 20px rgba(10, 53, 94, 0.35);
+}
+
+.search-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  background: #f5f2ec;
+  color: #07182c;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+  flex-shrink: 0;
+}
+
+.search-reset:hover {
+  background: #e8e4dc;
+  transform: scale(1.1);
 }
 
 .about,
@@ -730,17 +778,30 @@ select:focus {
     display: none;
   }
 
-  .search-field {
-    padding: 8px 12px;
-    border: 1px solid #e2e9f4;
-    border-radius: 10px;
-    background: #fff;
+  .search-input,
+  .search-select {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .search-actions {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+    margin-top: 8px;
+    gap: 12px;
   }
 
   .search-btn {
-    border-radius: 10px;
+    flex: 1;
     justify-content: center;
+    border-radius: 10px;
     padding: 14px;
+  }
+
+  .search-reset {
+    width: 46px;
+    height: 46px;
   }
 }
 
