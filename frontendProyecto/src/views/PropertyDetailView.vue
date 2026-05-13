@@ -285,7 +285,6 @@ onUnmounted(() => {
           <div class="badges">
             <span>{{ typeLabel[property.property_type] ?? property.property_type }}</span>
             <span class="gold">{{ txLabel[property.transaction_type] ?? property.transaction_type }}</span>
-            <span>{{ selectedLabel }}</span>
           </div>
           <h1>{{ property.title }}</h1>
           <p>
