@@ -119,11 +119,11 @@ const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3
   width: max(100%, 1080px); border-collapse: collapse; table-layout: auto; background: white;
   border-radius: 14px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.05);
 }
-th { background: var(--color-navy); color: white; text-align: left; padding: 14px; font-size: 14px; white-space: nowrap; vertical-align: middle; }
-td { padding: 14px; border-bottom: 1px solid var(--color-line); font-size: 14px; white-space: nowrap; vertical-align: middle; }
+th { background: var(--color-navy); color: white; text-align: left; padding: 14px; font-size: 14px; white-space: nowrap; }
+td { padding: 14px; border-bottom: 1px solid var(--color-line); font-size: 14px; vertical-align: top; }
 tr:hover { background: rgba(214, 168, 72, .05); }
 .td-thumb { width: 44px; padding-right: 8px; }
-.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; }
+.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; max-width: none; }
 .title { font-weight: 600; color: var(--color-navy); min-width: 220px; white-space: normal; }
 .price { font-weight: bold; color: var(--color-navy); }
 .owner-name { display: block; font-weight: 600; color: var(--color-navy); }
@@ -136,13 +136,15 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .rejected { background: #f8d7da; color: #721c24; }
 .sold     { background: #d1ecf1; color: #0c5460; }
 
-.actions, .card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.actions { min-width: 200px; }
+.card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.actions { vertical-align: top; white-space: nowrap; }
 .actions button, .card-actions button {
+  display: inline-flex; align-items: center; gap: 4px;
   border: none; padding: 7px 10px; border-radius: 8px;
   cursor: pointer; font-weight: 600; transition: .2s; font-family: inherit; font-size: 13px;
-  display: flex; align-items: center; gap: 4px;
 }
+.actions button { margin-right: 6px; }
+.actions button:last-child { margin-right: 0; }
 .approve { background: #2ecc71; color: white; }
 .reject  { background: #e74c3c; color: white; }
 .sold    { background: #3498db; color: white; }
@@ -156,6 +158,10 @@ button:hover { opacity: .88; transform: translateY(-1px); }
 .card h3 { margin-bottom: 8px; color: var(--color-navy); }
 .card-actions { margin-top: 12px; }
 
+@media (max-width: 900px) {
+  .table-wrapper table th:nth-child(4),
+  .table-wrapper table td:nth-child(4) { display: none; }
+}
 @media (max-width: 768px) {
   .table-wrapper { display: none; }
   .mobile-cards  { display: flex; flex-direction: column; gap: 12px; }

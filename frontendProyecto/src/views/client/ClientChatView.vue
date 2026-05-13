@@ -248,7 +248,7 @@ onUnmounted(() => {
 
 <style scoped>
 .chat-page { display: flex; flex-direction: column; gap: 20px; }
-.chat-container { display: grid; grid-template-columns: 320px 1fr; gap: 0; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; overflow: hidden; height: 600px; }
+.chat-container { display: grid; grid-template-columns: minmax(280px, 320px) 1fr; gap: 0; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; overflow: hidden; height: 600px; }
 
 .conversations-list { border-right: 1px solid var(--color-line); padding: 20px; overflow-y: auto; }
 .conversations-list h3 { font-size: 14px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }

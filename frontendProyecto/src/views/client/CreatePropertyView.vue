@@ -1017,7 +1017,7 @@ input::placeholder, textarea::placeholder { color: #b5ae9f; }
 .city-display { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #faf9f6; cursor: pointer; font-size: 14px; color: var(--navy); transition: border-color 0.2s; }
 .city-display:hover, .city-select-wrapper:focus-within .city-display { border-color: var(--gold); background: var(--white); }
 .city-arrow { font-size: 10px; color: var(--muted); }
-.city-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--white); border: 1.5px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(7,23,45,0.15); z-index: 50; overflow: hidden; }
+.city-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--white); border: 1.5px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(7,23,45,0.15); z-index: 50; overflow-y: auto; }
 .city-search-input { width: 100%; padding: 10px 14px; border: none; border-bottom: 1px solid var(--line); background: #faf9f6; font-size: 13px; font-family: "Poppins", sans-serif; outline: none; }
 .city-list { max-height: 240px; overflow-y: auto; }
 .city-option { padding: 10px 14px; font-size: 13px; color: var(--navy); cursor: pointer; transition: background 0.15s; }

@@ -462,8 +462,9 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
 .table-container::-webkit-scrollbar { height: 8px; }
 .table-container::-webkit-scrollbar-thumb { background: rgba(16, 46, 79, .35); border-radius: 999px; }
 table { width: max(100%, 980px); border-collapse: collapse; table-layout: auto; }
-th, td { padding: 15px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid #eee7dc; white-space: nowrap; vertical-align: middle; }
-th { color: #65717e; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+th, td { padding: 15px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid #eee7dc; }
+th { color: #65717e; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; vertical-align: middle; }
+td { vertical-align: top; }
 .sortable { cursor: pointer; user-select: none; }
 .sortable:hover { color: var(--color-navy); }
 .sort-icon { margin-left: 4px; font-size: 10px; opacity: .4; }
@@ -478,8 +479,9 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .status.on { background: #dff7e9; color: #166534; }
 .status.off { background: #fee2e2; color: #991b1b; }
 
-.actions { display: flex; gap: 6px; flex-wrap: wrap; min-width: 190px; }
-.actions button { padding: 7px 10px; border-radius: 7px; font-weight: 900; border: none; cursor: pointer; transition: .3s ease; display: flex; align-items: center; gap: 4px; }
+.actions { vertical-align: top; white-space: nowrap; }
+.actions button { display: inline-flex; align-items: center; gap: 4px; padding: 7px 10px; border-radius: 7px; font-weight: 900; border: none; cursor: pointer; transition: .3s ease; margin-right: 6px; }
+.actions button:last-child { margin-right: 0; }
 .actions button:hover { filter: brightness(1.05); }
 .edit { background: #e8edf0; color: #102e4f; }
 .toggle { background: #eef4fb; color: #102e4f; }
@@ -525,6 +527,12 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .mc-actions button { border: none; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
 
+@media (max-width: 900px) {
+  .table-container table th:nth-child(3),
+  .table-container table td:nth-child(3),
+  .table-container table th:nth-child(6),
+  .table-container table td:nth-child(6) { display: none; }
+}
 @media (max-width: 768px) {
   .table-container { display: none; }
   .mobile-cards { display: flex; flex-direction: column; gap: 12px; }
