@@ -82,7 +82,7 @@ const galleryTabs = computed(() => {
   if (property.value?.bathrooms) {
     tabs.push({
       key: 'bathrooms',
-      label: 'Banos',
+      label: 'baños',
       count: bathroomImages.value.length,
       images: bathroomImages.value,
       value: property.value.bathrooms
@@ -129,10 +129,10 @@ const resetAutoplay = () => {
   window.clearInterval(autoplayTimer)
   autoplayTimer = null
 
-  if (images.value.length > 1 && !lightboxOpen.value) {
+  if (generalImages.value.length > 1 && !lightboxOpen.value) {
     autoplayTimer = window.setInterval(() => {
-      activeImg.value = (activeImg.value + 1) % images.value.length
-    }, 3000)
+      activeImg.value = (activeImg.value + 1) % generalImages.value.length
+    }, 5000)
   }
 }
 
@@ -143,6 +143,13 @@ const goTo = (index) => {
 
 const prev = () => goTo(activeImg.value - 1)
 const next = () => goTo(activeImg.value + 1)
+
+const heroGoTo = (index) => {
+  activeImg.value = (index + generalImages.value.length) % generalImages.value.length
+  resetAutoplay()
+}
+const heroPrev = () => heroGoTo(activeImg.value - 1)
+const heroNext = () => heroGoTo(activeImg.value + 1)
 
 const selectGallery = (key) => {
   activeGallery.value = key
@@ -257,9 +264,9 @@ onUnmounted(() => {
       <div class="hero-media">
         <Transition name="image-fade" mode="out-in">
           <img
-            :key="images[activeImg]?.image_url"
-            :src="images[activeImg]?.image_url"
-            :alt="images[activeImg]?.label || property.title"
+            :key="generalImages[activeImg]?.image_url"
+            :src="generalImages[activeImg]?.image_url"
+            :alt="generalImages[activeImg]?.label || property.title"
             class="hero-img"
             @click="openLightbox()"
           />
@@ -268,16 +275,16 @@ onUnmounted(() => {
         <div class="hero-shade"></div>
 
         <div class="hero-actions">
-          <span class="counter">{{ activeImg + 1 }} / {{ images.length }}</span>
+          <span class="counter">{{ activeImg + 1 }} / {{ generalImages.length }}</span>
           <button class="icon-btn" type="button" aria-label="Ver foto en grande" @click="openLightbox()">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
           </button>
         </div>
 
-        <button v-if="images.length > 1" class="nav-btn nav-prev" type="button" aria-label="Foto anterior" @click="prev">
+        <button v-if="generalImages.length > 1" class="nav-btn nav-prev" type="button" aria-label="Foto anterior" @click="heroPrev">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
         </button>
-        <button v-if="images.length > 1" class="nav-btn nav-next" type="button" aria-label="Foto siguiente" @click="next">
+        <button v-if="generalImages.length > 1" class="nav-btn nav-next" type="button" aria-label="Foto siguiente" @click="heroNext">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         </button>
 
@@ -989,7 +996,10 @@ svg {
 }
 
 .image-fade-enter-active,
-.image-fade-leave-active,
+.image-fade-leave-active {
+  transition: opacity .55s ease;
+}
+
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity .22s ease;

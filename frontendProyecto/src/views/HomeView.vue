@@ -52,7 +52,6 @@ const highlightedProperties = computed(() => {
 
   return list
     .filter((p) => {
-      if (filters.value.city && p.city !== filters.value.city) return false
       if (filters.value.property_type && p.property_type !== filters.value.property_type) return false
       if (filters.value.transaction_type && p.transaction_type !== filters.value.transaction_type) return false
       if (filters.value.max_price && Number(p.price) > Number(filters.value.max_price)) return false
@@ -198,6 +197,7 @@ onMounted(async () => {
             :bedrooms="p.bedrooms"
             :bathrooms="p.bathrooms"
             :square-meters="p.square_meters"
+            :images="p.images || []"
             :image="getPropertyImage(p)"
             :show-cta="true"
           />

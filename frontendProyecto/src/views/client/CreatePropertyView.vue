@@ -922,7 +922,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
                 <span class="feature-emoji">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12V5a3 3 0 0 1 6 0M5 12h16v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h2ZM8 20v2M16 20v2"/></svg>
                 </span>
-                <label>Banos</label>
+                <label>baños</label>
                 <input v-model="form.bathrooms" type="number" min="0" placeholder="0" />
               </div>
               <div class="feature-card">
@@ -968,7 +968,7 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
 
             <div v-if="bathroomsCount" class="section-block">
               <div class="section-block-header">
-                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12V5a3 3 0 0 1 6 0M5 12h16v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h2ZM8 20v2M16 20v2"/></svg> Banos</span>
+                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12V5a3 3 0 0 1 6 0M5 12h16v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h2ZM8 20v2M16 20v2"/></svg> baños</span>
                 <span class="count-badge">{{ bathroomsCount }} foto(s)</span>
               </div>
               <div class="slot-grid">

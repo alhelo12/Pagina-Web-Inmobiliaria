@@ -230,7 +230,9 @@ def toggle_favorite(db: Session, user_id: int, property_id: int) -> dict:
         return {
             "action": "removed",
             "is_favorite": False,
-            "property_id": property_id
+            "is_favorited": False,
+            "property_id": property_id,
+            "message": "Propiedad eliminada de favoritos"
         }
     else:
         # Agregar
@@ -245,8 +247,10 @@ def toggle_favorite(db: Session, user_id: int, property_id: int) -> dict:
         return {
             "action": "added",
             "is_favorite": True,
+            "is_favorited": True,
             "property_id": property_id,
-            "favorite_id": db_favorite.id
+            "favorite_id": db_favorite.id,
+            "message": "Propiedad agregada a favoritos"
         }
 
 

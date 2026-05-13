@@ -39,6 +39,7 @@ const props = defineProps({
 
 const auth = useAuthStore()
 const favStore = useFavoritesStore()
+const isFav = computed(() => favStore.isFavorite(props.id))
 
 const typeLabel = {
   house: 'Casa',
@@ -55,8 +56,8 @@ const operationLabel = {
 const extrasLabels = computed(() => {
   if (!props.images || !props.images.length) return []
   return props.images
-    .filter(img => img.is_extra && img.label)
-    .map(img => img.label)
+    .filter((img) => img.is_extra && img.label)
+    .map((img) => img.label)
     .slice(0, 3)
 })
 
@@ -82,12 +83,12 @@ const handleImageError = (event) => {
       <span class="type-pill type-blue">{{ operationLabel[transactionType] }}</span>
       <button
         class="fav-btn"
-        :class="{ active: favStore.isFavorite(id) }"
-        :aria-label="favStore.isFavorite(id) ? 'Quitar de favoritos' : 'Guardar favorito'"
-        :title="auth.isLogged ? (favStore.isFavorite(id) ? 'Quitar de favoritos' : 'Guardar favorito') : 'Inicia sesión para guardar favoritos'"
+        :class="{ active: isFav }"
+        :aria-label="isFav ? 'Quitar de favoritos' : 'Guardar favorito'"
+        :title="auth.isLogged ? (isFav ? 'Quitar de favoritos' : 'Guardar favorito') : 'Inicia sesion para guardar favoritos'"
         @click="toggle"
       >
-        <svg v-if="favStore.isFavorite(id)" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#d64545" stroke="#d64545" stroke-width="2">
+        <svg v-if="isFav" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#d64545" stroke="#d64545" stroke-width="2">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
         <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -100,9 +101,9 @@ const handleImageError = (event) => {
       <p class="city">{{ city }}</p>
       <h3>{{ title }}</h3>
       <div class="meta">
-        <span>{{ Number(squareMeters || 0) }} m²</span>
+        <span>{{ Number(squareMeters || 0) }} m2</span>
         <span>{{ Number(bedrooms || 0) }} Hab.</span>
-        <span>{{ Number(bathrooms || 0) }} Baños</span>
+        <span>{{ Number(bathrooms || 0) }} baños</span>
         <span v-for="extra in extrasLabels" :key="extra" class="extra-tag">{{ extra }}</span>
       </div>
       <div class="bottom-row">
@@ -161,8 +162,6 @@ const handleImageError = (event) => {
 }
 
 .type-pill {
-  position: absolute;
-  z-index: 1;
   padding: 7px 12px;
   border-radius: 999px;
   font-size: 12px;

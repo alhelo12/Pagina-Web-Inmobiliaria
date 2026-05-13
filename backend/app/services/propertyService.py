@@ -1,4 +1,4 @@
-"""
+﻿"""
 Service: Property
 
 Lógica de negocio para gestión de propiedades.
@@ -636,12 +636,12 @@ def add_property_image(
         if allowed <= 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="La propiedad no tiene banos registrados"
+                detail="La propiedad no tiene baños registrados"
             )
         if current >= allowed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Solo se permiten {allowed} foto(s) de banos"
+                detail=f"Solo se permiten {allowed} foto(s) de baños"
             )
 
     effective_is_extra = normalized_image_type == "extra"
