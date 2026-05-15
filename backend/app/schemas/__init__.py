@@ -114,6 +114,7 @@ from app.schemas.messageSchema import (
     ConversationCreate,
     ConversationResponse,
     ConversationListResponse,
+    PropertyBrief,
 )
 
 from app.schemas.postSaleSchema import (
@@ -241,6 +242,7 @@ __all__ = [
     'ConversationCreate',
     'ConversationResponse',
     'ConversationListResponse',
+    'PropertyBrief',
 
     # Post-Sale schemas
     'FollowupTypeEnum',
