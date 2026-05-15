@@ -21,7 +21,7 @@ from app.schemas.postSaleSchema import (
     PostSaleStats,
     PostSaleFollowupFilter
 )
-from app.models import User
+from app.models import User, PostSaleFollowup
 
 router = APIRouter(
     prefix="/post-sale",
@@ -48,8 +48,8 @@ def create_followup(
     followup = postSaleService.create_followup(db=db, followup_data=followup_data)
     
     return (
-        db.query(postSaleService.PostSaleFollowup)
-        .filter(postSaleService.PostSaleFollowup.id == followup.id)
+        db.query(PostSaleFollowup)
+        .filter(PostSaleFollowup.id == followup.id)
         .first()
     )
 

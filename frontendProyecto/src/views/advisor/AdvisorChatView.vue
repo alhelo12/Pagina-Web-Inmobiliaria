@@ -21,7 +21,7 @@ const wsConnected = ref(false)
 
 const fetchConversations = async () => {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/messages/conversations?advisor_id=${auth.userId}`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/messages/conversations`, {
       headers: { ...auth.authHeaders }
     })
     if (res.ok) {

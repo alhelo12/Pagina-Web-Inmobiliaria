@@ -84,7 +84,7 @@ def get_followup_by_id(db: Session, followup_id: int) -> Optional[PostSaleFollow
     return (
         db.query(PostSaleFollowup)
         .options(
-            selectinload(PostSaleFollowup.property),
+            selectinload(PostSaleFollowup.related_property),
             selectinload(PostSaleFollowup.client),
             selectinload(PostSaleFollowup.advisor).selectinload(Advisor.user)
         )
@@ -105,7 +105,7 @@ def get_followups(
 ) -> List[PostSaleFollowup]:
     """Obtener lista de seguimientos con filtros"""
     query = db.query(PostSaleFollowup).options(
-        selectinload(PostSaleFollowup.property),
+        selectinload(PostSaleFollowup.related_property),
         selectinload(PostSaleFollowup.client),
         selectinload(PostSaleFollowup.advisor).selectinload(Advisor.user)
     )
@@ -254,7 +254,7 @@ def get_pending_followups_for_advisor(
     return (
         db.query(PostSaleFollowup)
         .options(
-            selectinload(PostSaleFollowup.property),
+            selectinload(PostSaleFollowup.related_property),
             selectinload(PostSaleFollowup.client)
         )
         .filter(PostSaleFollowup.advisor_id == advisor_id)
@@ -275,7 +275,7 @@ def get_overdue_followups(
     query = (
         db.query(PostSaleFollowup)
         .options(
-            selectinload(PostSaleFollowup.property),
+            selectinload(PostSaleFollowup.related_property),
             selectinload(PostSaleFollowup.client),
             selectinload(PostSaleFollowup.advisor).selectinload(Advisor.user)
         )

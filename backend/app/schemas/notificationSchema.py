@@ -131,6 +131,11 @@ NOTIFICATION_TYPES = {
         "icon": "📞",
         "color": "#8b5cf6",
         "description": "Seguimiento post-venta"
+    },
+    "message_received": {
+        "icon": "💬",
+        "color": "#3b82f6",
+        "description": "Nuevo mensaje recibido"
     }
 }
 

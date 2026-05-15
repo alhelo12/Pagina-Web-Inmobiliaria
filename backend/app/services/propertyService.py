@@ -853,7 +853,7 @@ def take_property(db: Session, property_id: int, advisor_id: int) -> Property:
             db.add(auto_msg)
             db.commit()
             db.refresh(auto_msg)
-            conversation.last_message_at = auto_msg.created_at.strftime("%Y-%m-%dT%H:%M:%S")
+            conversation.last_message_at = auto_msg.created_at
             db.commit()
     except Exception as e:
         print(f"[propertyService] Error creando conversación: {e}")
@@ -1023,7 +1023,7 @@ def get_properties_trends(db: Session, months: int = 12) -> List[dict]:
     Returns:
         Lista de diccionarios con mes y conteos por estado
     """
-    result = db.execute(text("""
+    result = db.execute(text(f"""
         SELECT 
             TO_CHAR(created_at, 'YYYY-MM') as month,
             COUNT(*) FILTER (WHERE status = 'approved') as approved,
@@ -1032,10 +1032,10 @@ def get_properties_trends(db: Session, months: int = 12) -> List[dict]:
             COUNT(*) FILTER (WHERE status = 'sold') as sold,
             COUNT(*) as total
         FROM properties
-        WHERE created_at >= NOW() - INTERVAL ':months months'
+        WHERE created_at >= NOW() - INTERVAL '{months} months'
         GROUP BY TO_CHAR(created_at, 'YYYY-MM')
         ORDER BY month ASC
-    """), {"months": months})
+    """))
     
     return [dict(row) for row in result]
 

@@ -8,14 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from app.dbConfig.databaseSession import get_db
 from app.services import authService, userService
 from app.core.security import create_token_for_user
 from app.core.config import settings
 from app.core.dependencies import get_current_user
+from app.core.rateLimiter import limiter
 from app.schemas import (
     UserCreate,
     ClientRegister,
@@ -24,8 +23,6 @@ from app.schemas import (
     PasswordChange
 )
 from app.models import User
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 # ── Schemas locales para los endpoints de validación ────────────────────────
