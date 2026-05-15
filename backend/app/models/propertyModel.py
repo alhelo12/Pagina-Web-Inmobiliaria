@@ -223,6 +223,13 @@ class Property(BaseModel):
         lazy="dynamic"
     )
     
+    # Relación One-to-Many con Conversation
+    conversations = relationship(
+        "Conversation",
+        back_populates="property",
+        lazy="selectin"
+    )
+    
     def __repr__(self):
         """Representación de la propiedad para debugging"""
         return f"<Property(id={self.id}, title='{self.title[:30]}...', status='{self.status}')>"

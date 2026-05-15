@@ -3,6 +3,7 @@ FastAPI Main Application
 Sistema Inmobiliario - Backend API
 """
 
+import logging
 from pathlib import Path
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,7 +19,9 @@ from app.core.websocket import manager
 from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection, SessionLocal
 from app.core.security import decode_access_token
 from app.services import messageService
-from app.models import Advisor
+from app.models import Advisor, User
+
+logger = logging.getLogger(__name__)
 
 # ==========================================
 # IMPORTAR ROUTERS
@@ -40,20 +43,20 @@ test_db_connection()
 
 # Crear aplicación FastAPI
 app = FastAPI(
-    title=settings.APP_NAME,  # ← USAR settings
+    title=settings.APP_NAME,
     description="API para sistema inmobiliario con aprobación de propiedades",
-    version=settings.APP_VERSION,  # ← USAR settings
-    docs_url=settings.DOCS_URL,  # ← USAR settings
-    redoc_url=settings.REDOC_URL  # ← USAR settings
+    version=settings.APP_VERSION,
+    docs_url=settings.DOCS_URL,
+    redoc_url=settings.REDOC_URL
 )
 
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,  # ← USAR settings
-    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,  # ← USAR settings
-    allow_methods=settings.CORS_ALLOW_METHODS,  # ← USAR settings
-    allow_headers=settings.CORS_ALLOW_HEADERS,  # ← USAR settings
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_methods=settings.CORS_ALLOW_METHODS,
+    allow_headers=settings.CORS_ALLOW_HEADERS,
 )
 
 # Rate Limiting
@@ -96,6 +99,20 @@ app.include_router(activity_log_router)
 # WEBSOCKET — Chat en tiempo real
 # ==========================================
 
+def _is_participant(conversation, user_id: int, db) -> bool:
+    """Verifica que el usuario sea participante de la conversación"""
+    if conversation.user_id == user_id:
+        return True
+    if conversation.advisor:
+        return conversation.advisor.user_id == user_id
+    return False
+
+def _get_recipient_user_id(conversation, sender_user_id: int) -> Optional[int]:
+    """Obtiene el user_id del destinatario (no el advisor_id)"""
+    if conversation.user_id == sender_user_id:
+        return conversation.advisor.user_id if conversation.advisor else None
+    return conversation.user_id
+
 @app.websocket("/ws/messages")
 async def websocket_endpoint(
     websocket: WebSocket,
@@ -104,11 +121,11 @@ async def websocket_endpoint(
     """
     WebSocket para chat en tiempo real.
     
-    Conexión: ws://localhost:8000/ws/messages?token=JWT_TOKEN
+    Conexion: ws://localhost:8000/ws/messages?token=JWT_TOKEN
     
     Mensajes enviados:
     - {"type": "message", "data": {...}} — nuevo mensaje recibido
-    - {"type": "typing", "user_id": 1} — usuario está escribiendo
+    - {"type": "typing", "user_id": 1} — usuario esta escribiendo
     - {"type": "pong"} — respuesta a ping
     
     Mensajes recibidos:
@@ -122,12 +139,12 @@ async def websocket_endpoint(
     
     payload = decode_access_token(token)
     if not payload:
-        await websocket.close(code=4001, reason="Token inválido")
+        await websocket.close(code=4001, reason="Token invalido")
         return
     
-    user_id = payload.get("user_id")
+    user_id = int(payload.get("sub", 0))
     if not user_id:
-        await websocket.close(code=4001, reason="Token inválido")
+        await websocket.close(code=4001, reason="Token invalido")
         return
     
     await manager.connect(websocket, user_id)
@@ -146,6 +163,14 @@ async def websocket_endpoint(
                 
                 db = SessionLocal()
                 try:
+                    conversation = messageService.get_conversation_by_id(db, conversation_id)
+                    if not conversation:
+                        continue
+                    
+                    if not _is_participant(conversation, user_id, db):
+                        logger.warning(f"User {user_id} intentó enviar mensaje en conversación {conversation_id} sin acceso")
+                        continue
+                    
                     message = messageService.send_message(
                         db=db,
                         conversation_id=conversation_id,
@@ -153,24 +178,19 @@ async def websocket_endpoint(
                         content=content
                     )
                     
-                    conversation = messageService.get_conversation_by_id(db, conversation_id)
+                    db.refresh(conversation)
                     
-                    recipient_id = None
-                    if conversation:
-                        if conversation.user_id == user_id:
-                            recipient_id = conversation.advisor_id
-                            sender_info = {
-                                "id": user_id,
-                                "name": payload.get("email", "Usuario"),
-                                "role": "client"
-                            }
-                        else:
-                            recipient_id = conversation.user_id
-                            sender_info = {
-                                "id": user_id,
-                                "name": conversation.advisor.user.full_name if conversation.advisor else "Asesor",
-                                "role": "advisor"
-                            }
+                    recipient_id = _get_recipient_user_id(conversation, user_id)
+                    
+                    sender_user = db.query(User).filter(User.id == user_id).first()
+                    sender_name = sender_user.full_name if sender_user else payload.get("email", "Usuario")
+                    is_client = conversation.user_id == user_id
+                    
+                    sender_info = {
+                        "id": user_id,
+                        "name": sender_name,
+                        "role": "client" if is_client else "advisor"
+                    }
                     
                     message_data = {
                         "type": "message",
@@ -199,14 +219,14 @@ async def websocket_endpoint(
                     db = SessionLocal()
                     try:
                         conversation = messageService.get_conversation_by_id(db, conversation_id)
-                        if conversation:
-                            recipient_id = conversation.user_id if conversation.advisor_id == user_id else conversation.advisor_id
-                            typing_data = {
-                                "type": "typing",
-                                "conversation_id": conversation_id,
-                                "user_id": user_id
-                            }
+                        if conversation and _is_participant(conversation, user_id, db):
+                            recipient_id = _get_recipient_user_id(conversation, user_id)
                             if recipient_id:
+                                typing_data = {
+                                    "type": "typing",
+                                    "conversation_id": conversation_id,
+                                    "user_id": user_id
+                                }
                                 await manager.send_personal_message(typing_data, recipient_id)
                     finally:
                         db.close()
@@ -216,17 +236,18 @@ async def websocket_endpoint(
     
     except WebSocketDisconnect:
         manager.disconnect(websocket, user_id)
-    except Exception:
+    except Exception as e:
+        logger.error(f"WebSocket error para user {user_id}: {e}", exc_info=True)
         manager.disconnect(websocket, user_id)
 
 
 # ==========================================
-# ENDPOINTS PÚBLICOS
+# ENDPOINTS PUBLICOS
 # ==========================================
 
 @app.get("/", tags=["Root"])
 def read_root():
-    """Endpoint raíz — confirma que la API está corriendo."""
+    """Endpoint raiz — confirma que la API esta corriendo."""
     return {
         "message": "Inmobiliaria API",
         "version": "1.0.0",
@@ -237,13 +258,13 @@ def read_root():
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    """Health check básico — para balanceadores y monitoreo."""
+    """Health check basico — para balanceadores y monitoreo."""
     return {"status": "healthy", "service": "inmobiliaria-api"}
 
 
 @app.get("/health/db", tags=["Health"])
 def health_check_database():
-    """Health check con verificación de conexión a PostgreSQL."""
+    """Health check con verificacion de conexion a PostgreSQL."""
     db_connected = test_db_connection()
     pool_stats = get_pool_status() if db_connected else None
     return {
@@ -260,35 +281,34 @@ def health_check_database():
 @app.on_event("startup")
 async def startup_event():
     """
-    Evento al iniciar la aplicación
+    Evento al iniciar la aplicacion
     
-    Verifica la conexión a la base de datos.
+    Verifica la conexion a la base de datos.
     """
     print("="*80)
-    print("🚀 Iniciando Inmobiliaria API...")
+    print("Iniciando Inmobiliaria API...")
     print("="*80)
     
     if test_db_connection():
-        print("✅ Conexión a PostgreSQL: OK")
+        print("Conexion a PostgreSQL: OK")
         pool = get_pool_status()
-        print(f"📊 Connection Pool: {pool['pool_size']} conexiones disponibles")
+        print(f"Connection Pool: {pool['pool_size']} conexiones disponibles")
     else:
-        print("❌ Error: No se pudo conectar a PostgreSQL")
+        print("Error: No se pudo conectar a PostgreSQL")
     
     print("="*80)
-    print("📚 Documentación disponible en: http://localhost:8000/docs")
+    print(f"Documentacion disponible en: http://localhost:8000{settings.DOCS_URL}")
     print("="*80)
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """
-    Evento al cerrar la aplicación
+    Evento al cerrar la aplicacion
     """
-    print("👋 Cerrando Inmobiliaria API...")
+    print("Cerrando Inmobiliaria API...")
 
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-    

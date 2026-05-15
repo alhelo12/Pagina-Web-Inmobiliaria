@@ -1,34 +1,31 @@
 """
 Modelo: Message (Mensajes)
 
-Descripción:
+Descripcion:
     Mensajes directos entre cliente y asesor asignado.
 
 Tabla: conversations
-    Hilo de conversación entre dos usuarios.
+    Hilo de conversacion entre dos usuarios.
 
 Tabla: messages
-    Mensajes individuales dentro de una conversación.
+    Mensajes individuales dentro de una conversacion.
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean
+from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, DateTime, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.dbConfig.baseModels import BaseModel
 
 
 class Conversation(BaseModel):
     """
-    Modelo de Conversación
+    Modelo de Conversacion
 
     Un hilo de chat entre un cliente y su asesor asignado.
-
-    Attributes:
-        id (int): ID único (heredado)
-        user_id (int): FK al usuario cliente
-        advisor_id (int): FK al asesor
-        last_message_at (datetime): Fecha del último mensaje (para ordenar)
     """
     __tablename__ = "conversations"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'advisor_id', name='uq_conversation_user_advisor'),
+    )
 
     user_id = Column(
         Integer,
@@ -44,15 +41,19 @@ class Conversation(BaseModel):
         index=True
     )
 
+    property_id = Column(
+        Integer,
+        ForeignKey("properties.id"),
+        nullable=True,
+        index=True,
+        comment="FK a la propiedad asociada (opcional)"
+    )
+
     last_message_at = Column(
-        String(30),
+        DateTime,
         nullable=True,
         index=True
     )
-
-    # ==========================================
-    # RELACIONES SQLALCHEMY
-    # ==========================================
 
     user = relationship(
         "User",
@@ -63,6 +64,12 @@ class Conversation(BaseModel):
     advisor = relationship(
         "Advisor",
         foreign_keys=[advisor_id],
+        back_populates="conversations"
+    )
+
+    property = relationship(
+        "Property",
+        foreign_keys=[property_id],
         back_populates="conversations"
     )
 
@@ -81,14 +88,7 @@ class Message(BaseModel):
     """
     Modelo de Mensaje
 
-    Mensaje individual dentro de una conversación.
-
-    Attributes:
-        id (int): ID único (heredado)
-        conversation_id (int): FK a la conversación
-        sender_id (int): FK al usuario que envía
-        content (str): Contenido del mensaje
-        is_read (bool): Si el receptor lo ha leído
+    Mensaje individual dentro de una conversacion.
     """
     __tablename__ = "messages"
 
@@ -117,10 +117,6 @@ class Message(BaseModel):
         nullable=False,
         index=True
     )
-
-    # ==========================================
-    # RELACIONES SQLALCHEMY
-    # ==========================================
 
     conversation = relationship(
         "Conversation",

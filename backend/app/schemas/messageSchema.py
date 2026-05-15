@@ -1,7 +1,7 @@
 """
 Schemas de Mensajes (Pydantic)
 
-DTOs para validación de datos de mensajes directos entre
+DTOs para validacion de datos de mensajes directos entre
 cliente y asesor asignado.
 """
 
@@ -11,7 +11,7 @@ from datetime import datetime
 
 
 class MessageCreate(BaseModel):
-    conversation_id: int = Field(..., description="ID de la conversación")
+    conversation_id: int = Field(..., description="ID de la conversacion")
     content: str = Field(..., min_length=1, max_length=5000, description="Contenido del mensaje")
 
 
@@ -31,12 +31,23 @@ class MessageResponse(BaseModel):
 class ConversationCreate(BaseModel):
     advisor_id: int = Field(..., description="ID del asesor")
     content: str = Field(..., min_length=1, max_length=5000, description="Contenido del primer mensaje")
+    property_id: Optional[int] = Field(None, description="ID de la propiedad asociada (opcional)")
+
+
+class PropertyBrief(BaseModel):
+    id: int
+    title: str
+    property_type: Optional[str] = None
+    city: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ConversationResponse(BaseModel):
     id: int
     user_id: int
     advisor_id: int
+    property_id: Optional[int] = None
     last_message_at: Optional[datetime] = None
     last_message: Optional[str] = None
     unread_count: int = 0
@@ -44,6 +55,7 @@ class ConversationResponse(BaseModel):
     updated_at: datetime
     user_name: Optional[str] = None
     advisor_name: Optional[str] = None
+    property: Optional[PropertyBrief] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -58,5 +70,6 @@ class ConversationListResponse(BaseModel):
 class MessageListResponse(BaseModel):
     total: int
     items: List[MessageResponse]
+    has_more: bool = False
 
     model_config = ConfigDict(from_attributes=True)

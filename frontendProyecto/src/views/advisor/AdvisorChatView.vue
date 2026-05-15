@@ -2,9 +2,13 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useMessagesStore } from '@/stores/messagesStore'
+import { useChatWebSocket } from '@/composables/useChatWebSocket'
+import { formatDateGroup } from '@/utils/chatUtils'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
-import Breadcrumb from '@/components/shared/Breadcrumb.vue'
+import ConversationItem from '@/components/shared/ConversationItem.vue'
+import ChatBubble from '@/components/shared/ChatBubble.vue'
+import TypingIndicator from '@/components/shared/TypingIndicator.vue'
 
 const auth = useAuthStore()
 const messagesStore = useMessagesStore()
@@ -15,9 +19,68 @@ const selectedConversation = ref(null)
 const newMessage = ref('')
 const loading = ref(true)
 const sending = ref(false)
+const sendError = ref(false)
 const showConversations = ref(true)
-const ws = ref(null)
-const wsConnected = ref(false)
+const messagesContainer = ref(null)
+const searchQuery = ref('')
+const filterType = ref('all')
+const typingTimeout = ref(null)
+const isOtherTyping = ref(false)
+const soundEnabled = ref(false)
+
+const audioContext = ref(null)
+
+function playNotificationSound() {
+  if (!soundEnabled.value) return
+  try {
+    if (!audioContext.value) {
+      audioContext.value = new (window.AudioContext || window.webkitAudioContext)()
+    }
+    const ctx = audioContext.value
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.frequency.value = 800
+    gain.gain.value = 0.1
+    osc.start()
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+    osc.stop(ctx.currentTime + 0.3)
+  } catch {
+    // Audio not supported
+  }
+}
+
+function handleWebSocketMessage(msgData) {
+  const exists = messages.value.some(m => m.id === msgData.id)
+  if (!exists) {
+    messages.value.push(msgData)
+    if (msgData.sender_id !== auth.userId) {
+      playNotificationSound()
+    }
+    nextTick(() => scrollToBottom())
+  }
+  const conv = conversations.value.find(c => c.id === msgData.conversation_id)
+  if (conv) {
+    conv.last_message = msgData.content
+    conv.last_message_at = msgData.created_at
+  }
+}
+
+function handleWebSocketTyping(data) {
+  if (selectedConversation.value && data.conversation_id === selectedConversation.value.id) {
+    isOtherTyping.value = true
+    clearTimeout(typingTimeout.value)
+    typingTimeout.value = setTimeout(() => {
+      isOtherTyping.value = false
+    }, 3000)
+  }
+}
+
+const { wsConnected, connect, disconnect, sendMessage: wsSend, sendTyping } = useChatWebSocket(
+  handleWebSocketMessage,
+  handleWebSocketTyping
+)
 
 const fetchConversations = async () => {
   try {
@@ -26,7 +89,7 @@ const fetchConversations = async () => {
     })
     if (res.ok) {
       const data = await res.json()
-      conversations.value = data.items || data
+      conversations.value = data.items || []
     }
   } catch (err) {
     console.error('Error fetching conversations:', err)
@@ -42,7 +105,7 @@ const fetchMessages = async (conversationId) => {
     })
     if (res.ok) {
       const data = await res.json()
-      messages.value = data.items || data
+      messages.value = data.items || []
       nextTick(() => scrollToBottom())
     }
   } catch (err) {
@@ -50,46 +113,20 @@ const fetchMessages = async (conversationId) => {
   }
 }
 
-const connectWebSocket = () => {
-  const token = localStorage.getItem('token')
-  if (!token) return
-
-  const wsUrl = `${import.meta.env.VITE_API_URL.replace('http', 'ws')}/ws/messages?token=${token}`
-  ws.value = new WebSocket(wsUrl)
-
-  ws.value.onopen = () => {
-    wsConnected.value = true
-    console.log('WebSocket conectado')
-  }
-
-  ws.value.onmessage = (event) => {
-    const data = JSON.parse(event.data)
-    if (data.type === 'message' && selectedConversation.value) {
-      const msg = data.data
-      const exists = messages.value.some(m => m.id === msg.id)
-      if (!exists) {
-        messages.value.push(msg)
-        nextTick(() => scrollToBottom())
-      }
-    }
-  }
-
-  ws.value.onclose = () => {
-    wsConnected.value = false
-    console.log('WebSocket desconectado, reconectando...')
-    setTimeout(connectWebSocket, 3000)
-  }
-
-  ws.value.onerror = (err) => {
-    console.error('WebSocket error:', err)
-  }
-}
-
 const selectConversation = async (conv) => {
   selectedConversation.value = conv
   showConversations.value = false
-  await messagesStore.markConversationRead(conv.id)
-  fetchMessages(conv.id)
+  isOtherTyping.value = false
+  try {
+    await fetch(`${import.meta.env.VITE_API_URL}/messages/conversations/${conv.id}/read`, {
+      method: 'POST',
+      headers: { ...auth.authHeaders }
+    })
+    conv.unread_count = 0
+  } catch {
+    // Mark read failed, non-critical
+  }
+  await fetchMessages(conv.id)
 }
 
 const backToConversations = () => {
@@ -99,34 +136,53 @@ const backToConversations = () => {
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedConversation.value || sending.value) return
   sending.value = true
+  sendError.value = false
 
   const content = newMessage.value.trim()
+  const optimisticMsg = {
+    id: `opt-${Date.now()}`,
+    conversation_id: selectedConversation.value.id,
+    sender_id: auth.userId,
+    content,
+    is_read: false,
+    created_at: new Date().toISOString(),
+    sender: { id: auth.userId, name: 'Tu', role: 'advisor' }
+  }
 
-  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-    ws.value.send(JSON.stringify({
-      type: 'message',
-      conversation_id: selectedConversation.value.id,
-      content: content
-    }))
+  if (wsConnected.value) {
+    messages.value.push(optimisticMsg)
     newMessage.value = ''
     nextTick(() => scrollToBottom())
+
+    const sent = wsSend('message', {
+      conversation_id: selectedConversation.value.id,
+      content
+    })
+    if (!sent) {
+      messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
+      sendError.value = true
+    }
   } else {
     try {
+      messages.value.push(optimisticMsg)
+      newMessage.value = ''
+      nextTick(() => scrollToBottom())
+
       const res = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
         method: 'POST',
         headers: { ...auth.authHeaders, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conversation_id: selectedConversation.value.id,
-          content: content
+          content
         })
       })
-      if (res.ok) {
-        const msg = await res.json()
-        messages.value.push(msg)
-        newMessage.value = ''
-        nextTick(() => scrollToBottom())
+      if (!res.ok) {
+        messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
+        sendError.value = true
       }
     } catch (err) {
+      messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
+      sendError.value = true
       console.error('Error sending message:', err)
     }
   }
@@ -134,57 +190,74 @@ const sendMessage = async () => {
   sending.value = false
 }
 
+const handleTyping = () => {
+  if (selectedConversation.value && wsConnected.value) {
+    sendTyping(selectedConversation.value.id)
+  }
+}
+
 const scrollToBottom = () => {
-  const container = document.querySelector('.messages-container')
-  if (container) container.scrollTop = container.scrollHeight
-}
-
-const formatTime = (dateStr) => {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-}
-
-const resolveDisplayName = (person, fallback = 'Usuario') => {
-  if (!person) return fallback
-  return (
-    person.full_name ||
-    person.name ||
-    person.display_name ||
-    person.username ||
-    person.email ||
-    fallback
-  )
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  }
 }
 
 const getConversationName = (conv) => {
-  return (
-    resolveDisplayName(conv.client, '') ||
-    conv.client_name ||
-    conv.other_user_name ||
-    conv.participant_name ||
-    'Cliente'
-  )
+  return conv.user_name || conv.client_name || conv.other_user_name || 'Cliente'
 }
 
 const messageSenderName = (msg) => {
-  if (msg.sender_id === auth.userId) return 'Tú'
-  return (
-    resolveDisplayName(msg.sender, '') ||
-    msg.sender_name ||
-    getConversationName(selectedConversation.value || {})
-  )
+  if (msg.sender_id === auth.userId) return 'Tu'
+  return msg.sender_name || msg.sender?.name || getConversationName(selectedConversation.value || {})
 }
 
-onMounted(() => {
-  fetchConversations()
-  connectWebSocket()
+const groupedMessages = computed(() => {
+  const groups = []
+  let currentGroup = null
+
+  for (const msg of messages.value) {
+    const dateLabel = formatDateGroup(msg.created_at)
+    if (!currentGroup || currentGroup.label !== dateLabel) {
+      currentGroup = { label: dateLabel, messages: [] }
+      groups.push(currentGroup)
+    }
+    currentGroup.messages.push(msg)
+  }
+
+  return groups
+})
+
+const filteredConversations = computed(() => {
+  let result = conversations.value
+
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    result = result.filter(c =>
+      (c.user_name || '').toLowerCase().includes(q) ||
+      (c.advisor_name || '').toLowerCase().includes(q) ||
+      (c.last_message || '').toLowerCase().includes(q)
+    )
+  }
+
+  if (filterType.value === 'unread') {
+    result = result.filter(c => c.unread_count > 0)
+    result.sort((a, b) => b.unread_count - a.unread_count)
+  }
+
+  return result
+})
+
+const totalUnread = computed(() =>
+  conversations.value.reduce((sum, c) => sum + (c.unread_count || 0), 0)
+)
+
+onMounted(async () => {
+  await fetchConversations()
+  connect()
 })
 
 onUnmounted(() => {
-  if (ws.value) {
-    ws.value.close()
-  }
+  disconnect()
 })
 </script>
 
@@ -195,8 +268,32 @@ onUnmounted(() => {
 
     <div class="chat-container">
       <aside class="conversations-list" :class="{ 'mobile-show': showConversations }">
-        <h3>Conversaciones</h3>
-        
+        <div class="sidebar-header">
+          <h3>Conversaciones</h3>
+          <span v-if="totalUnread > 0" class="total-unread" aria-label="Total mensajes sin leer">{{ totalUnread }}</span>
+        </div>
+
+        <div class="search-bar">
+          <input
+            v-model="searchQuery"
+            placeholder="Buscar cliente..."
+            aria-label="Buscar conversaciones"
+          />
+        </div>
+
+        <div class="filter-tabs">
+          <button
+            :class="['filter-tab', { active: filterType === 'all' }]"
+            @click="filterType = 'all'"
+            aria-label="Mostrar todas las conversaciones"
+          >Todas</button>
+          <button
+            :class="['filter-tab', { active: filterType === 'unread' }]"
+            @click="filterType = 'unread'"
+            aria-label="Mostrar solo conversaciones sin leer"
+          >Sin leer</button>
+        </div>
+
         <div v-if="loading" class="loading fancy-loading">
           <div class="skeleton-row" v-for="n in 3" :key="n">
             <span class="sk-avatar"></span>
@@ -206,72 +303,95 @@ onUnmounted(() => {
             </span>
           </div>
         </div>
-        
-        <div v-else-if="conversations.length === 0" class="empty fancy-empty">
+
+        <div v-else-if="filteredConversations.length === 0" class="empty fancy-empty">
           <div class="empty-icon-wrap"><AppIcon name="chat" :size="28" /></div>
-          <h4>Aún no tienes conversaciones</h4>
-          <p>Cuando un cliente te contacte desde una propiedad, aparecerá aquí.</p>
+          <h4 v-if="searchQuery">Sin resultados para "{{ searchQuery }}"</h4>
+          <h4 v-else>Aun no tienes conversaciones</h4>
+          <p v-if="filterType === 'unread'">No hay mensajes sin leer</p>
+          <p v-else>Cuando un cliente te contacte desde una propiedad, aparecera aqui.</p>
         </div>
-        
+
         <div v-else>
-          <div 
-            v-for="conv in conversations" 
+          <ConversationItem
+            v-for="conv in filteredConversations"
             :key="conv.id"
-            :class="['conversation-item', { active: selectedConversation?.id === conv.id }]"
-            @click="selectConversation(conv)"
-          >
-            <div class="conv-avatar">{{ getConversationName(conv).charAt(0) }}</div>
-            <div class="conv-info">
-              <span class="conv-name">{{ getConversationName(conv) }}</span>
-              <span class="conv-preview">{{ conv.last_message || 'Sin mensajes' }}</span>
-            </div>
-          </div>
+            :conversation="conv"
+            :is-active="selectedConversation?.id === conv.id"
+            :show-property-context="true"
+            @select="selectConversation"
+          />
         </div>
       </aside>
 
       <main class="chat-area">
         <div v-if="!selectedConversation" class="no-selection">
           <div class="no-selection-icon"><AppIcon name="chat" :size="48" /></div>
-          <h3>Selecciona una conversación</h3>
-          <p>Elige una conversación de la lista para ver los mensajes</p>
+          <h3>Selecciona una conversacion</h3>
+          <p>Elige una conversacion de la lista para ver los mensajes</p>
         </div>
 
         <template v-else>
           <header class="chat-header">
             <div class="chat-user">
-              <button class="back-btn" @click="backToConversations" title="Volver a conversaciones">
+              <button class="back-btn" @click="backToConversations" title="Volver a conversaciones" aria-label="Volver a la lista de conversaciones">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
               </button>
-              <div class="user-avatar">{{ getConversationName(selectedConversation).charAt(0) }}</div>
-              <span>{{ getConversationName(selectedConversation) }}</span>
+              <div class="user-avatar" aria-hidden="true">{{ getConversationName(selectedConversation).charAt(0) }}</div>
+              <div class="user-info">
+                <span>{{ getConversationName(selectedConversation) }}</span>
+                <span v-if="selectedConversation.property" class="user-property">{{ selectedConversation.property.title }}</span>
+              </div>
+              <span v-if="wsConnected" class="online-dot" title="Conectado" aria-label="Conectado"></span>
             </div>
           </header>
 
-          <div class="messages-container">
+          <div ref="messagesContainer" class="messages-container" role="log" aria-label="Mensajes de la conversacion" aria-live="polite">
             <div v-if="messages.length === 0" class="no-messages">
-              <p>No hay mensajes aún. Envía el primero!</p>
+              <p>No hay mensajes aun. Envía el primero!</p>
             </div>
-            <div v-else v-for="msg in messages" :key="msg.id" :class="['message', { mine: msg.sender_id === auth.userId }]">
-              <span class="sender-name">{{ messageSenderName(msg) }}</span>
-              <div class="message-bubble">{{ msg.content }}</div>
-              <span class="message-time">{{ formatTime(msg.created_at) }}</span>
-            </div>
+
+            <template v-else>
+              <div v-for="group in groupedMessages" :key="group.label" class="message-group">
+                <div class="date-divider"><span>{{ group.label }}</span></div>
+                <ChatBubble
+                  v-for="msg in group.messages"
+                  :key="msg.id"
+                  :message="msg"
+                  :is-mine="msg.sender_id === auth.userId"
+                  :sender-name="messageSenderName(msg)"
+                  :show-status="true"
+                />
+              </div>
+            </template>
+
+            <TypingIndicator
+              :user-name="getConversationName(selectedConversation)"
+              :is-visible="isOtherTyping"
+            />
           </div>
 
           <footer class="chat-input">
-            <input 
-              v-model="newMessage" 
+            <input
+              v-model="newMessage"
               @keyup.enter="sendMessage"
+              @input="handleTyping"
               placeholder="Escribe un mensaje..."
               :disabled="sending"
+              aria-label="Escribe un mensaje"
             />
-            <button @click="sendMessage" :disabled="sending || !newMessage.trim()">
+            <button @click="sendMessage" :disabled="sending || !newMessage.trim()" aria-label="Enviar mensaje">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="22" y1="2" x2="11" y2="13"></line>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
               </svg>
             </button>
           </footer>
+
+          <div v-if="sendError" class="send-error">
+            <span>Error al enviar. Intenta de nuevo.</span>
+            <button @click="sendError = false" aria-label="Cerrar error">x</button>
+          </div>
         </template>
       </main>
     </div>
@@ -280,28 +400,33 @@ onUnmounted(() => {
 
 <style scoped>
 .chat-page { display: flex; flex-direction: column; gap: 20px; }
-.chat-container { display: grid; grid-template-columns: minmax(280px, 320px) 1fr; gap: 0; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; overflow: hidden; height: 600px; }
+.chat-container { display: grid; grid-template-columns: minmax(280px, 320px) 1fr; gap: 0; background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; overflow: hidden; min-height: 600px; height: calc(100vh - 200px); }
 
 .conversations-list { border-right: 1px solid var(--color-line); padding: 20px; overflow-y: auto; }
-.conversations-list h3 { font-size: 14px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }
-.conversation-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: .22s ease; }
-.conversation-item:hover { background: rgba(7, 24, 44, 0.05); border-color: rgba(7, 24, 44, 0.08); transform: translateY(-1px); }
-.conversation-item.active { background: linear-gradient(120deg, rgba(7, 24, 44, 0.95), rgba(16, 46, 79, 0.92)); border-color: rgba(214, 168, 72, 0.35); box-shadow: 0 10px 20px rgba(7, 24, 44, 0.22); }
-.conv-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
-.conv-info { display: flex; flex-direction: column; overflow: hidden; }
-.conv-name { font-weight: 600; color: var(--color-navy); }
-.conv-preview { font-size: 13px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.conversation-item.active .conv-name { color: #fff; }
-.conversation-item.active .conv-preview { color: rgba(255, 255, 255, 0.78); }
+.sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.sidebar-header h3 { font-size: 14px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .5px; margin: 0; }
+.total-unread { background: var(--color-gold); color: white; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
 
-.chat-area { display: flex; flex-direction: column; }
+.search-bar { margin-bottom: 12px; }
+.search-bar input { width: 100%; padding: 8px 12px; border: 1px solid var(--color-line); border-radius: 8px; font-size: 13px; outline: none; transition: .2s; background: #fff; }
+.search-bar input:focus { border-color: #d8a54d; box-shadow: 0 0 0 3px rgba(216, 165, 77, 0.15); }
+
+.filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.filter-tab { flex: 1; padding: 6px 12px; border: 1px solid var(--color-line); border-radius: 8px; background: transparent; color: var(--color-muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: .2s; }
+.filter-tab:hover { border-color: var(--color-gold); color: var(--color-navy); }
+.filter-tab.active { background: var(--color-navy); color: white; border-color: var(--color-navy); }
+
+.chat-area { display: flex; flex-direction: column; min-width: 0; }
 .no-selection { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--color-muted); text-align: center; padding: 40px; }
 .no-selection-icon { color: var(--color-gold); margin-bottom: 16px; }
 
 .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--color-line); }
 .chat-user { display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--color-navy); }
 .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.user-info { display: flex; flex-direction: column; }
+.user-property { font-size: 11px; font-weight: 400; color: var(--color-muted); }
 .back-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(7, 24, 44, 0.08); color: var(--color-navy); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
 
 .messages-container {
   flex: 1;
@@ -309,7 +434,6 @@ onUnmounted(() => {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   background:
     radial-gradient(circle at 15% 5%, rgba(214, 168, 72, 0.06), transparent 28%),
     radial-gradient(circle at 90% 100%, rgba(7, 24, 44, 0.06), transparent 30%),
@@ -317,16 +441,9 @@ onUnmounted(() => {
 }
 .no-messages { text-align: center; color: var(--color-muted); padding: 40px; }
 
-.message { display: flex; flex-direction: column; max-width: 74%; animation: msgIn .2s ease both; }
-.message.mine { align-self: flex-end; }
-.sender-name { font-size: 11px; font-weight: 700; color: #60758f; margin: 0 4px 4px; }
-.message.mine .sender-name { color: #91671f; text-align: right; }
-.message-bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; border: 1px solid transparent; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08); transition: transform .2s ease, box-shadow .2s ease; }
-.message-bubble:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12); }
-.message:not(.mine) .message-bubble { background: #ffffff; color: var(--color-navy); border-color: #e6edf6; border-bottom-left-radius: 6px; }
-.message.mine .message-bubble { background: linear-gradient(120deg, #d8a54d, #c9973d); color: #fff; border-bottom-right-radius: 6px; }
-.message-time { font-size: 11px; color: var(--color-muted); margin-top: 4px; }
-.message.mine .message-time { text-align: right; }
+.message-group { display: flex; flex-direction: column; }
+.date-divider { display: flex; align-items: center; justify-content: center; margin: 16px 0 12px; }
+.date-divider span { font-size: 11px; color: var(--color-muted); background: #f8fafc; padding: 4px 12px; border-radius: 12px; border: 1px solid #e6edf6; text-transform: capitalize; }
 
 .chat-input { display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--color-line); }
 .chat-input input { flex: 1; padding: 12px 16px; border: 1px solid var(--color-line); border-radius: 24px; font-size: 14px; outline: none; transition: .2s; background: #fff; }
@@ -334,6 +451,9 @@ onUnmounted(() => {
 .chat-input button { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(120deg, #07182c, #0f355f); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .2s; box-shadow: 0 10px 16px rgba(7, 24, 44, 0.25); }
 .chat-input button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 20px rgba(7, 24, 44, 0.32); }
 .chat-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.send-error { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: #fef2f2; border-top: 1px solid #fecaca; color: #dc2626; font-size: 12px; }
+.send-error button { background: none; border: none; color: #dc2626; cursor: pointer; font-weight: 700; font-size: 14px; }
 
 .loading, .empty { padding: 20px; text-align: center; color: var(--color-muted); }
 .fancy-loading { display: grid; gap: 12px; padding: 10px 4px; text-align: left; }
@@ -348,17 +468,13 @@ onUnmounted(() => {
 .fancy-empty h4 { margin: 0; color: #102c4f; font-size: 16px; }
 .fancy-empty p { margin: 0; font-size: 13px; max-width: 240px; color: #62778f; }
 
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 @media (max-width: 900px) {
-  .chat-container { height: 500px; }
+  .chat-container { min-height: 500px; }
 }
 @media (max-width: 768px) {
   .chat-container { grid-template-columns: 1fr; height: calc(100vh - 180px); min-height: 400px; }
@@ -366,8 +482,6 @@ onUnmounted(() => {
   .conversations-list.mobile-show { display: block; }
   .chat-area { border-radius: 16px; }
   .back-btn { display: flex; }
-  .message { max-width: 88%; }
-  .message-bubble { padding: 10px 14px; font-size: 13px; }
   .chat-input { padding: 12px 16px; }
   .chat-input input { padding: 10px 14px; font-size: 13px; }
 }
