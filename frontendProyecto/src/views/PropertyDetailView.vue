@@ -1,13 +1,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import L from 'leaflet'
 import { propertiesApi } from '@/api/properties'
+import apiClient from '@/api/axios'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { useAuthStore } from '@/stores/authStore'
 import { FALLBACK_PROPERTY_IMAGE, normalizeImageUrl } from '@/utils/propertyImages'
 
 const route = useRoute()
+const router = useRouter()
 const favStore = useFavoritesStore()
 const auth = useAuthStore()
 
@@ -19,6 +21,8 @@ const activeGallery = ref('general')
 const toggling = ref(false)
 const lightboxOpen = ref(false)
 const mapEl = ref(null)
+const contactStatus = ref('idle')
+const contactMessage = ref('')
 
 let autoplayTimer = null
 let mapInstance = null
@@ -166,6 +170,47 @@ const openLightbox = (index = activeImg.value) => {
 const closeLightbox = () => {
   lightboxOpen.value = false
   resetAutoplay()
+}
+
+const handleContactAdvisor = async () => {
+  if (!auth.isLogged) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
+  if (!auth.isEmailVerified) {
+    router.push('/verificado')
+    return
+  }
+
+  const advisorId = property.value?.advisor_id
+  if (!advisorId) {
+    router.push('/contacto')
+    return
+  }
+
+  contactStatus.value = 'starting'
+  contactMessage.value = ''
+
+  try {
+    await apiClient.post('/messages/start', {
+      advisor_id: advisorId,
+      property_id: property.value.id,
+      content: `Hola, me interesa la propiedad "${property.value.title}". Me gustaria obtener mas informacion.`
+    })
+    contactStatus.value = 'success'
+    contactMessage.value = 'Conversacion iniciada correctamente'
+    setTimeout(() => {
+      router.push('/client/mensajes')
+    }, 800)
+  } catch (err) {
+    contactStatus.value = 'error'
+    contactMessage.value = err.response?.data?.detail || 'No se pudo iniciar la conversacion'
+    setTimeout(() => {
+      contactStatus.value = 'idle'
+      contactMessage.value = ''
+    }, 3000)
+  }
 }
 
 const onKey = (e) => {
@@ -403,10 +448,27 @@ onUnmounted(() => {
           <span class="eyebrow">Atencion</span>
           <h2>Te interesa esta propiedad?</h2>
           <p>Un asesor puede ayudarte a revisar disponibilidad, agenda y detalles de la visita.</p>
-          <RouterLink to="/contacto" class="primary-link">
+          <button
+            v-if="contactStatus === 'idle'"
+            class="primary-link contact-btn-action"
+            @click="handleContactAdvisor"
+            :aria-label="property?.advisor_id ? 'Iniciar chat con el asesor' : 'Ir a pagina de contacto'"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.9.7 2.8a2 2 0 0 1-.5 2.1l-1.2 1.2a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.8 2.1Z"/></svg>
-            Contactar asesor
-          </RouterLink>
+            <span>{{ property?.advisor_id ? 'Contactar asesor' : 'Contactar' }}</span>
+          </button>
+          <button v-else-if="contactStatus === 'starting'" class="primary-link contact-btn-action" disabled aria-label="Iniciando conversacion">
+            <svg class="spin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4"/></svg>
+            <span>Iniciando conversacion...</span>
+          </button>
+          <button v-else-if="contactStatus === 'success'" class="primary-link contact-btn-action success" disabled aria-label="Conversacion iniciada">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Redirigiendo al chat...</span>
+          </button>
+          <button v-else-if="contactStatus === 'error'" class="primary-link contact-btn-action error" @click="contactStatus = 'idle'; contactMessage = ''" aria-label="Reintentar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            <span>{{ contactMessage || 'Error. Reintentar' }}</span>
+          </button>
           <RouterLink to="/propiedades" class="secondary-link">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
             Ver mas propiedades
@@ -927,6 +989,34 @@ svg {
 .primary-link {
   background: var(--color-gold);
   color: var(--color-navy);
+}
+
+.contact-btn-action {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  transition: background 0.2s, opacity 0.2s;
+}
+.contact-btn-action:hover:not(:disabled) {
+  background: #e0b03a;
+}
+.contact-btn-action:disabled {
+  cursor: default;
+}
+.contact-btn-action.success {
+  background: #22c55e;
+  color: #fff;
+}
+.contact-btn-action.error {
+  background: #dc2626;
+  color: #fff;
+}
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .secondary-link,
