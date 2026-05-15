@@ -6,13 +6,13 @@ Incluye CRUD, sistema de aprobación y filtros avanzados.
 """
 
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func, and_, or_, text
 from typing import Optional, List, Tuple
 from fastapi import HTTPException, status
 
 from app.models import Property, PropertyImage, User, Advisor, Conversation, Message
 from app.schemas import PropertyCreate, PropertyUpdate, PropertySearchFilters
-from app.services import notificationService
+from app.services import notificationService, postSaleService
 
 
 # ==========================================
@@ -421,6 +421,17 @@ def mark_as_sold(db: Session, property_id: int) -> Property:
     except Exception:
         pass  # No fallar si no se puede crear la notificación
     
+    # Crear seguimientos post-venta automáticos
+    try:
+        postSaleService.create_auto_followups_on_sale(
+            db=db,
+            property_id=property_id,
+            client_id=db_property.submitted_by_user_id,
+            advisor_id=db_property.advisor_id
+        )
+    except Exception:
+        pass  # No fallar si no se pueden crear los seguimientos
+    
     return db_property
 
 
@@ -469,6 +480,15 @@ def search_properties(
         Tupla (lista de propiedades, total)
     """
     query = db.query(Property).options(selectinload(Property.images), selectinload(Property.owner))
+    
+    # Búsqueda por texto completo (tsvector)
+    if filters.query:
+        search_query = db.query(Property).filter(
+            Property.search_vector.op('@@')(
+                func.websearch_to_tsquery('spanish', filters.query)
+            )
+        ).with_entities(Property.id)
+        query = query.filter(Property.id.in_(search_query))
     
     # Filtro por ciudad
     if filters.city:
@@ -986,4 +1006,110 @@ def get_property_stats_by_advisor(db: Session, advisor_id: int) -> dict:
         "available_to_take": available,
         "clients_count": clients_count
     }
+
+
+# ==========================================
+# ANALYTICS AVANZADOS
+# ==========================================
+
+def get_properties_trends(db: Session, months: int = 12) -> List[dict]:
+    """
+    Obtener tendencias de propiedades por mes (últimos N meses)
+    
+    Args:
+        db: Sesión de base de datos
+        months: Número de meses hacia atrás
+        
+    Returns:
+        Lista de diccionarios con mes y conteos por estado
+    """
+    result = db.execute(text("""
+        SELECT 
+            TO_CHAR(created_at, 'YYYY-MM') as month,
+            COUNT(*) FILTER (WHERE status = 'approved') as approved,
+            COUNT(*) FILTER (WHERE status = 'pending') as pending,
+            COUNT(*) FILTER (WHERE status = 'rejected') as rejected,
+            COUNT(*) FILTER (WHERE status = 'sold') as sold,
+            COUNT(*) as total
+        FROM properties
+        WHERE created_at >= NOW() - INTERVAL ':months months'
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+        ORDER BY month ASC
+    """), {"months": months})
+    
+    return [dict(row) for row in result]
+
+
+def get_avg_days_on_market(db: Session) -> dict:
+    """
+    Obtener días promedio que las propiedades pasan en cada estado
+    
+    Returns:
+        Diccionario con días promedio por estado
+    """
+    result = db.execute(text("""
+        SELECT 
+            status,
+            ROUND(AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 86400)::numeric, 1) as avg_days
+        FROM properties
+        WHERE status IN ('approved', 'rejected', 'sold')
+        GROUP BY status
+    """))
+    
+    return {row[0]: float(row[1]) for row in result}
+
+
+def get_price_per_m2_by_city(db: Session) -> List[dict]:
+    """
+    Obtener precio promedio por m² por ciudad
+    
+    Returns:
+        Lista de diccionarios con ciudad y precio/m²
+    """
+    result = db.execute(text("""
+        SELECT 
+            city,
+            ROUND(AVG(price / NULLIF(square_meters, 0))::numeric, 2) as avg_price_per_m2,
+            COUNT(*) as property_count,
+            ROUND(AVG(price)::numeric, 2) as avg_price
+        FROM properties
+        WHERE status = 'approved' AND square_meters > 0
+        GROUP BY city
+        ORDER BY avg_price_per_m2 DESC
+    """))
+    
+    return [dict(row) for row in result]
+
+
+def get_advisor_conversion_rate(db: Session) -> List[dict]:
+    """
+    Obtener tasa de conversión por asesor (ventas / propiedades aprobadas)
+    
+    Returns:
+        Lista de asesores con su tasa de conversión
+    """
+    result = db.execute(text("""
+        SELECT 
+            a.id as advisor_id,
+            u.full_name as advisor_name,
+            a.rating,
+            COUNT(p.id) FILTER (WHERE p.status = 'approved') as approved_count,
+            COUNT(p.id) FILTER (WHERE p.status = 'sold') as sold_count,
+            CASE 
+                WHEN COUNT(p.id) FILTER (WHERE p.status = 'approved') > 0 
+                THEN ROUND(
+                    (COUNT(p.id) FILTER (WHERE p.status = 'sold')::numeric / 
+                     COUNT(p.id) FILTER (WHERE p.status = 'approved')) * 100, 1
+                )
+                ELSE 0 
+            END as conversion_rate
+        FROM advisors a
+        JOIN users u ON a.user_id = u.id
+        LEFT JOIN properties p ON p.advisor_id = a.id
+        GROUP BY a.id, u.full_name, a.rating
+        ORDER BY conversion_rate DESC
+    """))
+    
+    return [dict(row) for row in result]
+
     

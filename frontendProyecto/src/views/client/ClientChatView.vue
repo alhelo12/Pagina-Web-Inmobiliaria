@@ -17,8 +17,9 @@ const selectedConversation = ref(null)
 const newMessage = ref('')
 const loading = ref(true)
 const sending = ref(false)
-const polling = ref(null)
 const showConversations = ref(true)
+const ws = ref(null)
+const wsConnected = ref(false)
 
 const advisorProperties = computed(() => {
   return properties.value.filter(p => p.owner_id === auth.userId && p.advisor_id)
@@ -55,11 +56,45 @@ const fetchMessages = async (conversationId) => {
   }
 }
 
+const connectWebSocket = () => {
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  const wsUrl = `${import.meta.env.VITE_API_URL.replace('http', 'ws')}/ws/messages?token=${token}`
+  ws.value = new WebSocket(wsUrl)
+
+  ws.value.onopen = () => {
+    wsConnected.value = true
+    console.log('WebSocket conectado')
+  }
+
+  ws.value.onmessage = (event) => {
+    const data = JSON.parse(event.data)
+    if (data.type === 'message' && selectedConversation.value) {
+      const msg = data.data
+      const exists = messages.value.some(m => m.id === msg.id)
+      if (!exists) {
+        messages.value.push(msg)
+        nextTick(() => scrollToBottom())
+      }
+    }
+  }
+
+  ws.value.onclose = () => {
+    wsConnected.value = false
+    console.log('WebSocket desconectado, reconectando...')
+    setTimeout(connectWebSocket, 3000)
+  }
+
+  ws.value.onerror = (err) => {
+    console.error('WebSocket error:', err)
+  }
+}
+
 const selectConversation = (conv) => {
   selectedConversation.value = conv
   showConversations.value = false
   fetchMessages(conv.id)
-  startPolling()
 }
 
 const backToConversations = () => {
@@ -69,44 +104,44 @@ const backToConversations = () => {
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedConversation.value || sending.value) return
   sending.value = true
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
-      method: 'POST',
-      headers: { ...auth.authHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        conversation_id: selectedConversation.value.id,
-        content: newMessage.value.trim()
+
+  const content = newMessage.value.trim()
+
+  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+    ws.value.send(JSON.stringify({
+      type: 'message',
+      conversation_id: selectedConversation.value.id,
+      content: content
+    }))
+    newMessage.value = ''
+    nextTick(() => scrollToBottom())
+  } else {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
+        method: 'POST',
+        headers: { ...auth.authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversation_id: selectedConversation.value.id,
+          content: content
+        })
       })
-    })
-    if (res.ok) {
-      const msg = await res.json()
-      messages.value.push(msg)
-      newMessage.value = ''
-      nextTick(() => scrollToBottom())
+      if (res.ok) {
+        const msg = await res.json()
+        messages.value.push(msg)
+        newMessage.value = ''
+        nextTick(() => scrollToBottom())
+      }
+    } catch (err) {
+      console.error('Error sending message:', err)
     }
-  } catch (err) {
-    console.error('Error sending message:', err)
-  } finally {
-    sending.value = false
   }
+
+  sending.value = false
 }
 
 const scrollToBottom = () => {
   const container = document.querySelector('.messages-container')
   if (container) container.scrollTop = container.scrollHeight
-}
-
-const startPolling = () => {
-  stopPolling()
-  if (selectedConversation.value) {
-    polling.value = setInterval(() => {
-      fetchMessages(selectedConversation.value.id)
-    }, 5000)
-  }
-}
-
-const stopPolling = () => {
-  if (polling.value) clearInterval(polling.value)
 }
 
 const formatTime = (dateStr) => {
@@ -149,10 +184,13 @@ const messageSenderName = (msg) => {
 onMounted(async () => {
   await propertyStore.fetchProperties()
   await fetchConversations()
+  connectWebSocket()
 })
 
 onUnmounted(() => {
-  stopPolling()
+  if (ws.value) {
+    ws.value.close()
+  }
 })
 </script>
 

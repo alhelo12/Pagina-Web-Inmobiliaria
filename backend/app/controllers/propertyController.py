@@ -106,6 +106,40 @@ def get_properties_summary(
     return propertyService.get_property_stats(db)
 
 
+# ── ANALYTICS AVANZADOS ──────────────────────────────────────────────────────
+@router.get("/analytics/trends")
+def get_property_trends(
+    months: int = Query(12, ge=1, le=24, description="Meses hacia atrás"),
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    return propertyService.get_properties_trends(db, months=months)
+
+
+@router.get("/analytics/days-on-market")
+def get_avg_days_on_market(
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    return propertyService.get_avg_days_on_market(db)
+
+
+@router.get("/analytics/price-per-m2")
+def get_price_per_m2_by_city(
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    return propertyService.get_price_per_m2_by_city(db)
+
+
+@router.get("/analytics/conversion-rate")
+def get_advisor_conversion_rate(
+    current_user: User = Depends(require_advisor_or_admin),
+    db: Session = Depends(get_db)
+):
+    return propertyService.get_advisor_conversion_rate(db)
+
+
 # ── PROPIEDADES DEL ADVISOR ─────────────────────────────────────────────────
 @router.get("/by-advisor", response_model=PropertyListResponse)
 def get_properties_by_advisor(

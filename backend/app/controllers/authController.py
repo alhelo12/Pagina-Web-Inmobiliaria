@@ -4,10 +4,12 @@ Controller: Authentication
 Endpoints para registro y login de usuarios con JWT.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.dbConfig.databaseSession import get_db
 from app.services import authService, userService
@@ -22,6 +24,8 @@ from app.schemas import (
     PasswordChange
 )
 from app.models import User
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 # ── Schemas locales para los endpoints de validación ────────────────────────
@@ -46,7 +50,9 @@ router = APIRouter(
 # ==========================================
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("3 per hour")
 def register(
+    request: Request,
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ):
@@ -71,7 +77,9 @@ def register(
     return user
 
 @router.post("/register/client", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("3 per hour")
 def register_client(
+    request: Request,
     client_data: ClientRegister,  # ← CAMBIAR de UserCreate a ClientRegister
     db: Session = Depends(get_db)
 ):
@@ -118,7 +126,9 @@ def register_client(
 # ==========================================
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5 per minute")
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
@@ -172,7 +182,9 @@ def login(
 
 
 @router.post("/exchange")
+@limiter.limit("10 per minute")
 def exchange_supabase_token(
+    request: Request,
     body: SupabaseExchangeRequest,
     db: Session = Depends(get_db)
 ):

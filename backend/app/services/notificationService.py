@@ -347,3 +347,123 @@ def notify_property_sold(db: Session, property_id: int) -> Optional[Notification
         message=f"Congratulations! Tu propiedad '{prop.title}' ha sido marcada como vendida/rentada. Gracias por usar nossos servicios.",
         property_id=property_id
     )
+
+
+# ==========================================
+# NOTIFICACIONES DE CITAS
+# ==========================================
+
+def notify_appointment_confirmed(db: Session, appointment_id: int) -> Optional[Notification]:
+    """
+    Crear notificación cuando una cita es confirmada
+    
+    Args:
+        db: Sesión de base de datos
+        appointment_id: ID de la cita
+        
+    Returns:
+        Notificación creada o None si hay error
+    """
+    from app.models import Appointment, Advisor
+    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not appointment:
+        return None
+    
+    advisor = db.query(Advisor).filter(Advisor.id == appointment.advisor_id).first()
+    advisor_name = advisor.user.full_name if advisor else "el asesor"
+    
+    date_str = appointment.scheduled_date.strftime("%d/%m/%Y a las %H:%M")
+    
+    return create_notification(
+        db=db,
+        user_id=appointment.client_id,
+        notification_type="appointment_confirmed",
+        title="Cita confirmada",
+        message=f"{advisor_name} ha confirmado tu cita para el {date_str}.",
+        property_id=appointment.property_id
+    )
+
+
+def notify_appointment_cancelled(
+    db: Session,
+    appointment_id: int,
+    cancelled_by_user_id: int,
+    reason: Optional[str] = None
+) -> List[Notification]:
+    """
+    Crear notificaciones cuando una cita es cancelada (al cliente y al asesor)
+    
+    Args:
+        db: Sesión de base de datos
+        appointment_id: ID de la cita
+        cancelled_by_user_id: ID del usuario que canceló
+        reason: Razón de la cancelación
+        
+    Returns:
+        Lista de notificaciones creadas
+    """
+    from app.models import Appointment, Advisor
+    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not appointment:
+        return []
+    
+    notifications = []
+    reason_text = f" Razón: {reason}" if reason else ""
+    
+    # Notificar al cliente (si no fue quien canceló)
+    if cancelled_by_user_id != appointment.client_id:
+        notifications.append(create_notification(
+            db=db,
+            user_id=appointment.client_id,
+            notification_type="appointment_cancelled",
+            title="Cita cancelada",
+            message=f"Tu cita ha sido cancelada.{reason_text}",
+            property_id=appointment.property_id
+        ))
+    
+    # Notificar al asesor (si no fue quien canceló)
+    advisor = db.query(Advisor).filter(Advisor.id == appointment.advisor_id).first()
+    if advisor and cancelled_by_user_id != advisor.user_id:
+        notifications.append(create_notification(
+            db=db,
+            user_id=advisor.user_id,
+            notification_type="appointment_cancelled",
+            title="Cita cancelada por cliente",
+            message=f"El cliente ha cancelado la cita.{reason_text}",
+            property_id=appointment.property_id
+        ))
+    
+    return notifications
+
+
+def notify_appointment_reminder(db: Session, appointment_id: int) -> Optional[Notification]:
+    """
+    Crear notificación de recordatorio 24h antes de una cita
+    
+    Args:
+        db: Sesión de base de datos
+        appointment_id: ID de la cita
+        
+    Returns:
+        Notificación creada o None si hay error
+    """
+    from app.models import Appointment, Property
+    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not appointment:
+        return None
+    
+    date_str = appointment.scheduled_date.strftime("%d/%m/%Y a las %H:%M")
+    property_title = ""
+    
+    if appointment.property_id:
+        prop = db.query(Property).filter(Property.id == appointment.property_id).first()
+        property_title = f" para ver '{prop.title}'" if prop else ""
+    
+    return create_notification(
+        db=db,
+        user_id=appointment.client_id,
+        notification_type="appointment_reminder",
+        title="Recordatorio de cita",
+        message=f"Recuerda que tienes una cita{property_title} el {date_str}.",
+        property_id=appointment.property_id
+    )

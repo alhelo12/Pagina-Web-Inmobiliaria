@@ -23,6 +23,9 @@ from app.models.appointmentModel import Appointment
 from app.models.favoriteModel import Favorite
 from app.models.notificationModel import Notification
 from app.models.messageModel import Conversation, Message
+from app.models.postSaleFollowupModel import PostSaleFollowup
+from app.models.clientAdvisorModel import ClientAdvisorAssignment
+from app.models.activityLogModel import ActivityLog
 
 __all__ = [
     'Role',
@@ -35,4 +38,7 @@ __all__ = [
     'Notification',
     'Conversation',
     'Message',
+    'PostSaleFollowup',
+    'ClientAdvisorAssignment',
+    'ActivityLog',
 ]

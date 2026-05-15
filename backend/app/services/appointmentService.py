@@ -13,6 +13,7 @@ from fastapi import HTTPException, status
 
 from app.models import Appointment, User, Advisor, Property
 from app.schemas import AppointmentCreate, AppointmentUpdate
+from app.services import notificationService
 
 
 # ==========================================
@@ -313,6 +314,12 @@ def confirm_appointment(db: Session, appointment_id: int, advisor_id: Optional[i
     db.commit()
     db.refresh(db_appointment)
     
+    # Notificar al cliente
+    try:
+        notificationService.notify_appointment_confirmed(db, appointment_id)
+    except Exception:
+        pass
+    
     return db_appointment
 
 
@@ -416,6 +423,14 @@ def cancel_appointment(
     
     db.commit()
     db.refresh(db_appointment)
+    
+    # Notificar a ambas partes
+    try:
+        notificationService.notify_appointment_cancelled(
+            db, appointment_id, cancelled_by_user_id=user_id, reason=reason
+        )
+    except Exception:
+        pass
     
     return db_appointment
 

@@ -318,6 +318,9 @@ class PropertySearchFilters(BaseModel):
     max_square_meters: Optional[int] = Field(None, ge=0)
     status: Optional[PropertyStatusEnum] = None
     
+    # Búsqueda por texto completo (tsvector)
+    query: Optional[str] = Field(None, min_length=2, max_length=200, description="Búsqueda de texto completo")
+    
     # Búsqueda por proximidad (radio)
     latitude: Optional[float] = Field(None, ge=-90, le=90)
     longitude: Optional[float] = Field(None, ge=-180, le=180)

@@ -106,6 +106,31 @@ NOTIFICATION_TYPES = {
         "icon": "✏️",
         "color": "#3b82f6",
         "description": "Propiedad actualizada"
+    },
+    "appointment_confirmed": {
+        "icon": "📅",
+        "color": "#22c55e",
+        "description": "Cita confirmada"
+    },
+    "appointment_cancelled": {
+        "icon": "🚫",
+        "color": "#dc2626",
+        "description": "Cita cancelada"
+    },
+    "appointment_reminder": {
+        "icon": "⏰",
+        "color": "#f59e0b",
+        "description": "Recordatorio de cita"
+    },
+    "post_sale_survey": {
+        "icon": "📋",
+        "color": "#3b82f6",
+        "description": "Encuesta de satisfacción post-venta"
+    },
+    "post_sale_checkin": {
+        "icon": "📞",
+        "color": "#8b5cf6",
+        "description": "Seguimiento post-venta"
     }
 }
 

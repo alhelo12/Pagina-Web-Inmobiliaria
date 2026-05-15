@@ -43,7 +43,8 @@ const router = createRouter({
         { path: 'notificaciones', component: () => import('@/views/client/NotificationsView.vue') },
         { path: 'citas', component: () => import('@/views/client/AppointmentsView.vue') },
         { path: 'mensajes', component: () => import('@/views/client/ClientChatView.vue') },
-        { path: 'perfil', component: () => import('@/views/client/ProfileView.vue') }
+        { path: 'perfil', component: () => import('@/views/client/ProfileView.vue') },
+        { path: 'post-venta', component: () => import('@/views/client/PostSaleView.vue') }
       ]
     },
     {
@@ -71,7 +72,8 @@ const router = createRouter({
         { path: 'mensajes', component: () => import('@/views/advisor/AdvisorChatView.vue') },
         { path: 'notificaciones', component: () => import('@/views/advisor/AdvisorNotificationsView.vue') },
         { path: 'perfil', component: () => import('@/views/advisor/AdvisorProfileView.vue') },
-        { path: 'publicar', component: () => import('@/views/client/CreatePropertyView.vue') }
+        { path: 'publicar', component: () => import('@/views/client/CreatePropertyView.vue') },
+        { path: 'post-venta', component: () => import('@/views/advisor/AdvisorPostSaleView.vue') }
       ]
     },
     {

@@ -1,8 +1,9 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.3.0
+-- Version: 1.4.0
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
---              con sistema de aprobación de propiedades y chat cliente-asesor
+--              con sistema de aprobación de propiedades, chat cliente-asesor,
+--              seguimiento post-venta y asignación formal cliente-asesor
 -- ==========================================
 
 -- ==========================================
@@ -166,6 +167,39 @@ CREATE TABLE IF NOT EXISTS messages (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+-- Tabla: post_sale_followups
+-- Descripción: Seguimiento automatizado después de que una propiedad es vendida/rentada
+-- Tipos: satisfaction_survey (+7 días), check_in_call (+30), referral_request (+60), maintenance_reminder (+90)
+CREATE TABLE IF NOT EXISTS post_sale_followups (
+    id SERIAL PRIMARY KEY,
+    property_id INT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+    client_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    advisor_id INT REFERENCES advisors(id) ON DELETE SET NULL,
+    sale_date TIMESTAMP NOT NULL,
+    followup_type VARCHAR(50) NOT NULL, -- satisfaction_survey | check_in_call | referral_request | maintenance_reminder
+    scheduled_date TIMESTAMP NOT NULL,
+    completed_date TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'pending', -- pending | completed | skipped
+    notes TEXT,
+    satisfaction_score SMALLINT CHECK (satisfaction_score BETWEEN 1 AND 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Tabla: client_advisor_assignments
+-- Descripción: Relación formal entre un cliente y un asesor inmobiliario
+CREATE TABLE IF NOT EXISTS client_advisor_assignments (
+    id SERIAL PRIMARY KEY,
+    client_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    advisor_id INT NOT NULL REFERENCES advisors(id) ON DELETE CASCADE,
+    assigned_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'active', -- active | inactive
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
 -- ==========================================
 -- 3. ÍNDICES PARA OPTIMIZACIÓN
 -- ==========================================
@@ -210,6 +244,19 @@ CREATE INDEX IF NOT EXISTS idx_conversations_last_message ON conversations(last_
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read) WHERE is_read = FALSE;
+
+-- Índices en post_sale_followups
+CREATE INDEX IF NOT EXISTS idx_post_sale_property_id ON post_sale_followups(property_id);
+CREATE INDEX IF NOT EXISTS idx_post_sale_client_id ON post_sale_followups(client_id);
+CREATE INDEX IF NOT EXISTS idx_post_sale_advisor_id ON post_sale_followups(advisor_id);
+CREATE INDEX IF NOT EXISTS idx_post_sale_status ON post_sale_followups(status);
+CREATE INDEX IF NOT EXISTS idx_post_sale_followup_type ON post_sale_followups(followup_type);
+CREATE INDEX IF NOT EXISTS idx_post_sale_scheduled_date ON post_sale_followups(scheduled_date);
+
+-- Índices en client_advisor_assignments
+CREATE INDEX IF NOT EXISTS idx_client_advisor_client_id ON client_advisor_assignments(client_id);
+CREATE INDEX IF NOT EXISTS idx_client_advisor_advisor_id ON client_advisor_assignments(advisor_id);
+CREATE INDEX IF NOT EXISTS idx_client_advisor_status ON client_advisor_assignments(status);
 
 -- ==========================================
 -- 4. TRIGGERS
@@ -269,6 +316,18 @@ CREATE TRIGGER tr_update_messages
     FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
 
+-- Trigger: Actualizar updated_at en post_sale_followups
+CREATE TRIGGER tr_update_post_sale_followups
+    BEFORE UPDATE ON post_sale_followups
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_updated_at_column();
+
+-- Trigger: Actualizar updated_at en client_advisor_assignments
+CREATE TRIGGER tr_update_client_advisor_assignments
+    BEFORE UPDATE ON client_advisor_assignments
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_updated_at_column();
+
 -- ==========================================
 -- 5. DATOS INICIALES (SEED)
 -- ==========================================
@@ -305,6 +364,8 @@ COMMENT ON TABLE appointments IS 'Citas programadas entre clientes y asesores';
 COMMENT ON TABLE favorites IS 'Propiedades guardadas como favoritas por los usuarios';
 COMMENT ON TABLE conversations IS 'Hilos de chat entre clientes y sus asesores asignados';
 COMMENT ON TABLE messages IS 'Mensajes individuales dentro de una conversación';
+COMMENT ON TABLE post_sale_followups IS 'Seguimiento automatizado post-venta (encuestas, llamadas, referidos, mantenimiento)';
+COMMENT ON TABLE client_advisor_assignments IS 'Relación formal entre clientes y asesores inmobiliarios';
 
 -- ==========================================
 -- FIN DEL SCRIPT

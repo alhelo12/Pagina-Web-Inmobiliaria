@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple
 
 from app.models import Conversation, Message, User, Advisor
 from app.services import notificationService
+from app.core.websocket import manager
 
 
 def get_or_create_conversation(
@@ -170,7 +171,6 @@ def send_message(
         if conversation:
             sender = db.query(User).filter(User.id == sender_id).first()
             sender_name = sender.full_name if sender else "Un usuario"
-            # Find recipient: if sender is the user, recipient is advisor; if sender is advisor, recipient is user
             sender_is_user = conversation.user_id == sender_id
             recipient_id = conversation.advisor_id if sender_is_user else conversation.user_id
             if recipient_id:
@@ -181,6 +181,26 @@ def send_message(
                     title="Nuevo mensaje",
                     message=f"Tienes un nuevo mensaje de {sender_name}"
                 )
+                
+                message_data = {
+                    "type": "message",
+                    "data": {
+                        "id": message.id,
+                        "conversation_id": message.conversation_id,
+                        "sender_id": message.sender_id,
+                        "content": message.content,
+                        "is_read": message.is_read,
+                        "created_at": message.created_at.isoformat() if message.created_at else None,
+                        "sender": {
+                            "id": sender_id,
+                            "name": sender_name,
+                            "role": "client" if sender_is_user else "advisor"
+                        }
+                    }
+                }
+                
+                import asyncio
+                asyncio.create_task(manager.send_personal_message(message_data, recipient_id))
     except Exception:
         pass
 

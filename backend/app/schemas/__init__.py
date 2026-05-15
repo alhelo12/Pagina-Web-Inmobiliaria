@@ -116,6 +116,32 @@ from app.schemas.messageSchema import (
     ConversationListResponse,
 )
 
+from app.schemas.postSaleSchema import (
+    FollowupTypeEnum,
+    FollowupStatusEnum,
+    PostSaleFollowupBase,
+    PostSaleFollowupCreate,
+    PostSaleFollowupComplete,
+    PostSaleFollowupSkip,
+    PostSaleFollowupResponse,
+    PostSaleFollowupDetailResponse,
+    PostSaleFollowupListResponse,
+    PostSaleStats,
+    PostSaleFollowupFilter,
+    FOLLOWUP_TYPE_CONFIG,
+    get_followup_type_info
+)
+
+from app.schemas.clientAdvisorSchema import (
+    AssignmentStatusEnum,
+    ClientAdvisorAssignmentBase,
+    ClientAdvisorAssignmentCreate,
+    ClientAdvisorAssignmentDeactivate,
+    ClientAdvisorAssignmentResponse,
+    ClientAdvisorAssignmentDetailResponse,
+    ClientAdvisorAssignmentListResponse,
+)
+
 # TODO: Descomentar a medida que se creen los schemas
 
 
@@ -215,6 +241,30 @@ __all__ = [
     'ConversationCreate',
     'ConversationResponse',
     'ConversationListResponse',
+
+    # Post-Sale schemas
+    'FollowupTypeEnum',
+    'FollowupStatusEnum',
+    'PostSaleFollowupBase',
+    'PostSaleFollowupCreate',
+    'PostSaleFollowupComplete',
+    'PostSaleFollowupSkip',
+    'PostSaleFollowupResponse',
+    'PostSaleFollowupDetailResponse',
+    'PostSaleFollowupListResponse',
+    'PostSaleStats',
+    'PostSaleFollowupFilter',
+    'FOLLOWUP_TYPE_CONFIG',
+    'get_followup_type_info',
+
+    # Client-Advisor schemas
+    'AssignmentStatusEnum',
+    'ClientAdvisorAssignmentBase',
+    'ClientAdvisorAssignmentCreate',
+    'ClientAdvisorAssignmentDeactivate',
+    'ClientAdvisorAssignmentResponse',
+    'ClientAdvisorAssignmentDetailResponse',
+    'ClientAdvisorAssignmentListResponse',
 
     # TODO: Agregar schemas aquí cuando se creen
 
