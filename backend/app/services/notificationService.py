@@ -4,6 +4,7 @@ Service: Notification
 Lógica de negocio para gestión de notificaciones.
 """
 
+import asyncio
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
@@ -130,6 +131,10 @@ def create_notification(
                 detail="Propiedad no encontrada"
             )
     
+    # Verificar preferencias del usuario
+    if not _is_notification_enabled(db, user_id, notification_type):
+        return None
+    
     notification = Notification(
         user_id=user_id,
         property_id=property_id,
@@ -142,6 +147,8 @@ def create_notification(
     db.add(notification)
     db.commit()
     db.refresh(notification)
+    
+    _push_via_websocket(notification)
     
     return notification
 
@@ -434,6 +441,54 @@ def notify_appointment_cancelled(
         ))
     
     return notifications
+
+
+# ==========================================
+# PREFERENCIAS
+# ==========================================
+
+
+def _is_notification_enabled(db: Session, user_id: int, notification_type: str) -> bool:
+    """Verifica si el usuario tiene habilitado este tipo de notificación."""
+    try:
+        from app.services.notificationPreferenceService import is_enabled
+        return is_enabled(db, user_id, notification_type)
+    except Exception:
+        return True  # Por defecto, habilitado
+
+
+# ==========================================
+# WEBSOCKET PUSH
+# ==========================================
+
+def _push_via_websocket(notification: Notification) -> None:
+    """Envía la notificación en tiempo real vía WebSocket."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return  # No hay event loop (tests, CLI, etc.)
+
+    if not loop.is_running():
+        return
+
+    async def _send():
+        from app.core.websocket import manager
+        data = {
+            "type": "notification",
+            "data": {
+                "id": notification.id,
+                "user_id": notification.user_id,
+                "type": notification.type,
+                "title": notification.title,
+                "message": notification.message,
+                "property_id": notification.property_id,
+                "is_read": notification.is_read,
+                "created_at": notification.created_at.isoformat() if notification.created_at else None
+            }
+        }
+        await manager.send_personal_message(data, notification.user_id)
+
+    asyncio.ensure_future(_send())
 
 
 def notify_appointment_reminder(db: Session, appointment_id: int) -> Optional[Notification]:

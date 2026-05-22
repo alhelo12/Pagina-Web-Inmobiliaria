@@ -1,9 +1,10 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.4.0
+-- Version: 1.5.0
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
 --              con sistema de aprobación de propiedades, chat cliente-asesor,
---              seguimiento post-venta y asignación formal cliente-asesor
+--              seguimiento post-venta, asignación formal cliente-asesor,
+--              preferencias de notificación y notificaciones en tiempo real
 -- ==========================================
 
 -- ==========================================
@@ -143,6 +144,18 @@ CREATE TABLE IF NOT EXISTS notifications (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+-- Tabla: notification_preferences
+-- Descripción: Preferencias del usuario para cada tipo de notificación
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    enabled BOOLEAN DEFAULT TRUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT unique_user_notification_type UNIQUE (user_id, type)
+);
+
 -- Tabla: conversations
 -- Descripción: Hilo de chat entre cliente y su asesor asignado
 CREATE TABLE IF NOT EXISTS conversations (
@@ -235,6 +248,9 @@ CREATE INDEX IF NOT EXISTS idx_appointments_advisor_id ON appointments(advisor_i
 CREATE INDEX IF NOT EXISTS idx_appointments_scheduled_date ON appointments(scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
 
+-- Índices en notification_preferences
+CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_id ON notification_preferences(user_id);
+
 -- Índices en conversations
 CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_advisor_id ON conversations(advisor_id);
@@ -304,6 +320,12 @@ CREATE TRIGGER tr_update_favorites
     FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
 
+-- Trigger: Actualizar updated_at en notification_preferences
+CREATE TRIGGER tr_update_notification_preferences
+    BEFORE UPDATE ON notification_preferences
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_updated_at_column();
+
 -- Trigger: Actualizar updated_at en conversations
 CREATE TRIGGER tr_update_conversations
     BEFORE UPDATE ON conversations
@@ -362,6 +384,7 @@ COMMENT ON TABLE properties IS 'Propiedades listadas en el sistema';
 COMMENT ON TABLE property_images IS 'Galería de imágenes de las propiedades';
 COMMENT ON TABLE appointments IS 'Citas programadas entre clientes y asesores';
 COMMENT ON TABLE favorites IS 'Propiedades guardadas como favoritas por los usuarios';
+COMMENT ON TABLE notification_preferences IS 'Preferencias del usuario para activar/desactivar tipos de notificación';
 COMMENT ON TABLE conversations IS 'Hilos de chat entre clientes y sus asesores asignados';
 COMMENT ON TABLE messages IS 'Mensajes individuales dentro de una conversación';
 COMMENT ON TABLE post_sale_followups IS 'Seguimiento automatizado post-venta (encuestas, llamadas, referidos, mantenimiento)';

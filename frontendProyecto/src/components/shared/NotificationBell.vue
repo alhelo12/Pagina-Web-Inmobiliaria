@@ -1,48 +1,37 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import AppIcon from '@/components/shared/AppIcon.vue'
+import { useNotificationWebSocket } from '@/composables/useNotificationWebSocket'
+import {
+  getNotificationMeta,
+  groupByDate,
+  formatRelativeTime
+} from '@/constants/notifications'
 
 const router = useRouter()
 const store = useNotificationsStore()
 const auth = useAuthStore()
 const { notifications, unreadCount, loading } = storeToRefs(store)
 
+const { connect: wsConnect, disconnect: wsDisconnect } = useNotificationWebSocket()
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 let pollInterval = null
 
-const typeIcons = {
-  advisor_assigned: 'user',
-  approved: 'check',
-  rejected: 'x-circle',
-  sold: 'home',
-  property_updated: 'pencil'
-}
+const role = computed(() => auth.role)
+const basePath = computed(() => {
+  if (role.value === 'advisor') return '/advisor/notificaciones'
+  return '/cliente/notificaciones'
+})
 
-const typeColors = {
-  advisor_assigned: '#d6a848',
-  approved: '#22c55e',
-  rejected: '#dc2626',
-  sold: '#7c3aed',
-  property_updated: '#3b82f6'
-}
-
-const formatRelativeTime = (timestamp) => {
-  if (!timestamp) return ''
-  const diff = Date.now() - new Date(timestamp).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'hace un momento'
-  if (mins < 60) return `hace ${mins} min`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `hace ${hrs}h`
-  const days = Math.floor(hrs / 24)
-  if (days < 30) return `hace ${days}d`
-  return new Date(timestamp).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })
-}
+const grouped = computed(() => {
+  if (!Array.isArray(notifications.value)) return []
+  return groupByDate(notifications.value.slice(0, 10))
+})
 
 const handleOutsideClick = (event) => {
   if (!dropdownRef.value || !dropdownRef.value.contains(event.target)) {
@@ -57,37 +46,59 @@ const handleNotificationClick = async (notification) => {
   dropdownOpen.value = false
   if (notification.property_id) {
     router.push(`/propiedades/${notification.property_id}`)
+  } else {
+    router.push(basePath.value)
   }
+}
+
+const handleBellClick = () => {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+const handleDelete = async (event, notificationId) => {
+  event.stopPropagation()
+  await store.deleteNotification(notificationId)
 }
 
 const handleMarkAllRead = async () => {
   await store.markAllAsRead()
 }
 
+const safeWsConnect = () => {
+  try {
+    wsConnect()
+  } catch (e) {
+    // WebSocket connection failed — polling fallback will handle it
+  }
+}
+
 onMounted(() => {
   if (!auth.isLogged || !auth.token) return
   store.fetchNotifications()
   store.fetchUnreadCount()
+  safeWsConnect()
+  // Polling fallback cada 60s por si WebSocket falla
   pollInterval = setInterval(() => {
     store.fetchUnreadCount()
-  }, 30000)
+  }, 60000)
   document.addEventListener('click', handleOutsideClick)
 })
 
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval)
+  wsDisconnect()
   document.removeEventListener('click', handleOutsideClick)
 })
 </script>
 
 <template>
   <div ref="dropdownRef" class="notification-bell">
-    <button class="bell-btn" @click.stop="dropdownOpen = !dropdownOpen">
+    <button class="bell-btn" @click="handleBellClick">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
         <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
       </svg>
-      <span v-if="unreadCount > 0" class="badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+      <span v-if="unreadCount > 0" class="badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
     </button>
 
     <transition name="dropdown">
@@ -106,25 +117,44 @@ onUnmounted(() => {
         </div>
 
         <div v-else class="notifications-list">
-          <div
-            v-for="notification in notifications.slice(0, 10)"
-            :key="notification.id"
-            :class="['notification-item', { unread: !notification.is_read }]"
-            @click="handleNotificationClick(notification)"
-          >
-            <span class="icon" :style="{ backgroundColor: typeColors[notification.type] + '20', color: typeColors[notification.type] }">
-              <AppIcon :name="typeIcons[notification.type] || 'megaphone'" :size="16" />
-            </span>
-            <div class="content">
-              <strong>{{ notification.title }}</strong>
-              <p>{{ notification.message }}</p>
-              <small>{{ formatRelativeTime(notification.created_at) }}</small>
+          <template v-for="section in grouped" :key="section.group">
+            <div class="date-group-label">{{ section.group }}</div>
+            <div
+              v-for="notification in section.items"
+              :key="notification.id"
+              :class="['notification-item', { unread: !notification.is_read }]"
+              @click="handleNotificationClick(notification)"
+            >
+              <span
+                class="icon"
+                :style="{
+                  backgroundColor: getNotificationMeta(notification.type).color + '20',
+                  color: getNotificationMeta(notification.type).color
+                }"
+              >
+                <AppIcon :name="getNotificationMeta(notification.type).icon" :size="16" />
+              </span>
+              <div class="content">
+                <strong>{{ notification.title }}</strong>
+                <p>{{ notification.message }}</p>
+                <small>{{ formatRelativeTime(notification.created_at) }}</small>
+              </div>
+              <button
+                class="delete-btn"
+                title="Eliminar"
+                @click="handleDelete($event, notification.id)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
             </div>
-          </div>
+          </template>
         </div>
 
         <div class="dropdown-footer">
-          <RouterLink to="/cliente/notificaciones" @click="dropdownOpen = false">
+          <RouterLink :to="basePath" @click="dropdownOpen = false">
             Ver todas las notificaciones
           </RouterLink>
         </div>
@@ -224,6 +254,19 @@ onUnmounted(() => {
   flex: 1;
 }
 
+.date-group-label {
+  padding: 8px 16px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
 .notification-item {
   display: flex;
   gap: 12px;
@@ -231,6 +274,7 @@ onUnmounted(() => {
   cursor: pointer;
   transition: background 0.2s ease;
   border-bottom: 1px solid #f0f0f0;
+  align-items: flex-start;
 }
 
 .notification-item:hover {
@@ -281,6 +325,27 @@ onUnmounted(() => {
 .notification-item small {
   color: #9ca3af;
   font-size: 11px;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #d1d5db;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: color 0.2s ease, background 0.2s ease;
+  opacity: 0;
+}
+
+.notification-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  color: #dc2626;
+  background: #fef2f2;
 }
 
 .dropdown-footer {

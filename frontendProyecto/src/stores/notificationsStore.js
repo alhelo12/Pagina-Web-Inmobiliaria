@@ -70,6 +70,23 @@ export const useNotificationsStore = defineStore('notifications', {
       }
     },
 
+    addNotification(notification) {
+      this.notifications.unshift(notification)
+      if (!notification.is_read) {
+        this.unreadCount++
+      }
+    },
+
+    async deleteNotification(notificationId) {
+      try {
+        await notificationsApi.delete(notificationId)
+        this.notifications = this.notifications.filter(n => n.id !== notificationId)
+        this.unreadCount = Math.max(0, this.unreadCount - 1)
+      } catch (err) {
+        this.error = err.response?.data?.detail ?? 'Error al eliminar notificación'
+      }
+    },
+
     clear() {
       this.notifications = []
       this.unreadCount = 0

@@ -140,6 +140,14 @@ class User(BaseModel):
         lazy="dynamic"
     )
 
+    # Relación con NotificationPreference (One-to-Many)
+    notification_preferences = relationship(
+        "NotificationPreference",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+
     # Relación con Conversation (One-to-Many, como cliente)
     conversations = relationship(
         "Conversation",

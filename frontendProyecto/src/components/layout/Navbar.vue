@@ -84,8 +84,8 @@ onUnmounted(() => {
         <RouterLink to="/nosotros" @click="closeAll">Nosotros</RouterLink>
         <RouterLink to="/contacto" @click="closeAll">Contacto</RouterLink>
 
-        <div v-if="auth.isLogged" ref="dropdownRef" class="account-wrapper">
-          <NotificationBell v-if="auth.role === 'client'" />
+        <div v-if="auth.isLogged" class="account-wrapper">
+          <NotificationBell v-if="auth.role === 'client' || auth.role === 'advisor'" />
 
           <div ref="dropdownRef" class="account">
             <button class="btn-account" type="button" @click="dropdownOpen = !dropdownOpen">

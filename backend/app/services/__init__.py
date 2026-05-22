@@ -24,6 +24,7 @@ from app.services import appointmentService
 from app.services import advisorService
 from app.services import favoriteService
 from app.services import notificationService
+from app.services import notificationPreferenceService
 from app.services import postSaleService
 from app.services import clientAdvisorService
 from app.services import activityLogService
@@ -36,6 +37,7 @@ __all__ = [
     'advisorService',
     'favoriteService',
     'notificationService',
+    'notificationPreferenceService',
     'postSaleService',
     'clientAdvisorService',
     'activityLogService'

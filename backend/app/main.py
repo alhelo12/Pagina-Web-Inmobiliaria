@@ -33,6 +33,7 @@ from app.controllers.advisorController import router as advisor_router
 from app.controllers.appointmentController import router as appointment_router
 from app.controllers.favoriteController import router as favorite_router
 from app.controllers.notificationController import router as notification_router
+from app.controllers.notificationPreferenceController import router as notification_preference_router
 from app.controllers.messageController import router as message_router
 from app.controllers.postSaleController import router as post_sale_router
 from app.controllers.clientAdvisorController import router as client_advisor_router
@@ -90,10 +91,58 @@ app.include_router(advisor_router)
 app.include_router(appointment_router)
 app.include_router(favorite_router)
 app.include_router(notification_router)
+app.include_router(notification_preference_router)
 app.include_router(message_router)
 app.include_router(post_sale_router)
 app.include_router(client_advisor_router)
 app.include_router(activity_log_router)
+
+# ==========================================
+# WEBSOCKET — Notificaciones en tiempo real
+# ==========================================
+
+@app.websocket("/ws/notifications")
+async def notifications_websocket(
+    websocket: WebSocket,
+    token: Optional[str] = Query(None)
+):
+    """
+    WebSocket para notificaciones en tiempo real.
+    
+    Conexion: ws://localhost:8000/ws/notifications?token=JWT_TOKEN
+    
+    Mensajes recibidos:
+    - {"type": "ping"}
+    
+    Mensajes enviados:
+    - {"type": "notification", "data": {...}} — nueva notificación
+    """
+    if not token:
+        await websocket.close(code=4001, reason="Token requerido")
+        return
+    
+    payload = decode_access_token(token)
+    if not payload:
+        await websocket.close(code=4001, reason="Token invalido")
+        return
+    
+    user_id = int(payload.get("sub", 0))
+    if not user_id:
+        await websocket.close(code=4001, reason="Token invalido")
+        return
+    
+    await manager.connect(websocket, user_id)
+    
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
+    except Exception:
+        manager.disconnect(websocket, user_id)
+
 
 # ==========================================
 # WEBSOCKET — Chat en tiempo real

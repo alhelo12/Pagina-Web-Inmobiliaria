@@ -32,6 +32,7 @@ from app.models import (
     Appointment,
     Favorite,
     Notification,
+    NotificationPreference,
     Conversation,
     Message,
     PostSaleFollowup,

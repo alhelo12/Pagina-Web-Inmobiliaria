@@ -5,25 +5,36 @@ import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
+import NotificationSkeleton from '@/components/shared/NotificationSkeleton.vue'
+import NotificationPreferences from '@/components/shared/NotificationPreferences.vue'
+import { usePullToRefresh } from '@/composables/usePullToRefresh'
+import {
+  getNotificationMeta,
+  getTypeFilters,
+  groupByDate,
+  formatDate
+} from '@/constants/notifications'
 
 const router = useRouter()
 const store = useNotificationsStore()
 const { notifications, loading, unreadCount } = storeToRefs(store)
 
 const activeFilter = ref('all')
+const showPreferences = ref(false)
 
-const typeIcons = {
-  advisor_assigned: { icon: 'user', color: '#d6a848', label: 'Asesor asignado' },
-  approved: { icon: 'check', color: '#22c55e', label: 'Aprobada' },
-  rejected: { icon: 'x-circle', color: '#dc2626', label: 'Rechazada' },
-  sold: { icon: 'home', color: '#7c3aed', label: 'Vendida' },
-  property_updated: { icon: 'pencil', color: '#3b82f6', label: 'Actualizada' }
-}
+const { pulling, pullDistance } = usePullToRefresh(async () => {
+  await store.fetchNotifications({ limit: 100 })
+  await store.fetchUnreadCount()
+})
+const role = 'client'
 
-const filters = [
+const typeFilters = computed(() => getTypeFilters(role))
+
+const filters = computed(() => [
   { key: 'all', label: 'Todas' },
-  { key: 'unread', label: 'No leídas' }
-]
+  { key: 'unread', label: 'No leídas' },
+  ...typeFilters.value.map(t => ({ key: t.key, label: t.label }))
+])
 
 const filteredNotifications = computed(() => {
   let result = notifications.value
@@ -37,33 +48,15 @@ const filteredNotifications = computed(() => {
   return result
 })
 
+const groupedNotifications = computed(() => {
+  if (!Array.isArray(filteredNotifications.value)) return []
+  return groupByDate(filteredNotifications.value)
+})
+
 const stats = computed(() => ({
   total: notifications.value.length,
-  unread: unreadCount.value,
-  approved: notifications.value.filter(n => n.type === 'approved').length,
-  rejected: notifications.value.filter(n => n.type === 'rejected').length,
-  sold: notifications.value.filter(n => n.type === 'sold').length
+  unread: unreadCount.value
 }))
-
-const metrics = computed(() => ({
-  total: stats.value.total,
-  unread: stats.value.unread,
-  approved: stats.value.approved,
-  rejected: stats.value.rejected,
-  sold: stats.value.sold
-}))
-
-const formatDate = (timestamp) => {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  return date.toLocaleDateString('es-MX', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
 
 const handleNotificationClick = async (notification) => {
   if (!notification.is_read) {
@@ -71,11 +64,17 @@ const handleNotificationClick = async (notification) => {
   }
   if (notification.property_id) {
     router.push(`/propiedades/${notification.property_id}`)
+  } else {
+    router.push('/cliente/notificaciones')
   }
 }
 
 const handleMarkAllRead = async () => {
   await store.markAllAsRead()
+}
+
+const handleDelete = async (notificationId) => {
+  await store.deleteNotification(notificationId)
 }
 
 onMounted(() => {
@@ -90,6 +89,13 @@ onMounted(() => {
       title="Notificaciones"
     />
 
+    <transition name="pull-indicator">
+      <div v-if="pulling" class="pull-indicator" :style="{ height: pullDistance + 'px' }">
+        <div v-if="pullDistance >= 60" class="pull-text">Suelta para actualizar</div>
+        <div v-else class="pull-text">Desliza hacia abajo</div>
+      </div>
+    </transition>
+
     <div class="section-header">
       <div class="filters">
         <button
@@ -101,10 +107,19 @@ onMounted(() => {
           {{ filter.label }}
         </button>
       </div>
-      <button v-if="unreadCount > 0" class="mark-all-btn" @click="handleMarkAllRead">
-        Marcar todas como leídas
-      </button>
+      <div class="header-actions-row">
+        <button v-if="unreadCount > 0" class="mark-all-btn" @click="handleMarkAllRead">
+          Marcar todas como leídas
+        </button>
+        <button class="prefs-btn" title="Preferencias" @click="showPreferences = true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
     </div>
+    <NotificationPreferences v-if="showPreferences" @close="showPreferences = false" />
 
     <section class="metrics">
       <article class="card">
@@ -112,7 +127,7 @@ onMounted(() => {
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
         <span>Total</span>
-        <strong>{{ metrics.total }}</strong>
+        <strong>{{ stats.total }}</strong>
         <small>Notificaciones</small>
       </article>
       <article class="card highlight">
@@ -120,14 +135,13 @@ onMounted(() => {
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         </div>
         <span>Sin leer</span>
-        <strong>{{ metrics.unread }}</strong>
+        <strong>{{ stats.unread }}</strong>
         <small>Nuevas</small>
       </article>
     </section>
 
     <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Cargando notificaciones...</p>
+      <NotificationSkeleton :count="4" />
     </div>
 
     <div v-else-if="!filteredNotifications.length" class="empty-state">
@@ -137,36 +151,57 @@ onMounted(() => {
     </div>
 
     <div v-else class="notifications-list">
-      <article
-        v-for="notification in filteredNotifications"
-        :key="notification.id"
-        :class="['notification-card', { unread: !notification.is_read }]"
-        @click="handleNotificationClick(notification)"
-      >
-        <div
-          class="type-icon"
-          :style="{ backgroundColor: typeIcons[notification.type]?.color + '20', color: typeIcons[notification.type]?.color }"
+      <template v-for="section in groupedNotifications" :key="section.group">
+        <div class="date-group-header">{{ section.group }}</div>
+        <article
+          v-for="notif in section.items"
+          :key="notif.id"
+          :class="['notification-card', { unread: !notif.is_read }]"
+          @click="handleNotificationClick(notif)"
         >
-          <AppIcon :name="typeIcons[notification.type]?.icon || 'megaphone'" :size="22" />
-        </div>
+          <div
+            class="type-icon"
+            :style="{
+              backgroundColor: getNotificationMeta(notif.type).color + '20',
+              color: getNotificationMeta(notif.type).color
+            }"
+          >
+            <AppIcon :name="getNotificationMeta(notif.type).icon" :size="22" />
+          </div>
 
-        <div class="notification-content">
-          <div class="notification-header">
-            <h3>{{ notification.title }}</h3>
-            <span
-              class="type-badge"
-              :style="{ backgroundColor: typeIcons[notification.type]?.color + '15', color: typeIcons[notification.type]?.color }"
-            >
-              {{ typeIcons[notification.type]?.label || notification.type }}
-            </span>
+          <div class="notification-content">
+            <div class="notification-header">
+              <h3>{{ notif.title }}</h3>
+              <div class="header-actions">
+                <span
+                  class="type-badge"
+                  :style="{
+                    backgroundColor: getNotificationMeta(notif.type).color + '15',
+                    color: getNotificationMeta(notif.type).color
+                  }"
+                >
+                  {{ getNotificationMeta(notif.type).label }}
+                </span>
+                <button
+                  class="delete-btn"
+                  title="Eliminar"
+                  @click.stop="handleDelete(notif.id)"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <p>{{ notif.message }}</p>
+            <div class="notification-meta">
+              <span class="date">{{ formatDate(notif.created_at) }}</span>
+              <span v-if="!notif.is_read" class="unread-dot"></span>
+            </div>
           </div>
-          <p>{{ notification.message }}</p>
-          <div class="notification-meta">
-            <span class="date">{{ formatDate(notification.created_at) }}</span>
-            <span v-if="!notification.is_read" class="unread-dot"></span>
-          </div>
-        </div>
-      </article>
+        </article>
+      </template>
     </div>
   </section>
 </template>
@@ -215,6 +250,12 @@ onMounted(() => {
   color: var(--color-gold);
 }
 
+.header-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .mark-all-btn {
   background: var(--color-gold);
   color: var(--color-navy);
@@ -230,6 +271,24 @@ onMounted(() => {
 .mark-all-btn:hover {
   filter: brightness(1.03);
   box-shadow: 0 10px 18px rgba(7, 23, 45, 0.12);
+}
+
+.prefs-btn {
+  background: transparent;
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.prefs-btn:hover {
+  border-color: var(--color-gold);
+  color: var(--color-navy);
 }
 
 .metrics {
@@ -291,23 +350,10 @@ onMounted(() => {
 }
 
 .loading {
-  text-align: center;
-  padding: 60px;
-  color: var(--color-muted);
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--color-line);
-  border-top-color: var(--color-gold);
-  border-radius: 50%;
-  margin: 0 auto 16px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  padding: 4px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
 }
 
 .empty-state {
@@ -340,6 +386,15 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.date-group-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 4px 0;
 }
 
 .notification-card {
@@ -393,12 +448,34 @@ onMounted(() => {
   font-weight: 700;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .type-badge {
   font-size: 11px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #d1d5db;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.delete-btn:hover {
+  color: #dc2626;
+  background: #fef2f2;
 }
 
 .notification-content p {
@@ -417,6 +494,30 @@ onMounted(() => {
 .date {
   color: var(--color-muted);
   font-size: 12px;
+}
+
+.pull-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.2s ease;
+}
+
+.pull-text {
+  font-size: 12px;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.pull-indicator-enter-active,
+.pull-indicator-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.pull-indicator-enter-from,
+.pull-indicator-leave-to {
+  opacity: 0;
 }
 
 .unread-dot {
