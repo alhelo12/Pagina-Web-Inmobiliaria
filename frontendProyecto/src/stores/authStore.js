@@ -103,7 +103,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = data.access_token
         this.backendToken = data.access_token
         this.role = payload.role || 'client'
-        this.userId = payload.sub
+        this.userId = Number(payload.sub)
         this.userEmail = payload.email || email
         this.isLogged = true
 
@@ -124,7 +124,7 @@ export const useAuthStore = defineStore('auth', {
         })
         this.backendToken = data.access_token
         this.role = data.role
-        this.userId = String(data.user_id)
+        this.userId = Number(data.user_id)
         this.userEmail = data.email
         this.persistSession()
       } catch {

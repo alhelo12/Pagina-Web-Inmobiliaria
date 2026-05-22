@@ -12,7 +12,7 @@ export function useChatWebSocket(onMessage, onTyping) {
   let reconnectTimer = null
 
   function connect() {
-    const token = auth.token || localStorage.getItem('token')
+    const token = auth.backendToken || auth.token
     if (!token) return
 
     const wsUrl = `${import.meta.env.VITE_API_URL.replace('http', 'ws')}/ws/messages?token=${token}`
@@ -89,6 +89,7 @@ export function useChatWebSocket(onMessage, onTyping) {
     wsConnected,
     connect,
     disconnect,
+    send,
     sendMessage,
     sendTyping,
   }

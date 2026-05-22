@@ -4,12 +4,15 @@ Controller: Messages
 Endpoints para mensajes directos entre cliente y asesor.
 """
 
+import asyncio
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.dbConfig.databaseSession import get_db
 from app.services import messageService
 from app.core.dependencies import get_current_user
+from app.core.websocket import manager
 from app.schemas import (
     MessageCreate,
     MessageResponse,
@@ -20,6 +23,9 @@ from app.schemas import (
     PropertyBrief,
 )
 from app.models import User, Advisor, Property
+
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/messages", tags=["Messages"])
@@ -193,7 +199,7 @@ def get_messages(
 
 
 @router.post("", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-def send_message(
+async def send_message(
     data: MessageCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -222,6 +228,32 @@ def send_message(
         db, data.conversation_id, current_user.id, data.content
     )
 
+    try:
+        is_client = conv.user_id == current_user.id
+        recipient_user_id = conv.advisor.user_id if is_client else conv.user_id
+        sender_info = {
+            "id": current_user.id,
+            "name": current_user.full_name or current_user.email,
+            "role": "client" if is_client else "advisor"
+        }
+        message_data = {
+            "type": "message",
+            "data": {
+                "id": message.id,
+                "conversation_id": message.conversation_id,
+                "sender_id": message.sender_id,
+                "content": message.content,
+                "is_read": message.is_read,
+                "created_at": message.created_at.isoformat() if message.created_at else None,
+                "sender": sender_info
+            }
+        }
+        await manager.send_personal_message(message_data, current_user.id)
+        if recipient_user_id:
+            await manager.send_personal_message(message_data, recipient_user_id)
+    except Exception as e:
+        logger.error(f"Error broadcasting message via WebSocket: {e}")
+
     return MessageResponse(
         id=message.id,
         conversation_id=message.conversation_id,
@@ -235,7 +267,7 @@ def send_message(
 
 
 @router.post("/start", response_model=ConversationResponse, status_code=status.HTTP_201_CREATED)
-def start_conversation(
+async def start_conversation(
     data: ConversationCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -272,6 +304,31 @@ def start_conversation(
     message = messageService.send_message(
         db, conversation.id, current_user.id, data.content
     )
+
+    try:
+        sender_info = {
+            "id": current_user.id,
+            "name": current_user.full_name or current_user.email,
+            "role": "client"
+        }
+        message_data = {
+            "type": "message",
+            "data": {
+                "id": message.id,
+                "conversation_id": message.conversation_id,
+                "sender_id": message.sender_id,
+                "content": message.content,
+                "is_read": message.is_read,
+                "created_at": message.created_at.isoformat() if message.created_at else None,
+                "sender": sender_info
+            }
+        }
+        await manager.send_personal_message(message_data, current_user.id)
+        recipient_user_id = advisor.user_id if advisor else None
+        if recipient_user_id:
+            await manager.send_personal_message(message_data, recipient_user_id)
+    except Exception as e:
+        logger.error(f"Error broadcasting via WebSocket: {e}")
 
     property_brief = None
     if conversation.property:

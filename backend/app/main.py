@@ -148,6 +148,7 @@ async def websocket_endpoint(
         return
     
     await manager.connect(websocket, user_id)
+    logger.info(f"WebSocket conectado: user_id={user_id}")
     
     try:
         while True:
@@ -165,10 +166,11 @@ async def websocket_endpoint(
                 try:
                     conversation = messageService.get_conversation_by_id(db, conversation_id)
                     if not conversation:
+                        logger.warning(f"Conversacion {conversation_id} no encontrada para user {user_id}")
                         continue
                     
                     if not _is_participant(conversation, user_id, db):
-                        logger.warning(f"User {user_id} intentó enviar mensaje en conversación {conversation_id} sin acceso")
+                        logger.warning(f"User {user_id} intento enviar mensaje en conversacion {conversation_id} sin acceso")
                         continue
                     
                     message = messageService.send_message(
@@ -181,6 +183,7 @@ async def websocket_endpoint(
                     db.refresh(conversation)
                     
                     recipient_id = _get_recipient_user_id(conversation, user_id)
+                    logger.info(f"WS message: sender={user_id}, conv={conversation_id}, recipient_user_id={recipient_id}, msg_id={message.id}")
                     
                     sender_user = db.query(User).filter(User.id == user_id).first()
                     sender_name = sender_user.full_name if sender_user else payload.get("email", "Usuario")
@@ -208,7 +211,11 @@ async def websocket_endpoint(
                     await manager.send_personal_message(message_data, user_id)
                     
                     if recipient_id:
+                        found = recipient_id in manager.active_connections
+                        logger.info(f"Enviando a recipient {recipient_id}, conectado={found}")
                         await manager.send_personal_message(message_data, recipient_id)
+                    else:
+                        logger.warning(f"No se pudo determinar recipient_id para mensaje {message.id}")
                     
                 finally:
                     db.close()
@@ -235,6 +242,7 @@ async def websocket_endpoint(
                 await websocket.send_json({"type": "pong"})
     
     except WebSocketDisconnect:
+        logger.info(f"WebSocket desconectado: user_id={user_id}")
         manager.disconnect(websocket, user_id)
     except Exception as e:
         logger.error(f"WebSocket error para user {user_id}: {e}", exc_info=True)

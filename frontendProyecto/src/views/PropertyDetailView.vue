@@ -178,7 +178,7 @@ const handleContactAdvisor = async () => {
     return
   }
 
-  if (!auth.isEmailVerified) {
+  if (auth.isEmailVerified === false) {
     router.push('/verificado')
     return
   }

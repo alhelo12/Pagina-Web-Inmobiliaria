@@ -9,6 +9,7 @@ import AppIcon from '@/components/shared/AppIcon.vue'
 import ConversationItem from '@/components/shared/ConversationItem.vue'
 import ChatBubble from '@/components/shared/ChatBubble.vue'
 import TypingIndicator from '@/components/shared/TypingIndicator.vue'
+import apiClient from '@/api/axios'
 
 const auth = useAuthStore()
 const messagesStore = useMessagesStore()
@@ -27,6 +28,7 @@ const filterType = ref('all')
 const typingTimeout = ref(null)
 const isOtherTyping = ref(false)
 const soundEnabled = ref(false)
+const pollingInterval = ref(null)
 
 const audioContext = ref(null)
 
@@ -52,6 +54,7 @@ function playNotificationSound() {
 }
 
 function handleWebSocketMessage(msgData) {
+  messages.value = messages.value.filter(m => !(typeof m.id === 'string' && m.id.startsWith('opt-') && m.conversation_id === msgData.conversation_id && m.content === msgData.content))
   const exists = messages.value.some(m => m.id === msgData.id)
   if (!exists) {
     messages.value.push(msgData)
@@ -77,20 +80,15 @@ function handleWebSocketTyping(data) {
   }
 }
 
-const { wsConnected, connect, disconnect, sendMessage: wsSend, sendTyping } = useChatWebSocket(
+const { wsConnected, connect, disconnect, send, sendTyping } = useChatWebSocket(
   handleWebSocketMessage,
   handleWebSocketTyping
 )
 
 const fetchConversations = async () => {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/messages/conversations`, {
-      headers: { ...auth.authHeaders }
-    })
-    if (res.ok) {
-      const data = await res.json()
-      conversations.value = data.items || []
-    }
+    const { data } = await apiClient.get('/messages/conversations')
+    conversations.value = data.items || []
   } catch (err) {
     console.error('Error fetching conversations:', err)
   } finally {
@@ -100,14 +98,11 @@ const fetchConversations = async () => {
 
 const fetchMessages = async (conversationId) => {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/messages?conversation_id=${conversationId}`, {
-      headers: { ...auth.authHeaders }
-    })
-    if (res.ok) {
-      const data = await res.json()
-      messages.value = data.items || []
-      nextTick(() => scrollToBottom())
-    }
+    const { data } = await apiClient.get('/messages', { params: { conversation_id: conversationId } })
+    const serverIds = new Set((data.items || []).map(m => m.id))
+    const optimisticMsgs = messages.value.filter(m => typeof m.id === 'string' && m.id.startsWith('opt-') && !serverIds.has(m.id))
+    messages.value = [...(data.items || []), ...optimisticMsgs]
+    nextTick(() => scrollToBottom())
   } catch (err) {
     console.error('Error fetching messages:', err)
   }
@@ -118,13 +113,10 @@ const selectConversation = async (conv) => {
   showConversations.value = false
   isOtherTyping.value = false
   try {
-    await fetch(`${import.meta.env.VITE_API_URL}/messages/conversations/${conv.id}/read`, {
-      method: 'POST',
-      headers: { ...auth.authHeaders }
-    })
+    await apiClient.post(`/messages/conversations/${conv.id}/read`)
     conv.unread_count = 0
   } catch {
-    // Mark read failed, non-critical
+    conv.unread_count = 0
   }
   await fetchMessages(conv.id)
 }
@@ -139,14 +131,15 @@ const sendMessage = async () => {
   sendError.value = false
 
   const content = newMessage.value.trim()
+  const userId = Number(auth.userId)
   const optimisticMsg = {
     id: `opt-${Date.now()}`,
     conversation_id: selectedConversation.value.id,
-    sender_id: auth.userId,
+    sender_id: userId,
     content,
     is_read: false,
     created_at: new Date().toISOString(),
-    sender: { id: auth.userId, name: 'Tu', role: 'advisor' }
+    sender: { id: userId, name: 'Tu', role: 'advisor' }
   }
 
   if (wsConnected.value) {
@@ -154,13 +147,19 @@ const sendMessage = async () => {
     newMessage.value = ''
     nextTick(() => scrollToBottom())
 
-    const sent = wsSend('message', {
-      conversation_id: selectedConversation.value.id,
-      content
-    })
-    if (!sent) {
+    try {
+      const sent = send('message', {
+        conversation_id: selectedConversation.value.id,
+        content
+      })
+      if (!sent) {
+        messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
+        sendError.value = true
+      }
+    } catch (err) {
       messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
       sendError.value = true
+      console.error('Error sending message via WS:', err)
     }
   } else {
     try {
@@ -168,17 +167,15 @@ const sendMessage = async () => {
       newMessage.value = ''
       nextTick(() => scrollToBottom())
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
-        method: 'POST',
-        headers: { ...auth.authHeaders, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversation_id: selectedConversation.value.id,
-          content
-        })
+      const { data } = await apiClient.post('/messages', {
+        conversation_id: selectedConversation.value.id,
+        content
       })
-      if (!res.ok) {
-        messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
-        sendError.value = true
+      const idx = messages.value.findIndex(m => m.id === optimisticMsg.id)
+      if (idx !== -1) {
+        messages.value[idx] = data
+      } else {
+        messages.value.push(data)
       }
     } catch (err) {
       messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
@@ -254,11 +251,29 @@ const totalUnread = computed(() =>
 onMounted(async () => {
   await fetchConversations()
   connect()
+  startPolling()
 })
 
 onUnmounted(() => {
   disconnect()
+  stopPolling()
 })
+
+function startPolling() {
+  stopPolling()
+  pollingInterval.value = setInterval(() => {
+    if (!wsConnected.value && selectedConversation.value) {
+      fetchMessages(selectedConversation.value.id)
+    }
+  }, 5000)
+}
+
+function stopPolling() {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+    pollingInterval.value = null
+  }
+}
 </script>
 
 <template>

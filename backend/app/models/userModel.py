@@ -99,8 +99,9 @@ class User(BaseModel):
     advisor = relationship(
         "Advisor",
         back_populates="user",
-        uselist=False,  # One-to-One
-        cascade="all, delete-orphan"
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="joined"
     )
     
     # Relación con Property (One-to-Many)

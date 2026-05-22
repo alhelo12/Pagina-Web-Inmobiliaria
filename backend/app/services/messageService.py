@@ -230,26 +230,31 @@ def send_message(
     ).first()
     if conversation:
         conversation.last_message_at = message.created_at
+
+    sender_name = "Un usuario"
+    notification_recipient = None
+    try:
+        sender = db.query(User).filter(User.id == sender_id).first()
+        sender_name = sender.full_name if sender else "Un usuario"
+        sender_is_user = conversation.user_id == sender_id
+        notification_recipient = conversation.advisor.user_id if sender_is_user else conversation.user_id
+    except Exception as e:
+        logger.error(f"Error preparando notificacion: {e}")
     
     db.commit()
     db.refresh(message)
 
-    try:
-        if conversation:
-            sender = db.query(User).filter(User.id == sender_id).first()
-            sender_name = sender.full_name if sender else "Un usuario"
-            sender_is_user = conversation.user_id == sender_id
-            recipient_id = conversation.advisor.user_id if sender_is_user else conversation.user_id
-            if recipient_id:
-                notificationService.create_notification(
-                    db=db,
-                    user_id=recipient_id,
-                    notification_type="message_received",
-                    title="Nuevo mensaje",
-                    message=f"Tienes un nuevo mensaje de {sender_name}"
-                )
-    except Exception as e:
-        logger.error(f"Error creando notificacion: {e}")
+    if notification_recipient:
+        try:
+            notificationService.create_notification(
+                db=db,
+                user_id=notification_recipient,
+                notification_type="message_received",
+                title="Nuevo mensaje",
+                message=f"Tienes un nuevo mensaje de {sender_name}"
+            )
+        except Exception as e:
+            logger.error(f"Error creando notificacion: {e}")
 
     return message
 
