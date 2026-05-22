@@ -147,6 +147,7 @@ export const useAuthStore = defineStore('auth', {
       if (this.authMethod) localStorage.setItem('authMethod', this.authMethod)
       localStorage.setItem('isEmailVerified', String(this.isEmailVerified))
       localStorage.setItem('isSupabaseUser', String(this.isSupabaseUser))
+      if (this.userEmail) localStorage.setItem('userEmail', this.userEmail)
     },
 
     async logout() {
@@ -221,7 +222,8 @@ export const useAuthStore = defineStore('auth', {
         this.token = savedBackendToken
         this.backendToken = savedBackendToken
         this.role = savedRole
-        this.userId = savedUserId
+        this.userId = Number(savedUserId)
+        this.userEmail = payload.email || localStorage.getItem('userEmail') || null
         this.isLogged = true
       }
     },
