@@ -143,6 +143,16 @@ from app.schemas.clientAdvisorSchema import (
     ClientAdvisorAssignmentListResponse,
 )
 
+from app.schemas.contactSchema import (
+    ContactStatusEnum,
+    ContactCreate,
+    ContactResponse,
+    ContactDetailResponse,
+    ContactStatusUpdate,
+    ContactListResponse,
+    ContactSuccessResponse,
+)
+
 # TODO: Descomentar a medida que se creen los schemas
 
 
@@ -267,6 +277,15 @@ __all__ = [
     'ClientAdvisorAssignmentResponse',
     'ClientAdvisorAssignmentDetailResponse',
     'ClientAdvisorAssignmentListResponse',
+
+    # Contact schemas
+    'ContactStatusEnum',
+    'ContactCreate',
+    'ContactResponse',
+    'ContactDetailResponse',
+    'ContactStatusUpdate',
+    'ContactListResponse',
+    'ContactSuccessResponse',
 
     # TODO: Agregar schemas aquí cuando se creen
 

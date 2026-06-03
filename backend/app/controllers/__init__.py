@@ -25,6 +25,7 @@ from app.controllers import propertyController
 from app.controllers import appointmentController
 from app.controllers import advisorController
 from app.controllers import favoriteController
+from app.controllers import contactController
 
 
 __all__ = [
@@ -34,6 +35,7 @@ __all__ = [
     'propertyController',
     'appointmentController',
     'advisorController',
-    'favoriteController'
+    'favoriteController',
+    'contactController'
 
 ]

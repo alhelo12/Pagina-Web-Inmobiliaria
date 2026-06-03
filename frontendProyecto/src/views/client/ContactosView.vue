@@ -1,6 +1,7 @@
 ﻿<script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
+import apiClient from '@/api/axios'
 
 const form = reactive({
   name: '',
@@ -12,12 +13,56 @@ const form = reactive({
 
 const newsletter = reactive({ email: '' })
 
-const submitForm = () => {
-  alert('Solicitud enviada correctamente')
+const submitting = ref(false)
+const submitStatus = ref('idle') // idle | success | error
+const submitMessage = ref('')
+const newsletterStatus = ref('idle')
+const newsletterMessage = ref('')
+
+const resetForm = () => {
+  form.name = ''
+  form.email = ''
+  form.phone = ''
+  form.service = ''
+  form.message = ''
+}
+
+const submitForm = async () => {
+  submitting.value = true
+  submitStatus.value = 'idle'
+  submitMessage.value = ''
+
+  try {
+    const { data } = await apiClient.post('/contact', {
+      name: form.name,
+      email: form.email,
+      phone: form.phone || null,
+      service: form.service,
+      message: form.message
+    })
+
+    submitStatus.value = 'success'
+    submitMessage.value = data.message || 'Tu consulta fue recibida. Un asesor te contactara pronto.'
+    resetForm()
+  } catch (err) {
+    submitStatus.value = 'error'
+    if (err.response?.data?.detail) {
+      const detail = err.response.data.detail
+      submitMessage.value = Array.isArray(detail)
+        ? detail.map(d => d.msg).join(', ')
+        : detail
+    } else {
+      submitMessage.value = 'No se pudo enviar la consulta. Por favor intenta de nuevo.'
+    }
+  } finally {
+    submitting.value = false
+  }
 }
 
 const submitNewsletter = () => {
-  alert('Suscripcion realizada')
+  newsletterStatus.value = 'success'
+  newsletterMessage.value = 'Suscripcion realizada. Recibiras nuestras novedades.'
+  newsletter.email = ''
 }
 </script>
 

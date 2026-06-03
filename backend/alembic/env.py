@@ -38,6 +38,7 @@ from app.models import (
     PostSaleFollowup,
     ClientAdvisorAssignment,
     ActivityLog,
+    ContactInquiry,
 )
 
 target_metadata = Base.metadata

@@ -28,6 +28,7 @@ from app.services import notificationPreferenceService
 from app.services import postSaleService
 from app.services import clientAdvisorService
 from app.services import activityLogService
+from app.services import contactService
 
 __all__ = [
     'authService',
@@ -40,5 +41,6 @@ __all__ = [
     'notificationPreferenceService',
     'postSaleService',
     'clientAdvisorService',
-    'activityLogService'
+    'activityLogService',
+    'contactService'
 ]

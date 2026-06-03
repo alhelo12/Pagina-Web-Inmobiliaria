@@ -372,3 +372,36 @@ async def upload_property_image(
         "is_extra": created.is_extra,
         "is_main": created.is_main
     }
+
+
+# ── ELIMINAR IMAGEN DE PROPIEDAD ─────────────────────────────────────────
+@router.delete("/{property_id}/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_property_image(
+    property_id: int,
+    image_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Elimina una imagen de una propiedad.
+
+    Elimina tanto el registro en la base de datos como el archivo fisico del disco.
+    Solo el propietario de la propiedad puede eliminar imagenes.
+    """
+    prop = propertyService.get_property_by_id(db, property_id)
+    if not prop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Propiedad no encontrada"
+        )
+
+    verify_user_owns_resource(prop.submitted_by_user_id, current_user)
+
+    deleted = propertyService.delete_property_image(db, image_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Imagen no encontrada"
+        )
+
+    return None

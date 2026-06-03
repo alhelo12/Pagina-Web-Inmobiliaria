@@ -1,10 +1,11 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.5.0
+-- Version: 1.6.0
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
 --              con sistema de aprobación de propiedades, chat cliente-asesor,
 --              seguimiento post-venta, asignación formal cliente-asesor,
---              preferencias de notificación y notificaciones en tiempo real
+--              preferencias de notificación, notificaciones en tiempo real
+--              y formulario público de contacto con notificación a asesores
 -- ==========================================
 
 -- ==========================================
@@ -213,6 +214,23 @@ CREATE TABLE IF NOT EXISTS client_advisor_assignments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+-- Tabla: contact_inquiries
+-- Descripción: Consultas públicas recibidas desde el formulario de contacto del sitio web
+--              Cualquier visitante puede enviar una consulta y todos los asesores activos
+--              reciben una notificación automáticamente
+-- Estados: new (sin gestionar) | contacted (asesor contactó al cliente) | closed (cerrada)
+CREATE TABLE IF NOT EXISTS contact_inquiries (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    service VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'new' NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
 -- ==========================================
 -- 3. ÍNDICES PARA OPTIMIZACIÓN
 -- ==========================================
@@ -273,6 +291,11 @@ CREATE INDEX IF NOT EXISTS idx_post_sale_scheduled_date ON post_sale_followups(s
 CREATE INDEX IF NOT EXISTS idx_client_advisor_client_id ON client_advisor_assignments(client_id);
 CREATE INDEX IF NOT EXISTS idx_client_advisor_advisor_id ON client_advisor_assignments(advisor_id);
 CREATE INDEX IF NOT EXISTS idx_client_advisor_status ON client_advisor_assignments(status);
+
+-- Índices en contact_inquiries
+CREATE INDEX IF NOT EXISTS idx_contact_inquiries_status ON contact_inquiries(status);
+CREATE INDEX IF NOT EXISTS idx_contact_inquiries_email ON contact_inquiries(email);
+CREATE INDEX IF NOT EXISTS idx_contact_inquiries_created_at ON contact_inquiries(created_at DESC);
 
 -- ==========================================
 -- 4. TRIGGERS
@@ -350,6 +373,12 @@ CREATE TRIGGER tr_update_client_advisor_assignments
     FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
 
+-- Trigger: Actualizar updated_at en contact_inquiries
+CREATE TRIGGER tr_update_contact_inquiries
+    BEFORE UPDATE ON contact_inquiries
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_updated_at_column();
+
 -- ==========================================
 -- 5. DATOS INICIALES (SEED)
 -- ==========================================
@@ -389,6 +418,7 @@ COMMENT ON TABLE conversations IS 'Hilos de chat entre clientes y sus asesores a
 COMMENT ON TABLE messages IS 'Mensajes individuales dentro de una conversación';
 COMMENT ON TABLE post_sale_followups IS 'Seguimiento automatizado post-venta (encuestas, llamadas, referidos, mantenimiento)';
 COMMENT ON TABLE client_advisor_assignments IS 'Relación formal entre clientes y asesores inmobiliarios';
+COMMENT ON TABLE contact_inquiries IS 'Consultas públicas recibidas desde el formulario de contacto del sitio web';
 
 -- ==========================================
 -- FIN DEL SCRIPT

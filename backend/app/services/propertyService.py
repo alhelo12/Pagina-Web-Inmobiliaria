@@ -5,6 +5,7 @@ Lógica de negocio para gestión de propiedades.
 Incluye CRUD, sistema de aprobación y filtros avanzados.
 """
 
+from pathlib import Path
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, and_, or_, text
 from typing import Optional, List, Tuple
@@ -265,6 +266,10 @@ def delete_property(db: Session, property_id: int, user_id: Optional[int] = None
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para eliminar esta propiedad"
         )
+    
+    # Eliminar archivos fisicos de las imagenes antes de borrar los registros
+    for image in db_property.images:
+        _delete_image_file(image.image_url)
     
     db.delete(db_property)
     db.commit()
@@ -582,6 +587,28 @@ def search_by_proximity(
 
 
 # ==========================================
+# LIMPIEZA DE ARCHIVOS
+# ==========================================
+
+def _delete_image_file(image_url: str) -> None:
+    """
+    Elimina el archivo fisico de imagen del disco local.
+
+    Args:
+        image_url: Ruta relativa de la imagen (ej: /media/properties/3/abc.webp)
+    """
+    if not image_url or not image_url.startswith("/media/"):
+        return
+
+    file_path = Path(image_url.lstrip("/"))
+    try:
+        if file_path.exists():
+            file_path.unlink(missing_ok=True)
+    except (OSError, PermissionError):
+        pass
+
+
+# ==========================================
 # GESTIÓN DE IMÁGENES
 # ==========================================
 
@@ -705,6 +732,9 @@ def delete_property_image(db: Session, image_id: int) -> bool:
     
     if not db_image:
         return False
+    
+    # Eliminar el archivo fisico antes de borrar el registro
+    _delete_image_file(db_image.image_url)
     
     db.delete(db_image)
     db.commit()

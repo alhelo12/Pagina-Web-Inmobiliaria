@@ -1,7 +1,7 @@
 """
-Módulo de Modelos ORM (SQLAlchemy)
+Modulo de Modelos ORM (SQLAlchemy)
 
-Facilita la importación de modelos:
+Facilita la importacion de modelos:
     from app.models import Role, User, Property
 
 Modelos disponibles:
@@ -9,9 +9,10 @@ Modelos disponibles:
 - User: Usuarios del sistema
 - Advisor: Perfil extendido de asesores
 - Property: Propiedades inmobiliarias
-- PropertyImage: Imágenes de propiedades
+- PropertyImage: Imagenes de propiedades
 - Appointment: Citas entre clientes y asesores
 - Favorite: Propiedades favoritas de usuarios
+- ContactInquiry: Consultas del formulario publico de contacto
 """
 
 from app.models.roleModel import Role
@@ -27,6 +28,7 @@ from app.models.messageModel import Conversation, Message
 from app.models.postSaleFollowupModel import PostSaleFollowup
 from app.models.clientAdvisorModel import ClientAdvisorAssignment
 from app.models.activityLogModel import ActivityLog
+from app.models.contactInquiryModel import ContactInquiry
 
 __all__ = [
     'Role',
@@ -43,4 +45,5 @@ __all__ = [
     'PostSaleFollowup',
     'ClientAdvisorAssignment',
     'ActivityLog',
+    'ContactInquiry',
 ]
