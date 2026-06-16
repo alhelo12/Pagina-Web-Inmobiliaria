@@ -5,9 +5,10 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { usePropertyStore } from '@/stores/propertyStore'
 import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
+const { addToast } = useToast()
 const store = usePropertyStore()
 const auth = useAuthStore()
 const router = useRouter()
@@ -42,9 +43,6 @@ const statusMap = {
   rejected: { label: 'Rechazada', cls: 'rechazada' },
   sold: { label: 'Vendida', cls: 'vendida' }
 }
-
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
 const actionLoading = ref(false)
@@ -88,15 +86,9 @@ const fetchPage = () => {
   if (filter.value !== 'todos') params.status = filter.value
   if (sortKey.value) params.sort_by = sortKey.value
   if (sortDir.value) params.sort_dir = sortDir.value
-  store.fetchProperties(params).then(() => {
+  store.fetch(params).then(() => {
     totalItems.value = store.total
   })
-}
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 const changeFilter = (f) => {
@@ -133,9 +125,9 @@ const executeConfirm = async () => {
       markSold: 'Propiedad marcada como vendida',
       remove: 'Propiedad eliminada'
     }
-    showToast(messages[action] || 'Acción completada')
+    addToast({ message: messages[action] || 'Acción completada', type: 'success' })
   } catch (err) {
-    showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
+    addToast({ message: err.response?.data?.detail ?? 'Error al ejecutar acción', type: 'error' })
   } finally {
     actionLoading.value = false
   }
@@ -160,7 +152,7 @@ const exportCsv = () => {
 }
 
 onMounted(fetchPage)
-onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
+onUnmounted(() => { clearTimeout(searchTimeout) })
 </script>
 
 <template>
@@ -325,7 +317,6 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       </div>
     </Teleport>
 
-    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
 

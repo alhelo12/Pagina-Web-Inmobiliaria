@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from '@/stores/authStore'
 import { registerSW } from 'virtual:pwa-register'
+import { loadNotificationMeta } from '@/constants/notifications'
 import './style.css'
 
 // Leaflet CSS required so map and controls render correctly
@@ -17,6 +18,9 @@ app.use(router)
 
 const auth = useAuthStore()
 auth.loadSession()
+
+// Carga metadata de tipos de notificación (cache módulo, fallback si falla)
+loadNotificationMeta()
 
 app.mount('#app')
 

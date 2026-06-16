@@ -8,7 +8,6 @@ import AppIcon from '@/components/shared/AppIcon.vue'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 import NotificationSkeleton from '@/components/shared/NotificationSkeleton.vue'
 import NotificationPreferences from '@/components/shared/NotificationPreferences.vue'
-import { usePullToRefresh } from '@/composables/usePullToRefresh'
 import {
   getNotificationMeta,
   getTypeFilters,
@@ -23,12 +22,6 @@ const { notifications, unreadCount, loading } = storeToRefs(store)
 const activeFilter = ref('all')
 const showPreferences = ref(false)
 const role = 'advisor'
-
-const { pulling, pullDistance } = usePullToRefresh(async () => {
-  await store.fetchNotifications()
-  await store.fetchUnreadCount()
-})
-
 const typeFilters = computed(() => getTypeFilters(role))
 
 const filters = computed(() => [
@@ -82,13 +75,6 @@ onMounted(() => {
   <section class="notifications-page">
     <AdvisorDashboardHeader eyebrow="Panel del Asesor" title="Notificaciones" />
     <Breadcrumb :crumbs="[{ label: 'Notificaciones', path: '/advisor/notificaciones' }]" />
-
-    <transition name="pull-indicator">
-      <div v-if="pulling" class="pull-indicator" :style="{ height: pullDistance + 'px' }">
-        <div v-if="pullDistance >= 60" class="pull-text">Suelta para actualizar</div>
-        <div v-else class="pull-text">Desliza hacia abajo</div>
-      </div>
-    </transition>
 
     <div class="section-header">
       <div class="filters">
@@ -482,30 +468,6 @@ onMounted(() => {
 .date {
   color: var(--color-muted);
   font-size: 12px;
-}
-
-.pull-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  transition: height 0.2s ease;
-}
-
-.pull-text {
-  font-size: 12px;
-  color: var(--color-muted);
-  font-weight: 600;
-}
-
-.pull-indicator-enter-active,
-.pull-indicator-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.pull-indicator-enter-from,
-.pull-indicator-leave-to {
-  opacity: 0;
 }
 
 .unread-dot {

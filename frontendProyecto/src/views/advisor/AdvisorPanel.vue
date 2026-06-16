@@ -5,9 +5,10 @@ import { usePropertyStore } from '@/stores/propertyStore'
 import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
+const { addToast } = useToast()
 const store = usePropertyStore()
 const auth = useAuthStore()
 const { properties, availableProperties, loading, error, total } = storeToRefs(store)
@@ -23,9 +24,6 @@ let searchTimeout = null
 const page = ref(1)
 const perPage = ref(20)
 const totalItems = ref(0)
-
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
 const actionLoading = ref(false)
@@ -105,15 +103,9 @@ const formatRegisteredAt = (value) => {
 const fetchPage = () => {
   const params = { skip: (page.value - 1) * perPage.value, limit: perPage.value }
   if (sortKey.value) { params.sort_by = sortKey.value; params.sort_dir = sortDir.value }
-  store.fetchByAdvisor(params).then(() => {
+  store.fetch({ mode: 'advisor', ...params }).then(() => {
     totalItems.value = total.value
   })
-}
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 const changeFilter = (f) => {
@@ -160,9 +152,9 @@ const executeConfirm = async () => {
       sold: 'Propiedad marcada como vendida',
       remove: 'Propiedad eliminada'
     }
-    showToast(messages[action] || 'Acción completada')
+    addToast({ message: messages[action] || 'Acción completada', type: 'success' })
   } catch (err) {
-    showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
+    addToast({ message: err.response?.data?.detail ?? 'Error al ejecutar acción', type: 'error' })
   } finally {
     actionLoading.value = false
   }
@@ -171,10 +163,10 @@ const executeConfirm = async () => {
 const handleTake = async (property) => {
   try {
     await store.takeProperty(property.id)
-    await store.fetchAdvisorStats()
-    showToast('Propiedad tomada correctamente')
+    await store.fetch({ mode: 'stats' })
+    addToast({ message: 'Propiedad tomada correctamente', type: 'success' })
   } catch (err) {
-    showToast(err.response?.data?.detail ?? 'Error al tomar propiedad', 'error')
+    addToast({ message: err.response?.data?.detail ?? 'Error al tomar propiedad', type: 'error' })
   }
 }
 
@@ -197,7 +189,7 @@ const exportCsv = () => {
 }
 
 onMounted(fetchPage)
-onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
+onUnmounted(() => { clearTimeout(searchTimeout) })
 </script>
 
 <template>
@@ -376,7 +368,6 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       </div>
     </Teleport>
 
-    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
 

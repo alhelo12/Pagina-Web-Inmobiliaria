@@ -7,7 +7,6 @@ import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboard
 import AppIcon from '@/components/shared/AppIcon.vue'
 import NotificationSkeleton from '@/components/shared/NotificationSkeleton.vue'
 import NotificationPreferences from '@/components/shared/NotificationPreferences.vue'
-import { usePullToRefresh } from '@/composables/usePullToRefresh'
 import {
   getNotificationMeta,
   getTypeFilters,
@@ -20,13 +19,7 @@ const store = useNotificationsStore()
 const { notifications, loading, unreadCount } = storeToRefs(store)
 
 const activeFilter = ref('all')
-const showPreferences = ref(false)
-
-const { pulling, pullDistance } = usePullToRefresh(async () => {
-  await store.fetchNotifications({ limit: 100 })
-  await store.fetchUnreadCount()
-})
-const role = 'client'
+const showPreferences = ref(false)const role = 'client'
 
 const typeFilters = computed(() => getTypeFilters(role))
 
@@ -88,13 +81,6 @@ onMounted(() => {
       eyebrow="Panel de Cliente"
       title="Notificaciones"
     />
-
-    <transition name="pull-indicator">
-      <div v-if="pulling" class="pull-indicator" :style="{ height: pullDistance + 'px' }">
-        <div v-if="pullDistance >= 60" class="pull-text">Suelta para actualizar</div>
-        <div v-else class="pull-text">Desliza hacia abajo</div>
-      </div>
-    </transition>
 
     <div class="section-header">
       <div class="filters">
@@ -494,30 +480,6 @@ onMounted(() => {
 .date {
   color: var(--color-muted);
   font-size: 12px;
-}
-
-.pull-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  transition: height 0.2s ease;
-}
-
-.pull-text {
-  font-size: 12px;
-  color: var(--color-muted);
-  font-weight: 600;
-}
-
-.pull-indicator-enter-active,
-.pull-indicator-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.pull-indicator-enter-from,
-.pull-indicator-leave-to {
-  opacity: 0;
 }
 
 .unread-dot {

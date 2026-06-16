@@ -1,22 +1,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const auth = useAuthStore()
+
+const { addToast } = useToast()
 
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
-
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
-}
 
 const form = ref({
   full_name: '',
@@ -53,7 +46,7 @@ const hasChanges = () => {
 
 const saveProfile = async () => {
   if (!hasChanges()) {
-    showToast('No hay cambios para guardar', 'info')
+    addToast({ message: 'No hay cambios para guardar', type: 'info' })
     return
   }
 
@@ -77,10 +70,10 @@ const saveProfile = async () => {
     }
     const data = await response.json()
     originalData.value = { ...form.value }
-    showToast('Perfil actualizado correctamente', 'success')
+    addToast({ message: 'Perfil actualizado correctamente', type: 'success' })
   } catch (err) {
     error.value = err.message
-    showToast(err.message, 'error')
+    addToast({ message: err.message, type: 'error' })
   } finally {
     saving.value = false
   }
@@ -90,9 +83,6 @@ onMounted(() => {
   fetchProfile()
 })
 
-onUnmounted(() => {
-  clearTimeout(toastTimeout)
-})
 
 const passwordForm = ref({
   current_password: '',
@@ -150,10 +140,10 @@ const changePassword = async () => {
       throw new Error(err.detail || 'Error al cambiar contraseña')
     }
     passwordForm.value = { current_password: '', new_password: '', confirm_password: '' }
-    showToast('Contraseña cambiada correctamente', 'success')
+    addToast({ message: 'Contraseña cambiada correctamente', type: 'success' })
   } catch (err) {
     passwordError.value = err.message
-    showToast(err.message, 'error')
+    addToast({ message: err.message, type: 'error' })
   } finally {
     passwordSaving.value = false
   }
@@ -251,7 +241,7 @@ const changePassword = async () => {
         </article>
       </div>
 
-      <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
+
     </template>
   </section>
 </template>

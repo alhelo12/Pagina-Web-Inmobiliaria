@@ -6,9 +6,10 @@ import { authApi } from '@/api/auth'
 import { advisorsApi } from '@/api/advisors'
 import { useAuthStore } from '@/stores/authStore'
 import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
+const { addToast } = useToast()
 const auth = useAuthStore()
 const route = useRoute()
 
@@ -47,9 +48,6 @@ const newUser = ref({ full_name: '', email: '', password: '', phone: '', role_na
 
 const confirmModal = ref({ show: false, type: '', user: null })
 
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
-
 const actionLoading = ref(null)
 
 const roleMap = { admin: 1, advisor: 2, client: 3 }
@@ -64,12 +62,6 @@ const filtered = computed(() => {
     u.full_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
   )
 })
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
-}
 
 watch(search, (val) => {
   clearTimeout(searchTimeout)
@@ -172,7 +164,7 @@ const saveUser = async () => {
         })
       }
       showModal.value = false
-      showToast('Usuario actualizado correctamente')
+      addToast({ message: 'Usuario actualizado correctamente', type: 'success' })
     } else {
       const { data } = await authApi.register({
         full_name: newUser.value.full_name,
@@ -190,7 +182,7 @@ const saveUser = async () => {
       users.value.push(data)
       totalItems.value++
       showModal.value = false
-      showToast('Usuario creado correctamente')
+      addToast({ message: 'Usuario creado correctamente', type: 'success' })
     }
   } catch (err) {
     modalError.value = err.response?.data?.detail ?? 'Error al guardar usuario'
@@ -212,17 +204,17 @@ const executeConfirm = async () => {
       await usersApi.remove(user.id)
       users.value = users.value.filter(u => u.id !== user.id)
       totalItems.value = Math.max(0, totalItems.value - 1)
-      showToast('Usuario eliminado correctamente')
+      addToast({ message: 'Usuario eliminado correctamente', type: 'success' })
     } else if (type === 'toggle') {
       const { data } = user.is_active
         ? await usersApi.deactivate(user.id)
         : await usersApi.activate(user.id)
       const idx = users.value.findIndex(u => u.id === user.id)
       if (idx !== -1) users.value[idx] = data
-      showToast(`Usuario ${user.is_active ? 'desactivado' : 'activado'} correctamente`)
+      addToast({ message: `Usuario ${user.is_active ? 'desactivado' : 'activado'} correctamente`, type: 'success' })
     }
   } catch (err) {
-    showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
+    addToast({ message: err.response?.data?.detail ?? 'Error al ejecutar acción', type: 'error' })
   } finally {
     actionLoading.value = null
   }
@@ -234,7 +226,7 @@ onMounted(() => {
   load()
 })
 
-onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
+onUnmounted(() => { clearTimeout(searchTimeout) })
 </script>
 
 <template>
@@ -429,7 +421,6 @@ onUnmounted(() => { clearTimeout(searchTimeout); clearTimeout(toastTimeout) })
       </div>
     </Teleport>
 
-    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
 

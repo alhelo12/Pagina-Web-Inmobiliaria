@@ -54,7 +54,7 @@ const myClients = computed(() => {
 })
 
 onMounted(() => {
-  store.fetchByAdvisor()
+  store.fetch({ mode: 'advisor' })
 })
 </script>
 

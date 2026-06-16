@@ -83,7 +83,7 @@ const selectCategory = (value) => {
 }
 
 onMounted(async () => {
-  await propertyStore.fetchProperties({ status: 'approved', limit: 40 })
+  await propertyStore.fetch({ status: 'approved', limit: 40 })
   if (authStore.isLogged && authStore.role === 'client') {
     await favoritesStore.fetchFavorites()
   }

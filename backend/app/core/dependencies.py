@@ -133,94 +133,34 @@ def get_current_user_optional(
 
 
 # ==========================================
-# PERMISOS POR ROL
+# PERMISOS POR ROL — Factory
 # ==========================================
 
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
+def require_role(*roles):
     """
-    Requiere que el usuario sea admin
-    
-    Args:
-        current_user: Usuario autenticado
-        
-    Returns:
-        Usuario si es admin
-        
-    Raises:
-        HTTPException 403: Si no es admin
-        
+    Factory: retorna una dependencia de FastAPI que valida roles.
+
     Uso:
-        @router.delete("/users/{user_id}")
-        def delete_user(
-            user_id: int,
-            current_user: User = Depends(require_admin)
-        ):
-            # Solo admins pueden ejecutar esto
-            pass
-    """
-    if not current_user.is_admin():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Se requieren permisos de administrador"
-        )
-    return current_user
+        @router.get("/admin")
+        def admin_only(current_user: User = Depends(require_role('admin'))):
+            ...
 
+        @router.get("/staff")
+        def staff_only(current_user: User = Depends(require_role('admin', 'advisor'))):
+            ...
+    """
+    def _checker(current_user: User = Depends(get_current_user)) -> User:
+        if not current_user.role or current_user.role.name not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Se requieren permisos de {' o '.join(roles)}"
+            )
+        return current_user
+    return _checker
 
-def require_advisor(current_user: User = Depends(get_current_user)) -> User:
-    """
-    Requiere que el usuario sea advisor
-    
-    Args:
-        current_user: Usuario autenticado
-        
-    Returns:
-        Usuario si es advisor
-        
-    Raises:
-        HTTPException 403: Si no es advisor
-        
-    Uso:
-        @router.patch("/properties/{id}/approve")
-        def approve_property(
-            property_id: int,
-            current_user: User = Depends(require_advisor)
-        ):
-            # Solo advisors pueden ejecutar esto
-            pass
-    """
-    if not current_user.is_advisor():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Se requieren permisos de asesor"
-        )
-    return current_user
-
-
-def require_advisor_or_admin(current_user: User = Depends(get_current_user)) -> User:
-    """
-    Requiere que el usuario sea advisor O admin
-    
-    Args:
-        current_user: Usuario autenticado
-        
-    Returns:
-        Usuario si es advisor o admin
-        
-    Raises:
-        HTTPException 403: Si no es advisor ni admin
-        
-    Uso:
-        @router.get("/properties/pending/list")
-        def get_pending(current_user: User = Depends(require_advisor_or_admin)):
-            # Advisors y admins pueden ver propiedades pendientes
-            pass
-    """
-    if not (current_user.is_advisor() or current_user.is_admin()):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Se requieren permisos de asesor o administrador"
-        )
-    return current_user
+require_admin = require_role('admin')
+require_advisor = require_role('advisor')
+require_advisor_or_admin = require_role('admin', 'advisor')
 
 
 # ==========================================
@@ -233,34 +173,13 @@ def verify_user_owns_resource(
 ) -> bool:
     """
     Verificar que el usuario sea dueño del recurso O sea admin
-    
-    Args:
-        resource_user_id: ID del usuario dueño del recurso
-        current_user: Usuario autenticado
-        
-    Returns:
-        True si es dueño o admin
-        
-    Raises:
-        HTTPException 403: Si no es dueño ni admin
-        
-    Uso:
-        @router.put("/properties/{id}")
-        def update_property(
-            property_id: int,
-            current_user: User = Depends(get_current_user),
-            db: Session = Depends(get_db)
-        ):
-            property = get_property(db, property_id)
-            verify_user_owns_resource(property.submitted_by_user_id, current_user)
-            # Continuar con la actualización...
     """
     if current_user.is_admin():
         return True
-    
+
     if resource_user_id == current_user.id:
         return True
-    
+
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="No tienes permisos para acceder a este recurso"

@@ -17,67 +17,31 @@ export const usePropertyStore = defineStore('property', {
   },
 
   actions: {
-    async fetchProperties(params = {}) {
+    async fetch(params = {}) {
+      const { mode, ...query } = params
+      const map = {
+        advisor:  () => propertiesApi.getByAdvisor(query),
+        pending:  () => propertiesApi.getPending(query),
+        available: () => propertiesApi.getAvailable(query),
+        stats:    () => propertiesApi.getSummaryByAdvisor(),
+      }
+      const apiFn = map[mode] || (() => propertiesApi.getAll(params))
       this.loading = true
       this.error   = null
       try {
-        const { data } = await propertiesApi.getAll(params)
-        this.properties = data.properties ?? data.items ?? data
-        this.total      = data.total ?? this.properties.length
+        const { data } = await apiFn()
+        if (mode === 'available') {
+          this.availableProperties = data.properties ?? data.items ?? data
+        } else if (mode === 'stats') {
+          this.advisorStats = data
+        } else {
+          this.properties = data.properties ?? data.items ?? data
+          this.total      = data.total ?? this.properties.length
+        }
       } catch (err) {
         this.error = err.response?.data?.detail ?? 'Error al cargar propiedades'
       } finally {
         this.loading = false
-      }
-    },
-
-    async fetchPending() {
-      this.loading = true
-      this.error   = null
-      try {
-        const { data } = await propertiesApi.getPending()
-        this.properties = data.properties ?? data.items ?? data
-        this.total      = data.total ?? this.properties.length
-      } catch (err) {
-        this.error = err.response?.data?.detail ?? 'Error al cargar pendientes'
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async fetchByAdvisor() {
-      this.loading = true
-      this.error   = null
-      try {
-        const { data } = await propertiesApi.getByAdvisor()
-        this.properties = data.properties ?? data.items ?? data
-        this.total      = data.total ?? this.properties.length
-      } catch (err) {
-        this.error = err.response?.data?.detail ?? 'Error al cargar propiedades'
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async fetchAvailable() {
-      this.loading = true
-      this.error   = null
-      try {
-        const { data } = await propertiesApi.getAvailable()
-        this.availableProperties = data.properties ?? data.items ?? data
-      } catch (err) {
-        this.error = err.response?.data?.detail ?? 'Error al cargar disponibles'
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async fetchAdvisorStats() {
-      try {
-        const { data } = await propertiesApi.getSummaryByAdvisor()
-        this.advisorStats = data
-      } catch (err) {
-        this.error = err.response?.data?.detail ?? 'Error al cargar estadísticas'
       }
     },
 

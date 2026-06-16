@@ -45,7 +45,7 @@ onMounted(async () => {
   try {
     await Promise.all([
       favStore.fetchFavorites(),
-      propertyStore.fetchProperties(),
+      propertyStore.fetch(),
       notifStore.fetchUnreadCount(),
       apptStore.fetchUpcoming(7)
     ])

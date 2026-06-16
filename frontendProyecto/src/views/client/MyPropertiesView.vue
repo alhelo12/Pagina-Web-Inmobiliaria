@@ -5,9 +5,10 @@ import { usePropertyStore } from '@/stores/propertyStore'
 import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
+const { addToast } = useToast()
 const store = usePropertyStore()
 const auth = useAuthStore()
 const { properties, loading, error, total } = storeToRefs(store)
@@ -21,9 +22,6 @@ let searchTimeout = null
 const page = ref(1)
 const perPage = ref(20)
 const totalItems = ref(0)
-
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
 const actionLoading = ref(false)
@@ -140,15 +138,9 @@ const getAdvisorName = (property) => {
 
 const fetchPage = () => {
   const params = { skip: (page.value - 1) * perPage.value, limit: perPage.value }
-  store.fetchProperties(params).then(() => {
+  store.fetch(params).then(() => {
     totalItems.value = myProperties.value.length
   })
-}
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 const changeFilter = (f) => {
@@ -184,11 +176,11 @@ const executeConfirm = async () => {
   try {
     if (action === 'remove') {
       await store.remove(propertyId)
-      showToast('Propiedad eliminada correctamente')
+      addToast({ message: 'Propiedad eliminada correctamente', type: 'success' })
     }
     fetchPage()
   } catch (err) {
-    showToast(err.response?.data?.detail ?? 'Error al ejecutar acción', 'error')
+    addToast({ message: err.response?.data?.detail ?? 'Error al ejecutar acción', type: 'error' })
   } finally {
     actionLoading.value = false
   }
@@ -259,7 +251,6 @@ document.addEventListener('click', closeAdvisorPopover)
 onMounted(fetchPage)
 onUnmounted(() => {
   clearTimeout(searchTimeout)
-  clearTimeout(toastTimeout)
   document.removeEventListener('click', closeAdvisorPopover)
 })
 </script>
@@ -447,7 +438,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
 

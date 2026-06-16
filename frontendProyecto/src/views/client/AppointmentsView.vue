@@ -1,15 +1,16 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
 import { appointmentsApi } from '@/api/appointments'
 import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
 
+const { addToast } = useToast()
 const router = useRouter()
 const auth = useAuthStore()
 const propertyStore = usePropertyStore()
@@ -24,8 +25,6 @@ const showForm = ref(false)
 const showVerifyGate = ref(false)
 const sendingEmail = ref(false)
 const emailSent = ref(false)
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
 
 const needsEmailVerification = computed(() =>
   auth.role === 'client' && auth.isSupabaseUser && !auth.isEmailVerified
@@ -42,12 +41,6 @@ const resendEmail = async () => {
   } finally {
     sendingEmail.value = false
   }
-}
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
 }
 
 // Formulario de nueva cita
@@ -90,7 +83,7 @@ const fetchAppointments = async () => {
 
 const fetchProperties = async () => {
   if (!propsLoading.value) {
-    await propertyStore.fetchProperties()
+    await propertyStore.fetch()
   }
 }
 
@@ -135,10 +128,10 @@ const createAppointment = async () => {
     showForm.value = false
     form.value = { property_id: '', scheduled_date: '', scheduled_time: '', notes: '', appointment_type: 'viewing' }
     await fetchAppointments()
-    showToast('Cita solicitada correctamente', 'success')
+    addToast({ message: 'Cita solicitada correctamente', type: 'success' })
   } catch (err) {
     error.value = err.response?.data?.detail || err.message
-    showToast(error.value, 'error')
+    addToast({ message: error.value, type: 'error' })
   } finally {
     saving.value = false
   }
@@ -153,10 +146,10 @@ const cancelAppointment = async (appointmentId) => {
     })
     if (!response.ok) throw new Error('Error al cancelar cita')
     await fetchAppointments()
-    showToast('Cita cancelada', 'info')
+    addToast({ message: 'Cita cancelada', type: 'info' })
   } catch (err) {
     error.value = err.message
-    showToast(err.message, 'error')
+    addToast({ message: err.message, type: 'error' })
   }
 }
 
@@ -172,9 +165,7 @@ onMounted(async () => {
   await Promise.all([fetchAppointments(), fetchProperties()])
 })
 
-onUnmounted(() => {
-  clearTimeout(toastTimeout)
-})
+
 </script>
 
 <template>
@@ -296,7 +287,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
 

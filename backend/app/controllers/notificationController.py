@@ -17,12 +17,22 @@ from app.schemas import (
     NotificationCountResponse,
     NotificationMarkReadResponse
 )
+from app.schemas.notificationSchema import NOTIFICATION_TYPES
 from app.models import User
 
 router = APIRouter(
     prefix="/notifications",
     tags=["Notifications"]
 )
+
+
+@router.get("/meta")
+def get_notification_types():
+    """
+    Retorna los tipos de notificación disponibles con su metadata visual.
+    Sin autenticación — usado por el frontend para renderizar iconos, colores y etiquetas.
+    """
+    return NOTIFICATION_TYPES
 
 
 @router.get("", response_model=NotificationListResponse)

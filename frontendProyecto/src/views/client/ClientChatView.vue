@@ -28,27 +28,11 @@ const isOtherTyping = ref(false)
 const soundEnabled = ref(false)
 const pollingInterval = ref(null)
 
-const audioContext = ref(null)
-
 function playNotificationSound() {
   if (!soundEnabled.value) return
   try {
-    if (!audioContext.value) {
-      audioContext.value = new (window.AudioContext || window.webkitAudioContext)()
-    }
-    const ctx = audioContext.value
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.frequency.value = 800
-    gain.gain.value = 0.1
-    osc.start()
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
-    osc.stop(ctx.currentTime + 0.3)
-  } catch {
-    // Audio not supported
-  }
+    new Audio('/notification.mp3').play()
+  } catch { /* fallback silencioso */ }
 }
 
 function handleWebSocketMessage(msgData) {

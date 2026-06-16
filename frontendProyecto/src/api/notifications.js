@@ -19,5 +19,9 @@ export const notificationsApi = {
 
   delete(notificationId) {
     return api.delete(`/notifications/${notificationId}`)
+  },
+
+  getMeta() {
+    return api.get('/notifications/meta')
   }
 }

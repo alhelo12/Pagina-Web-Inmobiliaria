@@ -6,8 +6,9 @@ import L from 'leaflet'
 import { propertiesApi } from '@/api/properties'
 import { normalizeImageUrl } from '@/utils/propertyImages'
 import { formatPropertyTitle } from '@/utils/titleFormatter'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
+const { addToast } = useToast()
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
@@ -140,15 +141,6 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 let mapInstance = null
 let mapMarker = null
 const mapContainer = ref(null)
-
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 3000)
-}
 
 const isDirty = ref(false)
 const markDirty = () => { isDirty.value = true }
@@ -649,7 +641,7 @@ const submit = async () => {
     }
 
     const msg = isEdit.value ? 'Propiedad actualizada correctamente' : 'Propiedad publicada correctamente'
-    showToast(msg)
+    addToast({ message: msg, type: 'success' })
     success.value = true
     setTimeout(() => router.push(returnPath.value), 1800)
   } catch (err) {
@@ -660,7 +652,7 @@ const submit = async () => {
 }
 
 onMounted(loadProperty)
-onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
+onUnmounted(() => { destroyMap(); formWatcher() })
 </script>
 
 <template>
@@ -1028,7 +1020,6 @@ onUnmounted(() => { destroyMap(); clearTimeout(toastTimeout); formWatcher() })
       </template>
     </div>
 
-    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" @close="toastState.show = false" />
   </section>
 </template>
 

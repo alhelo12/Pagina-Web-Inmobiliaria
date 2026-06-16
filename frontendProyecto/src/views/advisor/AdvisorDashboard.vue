@@ -53,7 +53,7 @@ const pendingMyProperties = computed(() => {
 const handleTakeProperty = async (property) => {
   try {
     await store.takeProperty(property.id)
-    await store.fetchAdvisorStats()
+    await store.fetch({ mode: 'stats' })
   } catch (err) {
     error.value = err.response?.data?.detail ?? 'Error al tomar propiedad'
   }
@@ -64,9 +64,9 @@ onMounted(async () => {
   error.value = ''
   try {
     await Promise.all([
-      store.fetchByAdvisor(),
-      store.fetchAvailable(),
-      store.fetchAdvisorStats()
+      store.fetch({ mode: 'advisor' }),
+      store.fetch({ mode: 'available' }),
+      store.fetch({ mode: 'stats' })
     ])
   } catch (err) {
     error.value = err.response?.data?.detail ?? 'Error al cargar el dashboard'

@@ -1,78 +1,12 @@
 /**
- * Tipos de notificación unificados — fuente única de verdad.
- *
- * Cada entrada mapea un `type` del backend a su metadata visual.
- * Se usa desde NotificationBell, NotificationsView y AdvisorNotificationsView.
+ * Tipos de notificación — cargados desde el backend vía GET /notifications/meta.
+ * Cache de módulo para acceso síncrono desde componentes.
  */
 
-export const NOTIFICATION_META = {
-  advisor_assigned: {
-    icon: 'user',
-    color: '#d6a848',
-    label: 'Asesor asignado',
-    roles: ['client']
-  },
-  approved: {
-    icon: 'check',
-    color: '#22c55e',
-    label: 'Aprobada',
-    roles: ['client']
-  },
-  rejected: {
-    icon: 'x-circle',
-    color: '#dc2626',
-    label: 'Rechazada',
-    roles: ['client']
-  },
-  sold: {
-    icon: 'home',
-    color: '#7c3aed',
-    label: 'Vendida / Rentada',
-    roles: ['client']
-  },
-  property_updated: {
-    icon: 'pencil',
-    color: '#3b82f6',
-    label: 'Actualizada',
-    roles: ['client']
-  },
-  appointment_confirmed: {
-    icon: 'calendar',
-    color: '#22c55e',
-    label: 'Cita confirmada',
-    roles: ['client', 'advisor']
-  },
-  appointment_cancelled: {
-    icon: 'x-circle',
-    color: '#dc2626',
-    label: 'Cita cancelada',
-    roles: ['client', 'advisor']
-  },
-  appointment_reminder: {
-    icon: 'calendar',
-    color: '#f59e0b',
-    label: 'Recordatorio',
-    roles: ['client', 'advisor']
-  },
-  post_sale_survey: {
-    icon: 'envelope',
-    color: '#3b82f6',
-    label: 'Encuesta',
-    roles: ['client']
-  },
-  post_sale_checkin: {
-    icon: 'envelope',
-    color: '#8b5cf6',
-    label: 'Seguimiento',
-    roles: ['client']
-  },
-  message_received: {
-    icon: 'chat',
-    color: '#6366f1',
-    label: 'Nuevo mensaje',
-    roles: ['client', 'advisor']
-  }
-}
+import { notificationsApi } from '@/api/notifications'
+
+let metaCache = {}
+let metaPromise = null
 
 export const FALLBACK_META = {
   icon: 'megaphone',
@@ -80,27 +14,25 @@ export const FALLBACK_META = {
   label: 'Notificación'
 }
 
-/**
- * @param {string} type - clave del tipo de notificación
- * @returns {{ icon: string, color: string, label: string }}
- */
-export function getNotificationMeta(type) {
-  return NOTIFICATION_META[type] || FALLBACK_META
+export async function loadNotificationMeta() {
+  if (metaPromise) return metaPromise
+  metaPromise = (async () => {
+    try {
+      const { data } = await notificationsApi.getMeta()
+      metaCache = data
+    } catch { /* fallback se usa hasta que se cargue */ }
+  })()
+  return metaPromise
 }
 
-/**
- * Filtros de tipo visibles para un rol dado.
- * @param {'client'|'advisor'} role
- * @returns {{ key: string, label: string, color: string }[]}
- */
+export function getNotificationMeta(type) {
+  return metaCache[type] || FALLBACK_META
+}
+
 export function getTypeFilters(role = 'client') {
-  const filters = []
-  for (const [key, meta] of Object.entries(NOTIFICATION_META)) {
-    if (meta.roles.includes(role)) {
-      filters.push({ key, label: meta.label, color: meta.color })
-    }
-  }
-  return filters
+  return Object.entries(metaCache)
+    .filter(([, m]) => m.roles?.includes(role))
+    .map(([key, m]) => ({ key, label: m.label, color: m.color }))
 }
 
 /**

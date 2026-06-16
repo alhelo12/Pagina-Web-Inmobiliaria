@@ -2,22 +2,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { appointmentsApi } from '@/api/appointments'
 import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
-import Toast from '@/components/shared/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import AppIcon from '@/components/shared/AppIcon.vue'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
+const { addToast } = useToast()
 const appointments = ref([])
 const loading = ref(true)
 const error = ref('')
-const toastState = ref({ show: false, message: '', type: 'success' })
-let toastTimeout = null
 const processingId = ref(null)
-
-const showToast = (message, type = 'success') => {
-  clearTimeout(toastTimeout)
-  toastState.value = { show: true, message, type }
-  toastTimeout = setTimeout(() => { toastState.value.show = false }, 4000)
-}
 
 const statusMap = {
   pending: { label: 'Pendiente', cls: 'pendiente' },
@@ -43,9 +36,9 @@ const updateStatus = async (id, status) => {
     const { data } = await appointmentsApi.updateStatus(id, status)
     const idx = appointments.value.findIndex(a => a.id === id)
     if (idx !== -1) appointments.value[idx] = data
-    showToast(`Cita ${status === 'confirmed' ? 'confirmada' : status === 'cancelled' ? 'cancelada' : 'completada'}`, 'success')
+    addToast({ message: `Cita ${status === 'confirmed' ? 'confirmada' : status === 'cancelled' ? 'cancelada' : 'completada'}`, type: 'success' })
   } catch (err) {
-    showToast(err.response?.data?.detail || err.message, 'error')
+    addToast({ message: err.response?.data?.detail || err.message, type: 'error' })
   } finally {
     processingId.value = null
   }
@@ -153,7 +146,6 @@ onMounted(() => {
       </article>
     </div>
 
-    <Toast :visible="toastState.show" :message="toastState.message" :type="toastState.type" />
   </section>
 </template>
 

@@ -83,58 +83,80 @@ class NotificationMarkRead(BaseModel):
 
 NOTIFICATION_TYPES = {
     "advisor_assigned": {
-        "icon": "👤",
+        "icon": "user",
         "color": "#d6a848",
+        "label": "Asesor asignado",
+        "roles": ["client"],
         "description": "Un asesor tomó la propiedad"
     },
     "approved": {
-        "icon": "✅",
+        "icon": "check",
         "color": "#22c55e",
+        "label": "Aprobada",
+        "roles": ["client"],
         "description": "Propiedad aprobada"
     },
     "rejected": {
-        "icon": "❌",
+        "icon": "x-circle",
         "color": "#dc2626",
+        "label": "Rechazada",
+        "roles": ["client"],
         "description": "Propiedad rechazada"
     },
     "sold": {
-        "icon": "🏠",
+        "icon": "home",
         "color": "#7c3aed",
+        "label": "Vendida / Rentada",
+        "roles": ["client"],
         "description": "Propiedad vendida/rentada"
     },
     "property_updated": {
-        "icon": "✏️",
+        "icon": "pencil",
         "color": "#3b82f6",
+        "label": "Actualizada",
+        "roles": ["client"],
         "description": "Propiedad actualizada"
     },
     "appointment_confirmed": {
-        "icon": "📅",
+        "icon": "calendar",
         "color": "#22c55e",
+        "label": "Cita confirmada",
+        "roles": ["client", "advisor"],
         "description": "Cita confirmada"
     },
     "appointment_cancelled": {
-        "icon": "🚫",
+        "icon": "x-circle",
         "color": "#dc2626",
+        "label": "Cita cancelada",
+        "roles": ["client", "advisor"],
         "description": "Cita cancelada"
     },
     "appointment_reminder": {
-        "icon": "⏰",
+        "icon": "calendar",
         "color": "#f59e0b",
+        "label": "Recordatorio",
+        "roles": ["client", "advisor"],
         "description": "Recordatorio de cita"
     },
     "post_sale_survey": {
-        "icon": "📋",
+        "icon": "envelope",
         "color": "#3b82f6",
+        "label": "Encuesta",
+        "roles": ["client"],
         "description": "Encuesta de satisfacción post-venta"
     },
     "post_sale_checkin": {
-        "icon": "📞",
+        "icon": "envelope",
         "color": "#8b5cf6",
+        "label": "Seguimiento",
+        "roles": ["client"],
         "description": "Seguimiento post-venta"
     },
     "message_received": {
-        "icon": "💬",
-        "color": "#3b82f6",
+        "icon": "chat",
+        "color": "#6366f1",
+        "label": "Nuevo mensaje",
+        "roles": ["client", "advisor"],
         "description": "Nuevo mensaje recibido"
     }
 }
