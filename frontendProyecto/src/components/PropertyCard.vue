@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
+import { enumLabel } from '@/utils/enums'
 import { FALLBACK_PROPERTY_IMAGE } from '@/utils/propertyImages'
 
 const props = defineProps({
@@ -41,17 +42,8 @@ const auth = useAuthStore()
 const favStore = useFavoritesStore()
 const isFav = computed(() => favStore.isFavorite(props.id))
 
-const typeLabel = {
-  house: 'Casa',
-  apartment: 'Departamento',
-  land: 'Terreno',
-  commercial: 'Comercial'
-}
-
-const operationLabel = {
-  sale: 'Venta',
-  rent: 'Renta'
-}
+const typeLabel = (v) => enumLabel('property_types', v)
+const operationLabel = (v) => enumLabel('transaction_types', v)
 
 const extrasLabels = computed(() => {
   if (!props.images || !props.images.length) return []
@@ -79,8 +71,8 @@ const handleImageError = (event) => {
   <article class="card">
     <div class="media">
       <img :src="image || FALLBACK_PROPERTY_IMAGE" :alt="title" loading="lazy" @error="handleImageError" />
-      <span class="type-pill type-gold">{{ typeLabel[type] }}</span>
-      <span class="type-pill type-blue">{{ operationLabel[transactionType] }}</span>
+      <span class="type-pill type-gold">{{ typeLabel(type) }}</span>
+      <span class="type-pill type-blue">{{ operationLabel(transactionType) }}</span>
       <button
         class="fav-btn"
         :class="{ active: isFav }"

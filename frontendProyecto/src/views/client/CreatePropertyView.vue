@@ -755,6 +755,8 @@ onUnmounted(() => { destroyMap(); formWatcher() })
                   <option value="" disabled>Selecciona un tipo</option>
                   <option value="house">Casa</option>
                   <option value="apartment">Departamento</option>
+                  <option value="land">Terreno</option>
+                  <option value="commercial">Local comercial</option>
                 </select>
               </div>
               <div class="field">

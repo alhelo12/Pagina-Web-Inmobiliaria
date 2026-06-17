@@ -21,7 +21,9 @@ const filters = ref({
 
 const categories = [
   { key: 'house', label: 'Casas', note: 'Residencial familiar' },
-  { key: 'apartment', label: 'Departamentos', note: 'Ciudad y comodidad' }
+  { key: 'apartment', label: 'Departamentos', note: 'Ciudad y comodidad' },
+  { key: 'land', label: 'Terrenos', note: 'Inversión y construcción' },
+  { key: 'commercial', label: 'Locales comerciales', note: 'Negocio y oficina' }
 ]
 
 const selectedCategory = ref('')
@@ -119,6 +121,8 @@ onMounted(async () => {
               <option value="">Tipo</option>
               <option value="house">Casa</option>
               <option value="apartment">Departamento</option>
+              <option value="land">Terreno</option>
+              <option value="commercial">Local comercial</option>
             </select>
             <span class="search-divider"></span>
             <select v-model="filters.transaction_type" class="search-select">

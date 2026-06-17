@@ -33,6 +33,8 @@ const reset = () => {
         <option value="">Tipo</option>
         <option value="house">Casa</option>
         <option value="apartment">Departamento</option>
+        <option value="land">Terreno</option>
+        <option value="commercial">Local comercial</option>
       </select>
       <span class="divider"></span>
       <select v-model="tx" class="filter-select">

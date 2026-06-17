@@ -5,6 +5,7 @@ import router from './router'
 import { useAuthStore } from '@/stores/authStore'
 import { registerSW } from 'virtual:pwa-register'
 import { loadNotificationMeta } from '@/constants/notifications'
+import { loadEnums } from '@/utils/enums'
 import './style.css'
 
 // Leaflet CSS required so map and controls render correctly
@@ -21,6 +22,7 @@ auth.loadSession()
 
 // Carga metadata de tipos de notificación (cache módulo, fallback si falla)
 loadNotificationMeta()
+loadEnums()
 
 app.mount('#app')
 

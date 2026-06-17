@@ -38,6 +38,7 @@ from app.controllers.postSaleController import router as post_sale_router
 from app.controllers.clientAdvisorController import router as client_advisor_router
 from app.controllers.activityLogController import router as activity_log_router
 from app.controllers.contactController import router as contact_router
+from app.controllers.constantsController import router as constants_router
 
 # Ejecutar prueba al iniciar
 test_db_connection()
@@ -94,6 +95,7 @@ app.include_router(post_sale_router)
 app.include_router(client_advisor_router)
 app.include_router(activity_log_router)
 app.include_router(contact_router)
+app.include_router(constants_router)
 
 # ==========================================
 # WEBSOCKET UNIFICADO
