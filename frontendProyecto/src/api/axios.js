@@ -11,8 +11,8 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   try {
     const auth = useAuthStore()
-    if (auth.backendToken || auth.token) {
-      config.headers.Authorization = `Bearer ${auth.backendToken || auth.token}`
+    if (auth.backendToken || auth.backendToken) {
+      config.headers.Authorization = `Bearer ${auth.backendToken || auth.backendToken}`
     }
   } catch (err) {
     console.error('[Axios Request Interceptor]', err)
@@ -41,7 +41,7 @@ apiClient.interceptors.response.use(
         const auth = useAuthStore()
 
         // Evita bucles de recarga en pantallas públicas/auth y cuando no hay sesión activa.
-        if (!auth.token || authRoutes.has(currentPath)) {
+        if (!auth.backendToken || authRoutes.has(currentPath)) {
           return Promise.reject(error)
         }
       } catch (err) {

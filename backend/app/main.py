@@ -96,152 +96,99 @@ app.include_router(activity_log_router)
 app.include_router(contact_router)
 
 # ==========================================
-# WEBSOCKET — Notificaciones en tiempo real
-# ==========================================
-
-@app.websocket("/ws/notifications")
-async def notifications_websocket(
-    websocket: WebSocket,
-    token: Optional[str] = Query(None)
-):
-    """
-    WebSocket para notificaciones en tiempo real.
-    
-    Conexion: ws://localhost:8000/ws/notifications?token=JWT_TOKEN
-    
-    Mensajes recibidos:
-    - {"type": "ping"}
-    
-    Mensajes enviados:
-    - {"type": "notification", "data": {...}} — nueva notificación
-    """
-    if not token:
-        await websocket.close(code=4001, reason="Token requerido")
-        return
-    
-    payload = decode_access_token(token)
-    if not payload:
-        await websocket.close(code=4001, reason="Token invalido")
-        return
-    
-    user_id = int(payload.get("sub", 0))
-    if not user_id:
-        await websocket.close(code=4001, reason="Token invalido")
-        return
-    
-    await manager.connect(websocket, user_id)
-    
-    try:
-        while True:
-            data = await websocket.receive_json()
-            if data.get("type") == "ping":
-                await websocket.send_json({"type": "pong"})
-    except WebSocketDisconnect:
-        manager.disconnect(websocket, user_id)
-    except Exception:
-        manager.disconnect(websocket, user_id)
-
-
-# ==========================================
-# WEBSOCKET — Chat en tiempo real
+# WEBSOCKET UNIFICADO
 # ==========================================
 
 def _is_participant(conversation, user_id: int, db) -> bool:
-    """Verifica que el usuario sea participante de la conversación"""
     if conversation.user_id == user_id:
         return True
     if conversation.advisor:
         return conversation.advisor.user_id == user_id
     return False
 
+
 def _get_recipient_user_id(conversation, sender_user_id: int) -> Optional[int]:
-    """Obtiene el user_id del destinatario (no el advisor_id)"""
     if conversation.user_id == sender_user_id:
         return conversation.advisor.user_id if conversation.advisor else None
     return conversation.user_id
 
-@app.websocket("/ws/messages")
+
+@app.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
     token: Optional[str] = Query(None)
 ):
     """
-    WebSocket para chat en tiempo real.
-    
-    Conexion: ws://localhost:8000/ws/messages?token=JWT_TOKEN
-    
-    Mensajes enviados:
-    - {"type": "message", "data": {...}} — nuevo mensaje recibido
-    - {"type": "typing", "user_id": 1} — usuario esta escribiendo
-    - {"type": "pong"} — respuesta a ping
-    
+    WebSocket unificado para chat y notificaciones en tiempo real.
+
+    Conexion: ws://localhost:8000/ws?token=JWT_TOKEN
+
     Mensajes recibidos:
+    - {"type": "ping"}
     - {"type": "message", "conversation_id": 1, "content": "..."}
     - {"type": "typing", "conversation_id": 1}
-    - {"type": "ping"}
+
+    Mensajes enviados:
+    - {"type": "pong"}
+    - {"type": "message", "data": {...}}
+    - {"type": "typing", "conversation_id": 1, "user_id": 1}
+    - {"type": "notification", "data": {...}}
     """
     if not token:
         await websocket.close(code=4001, reason="Token requerido")
         return
-    
+
     payload = decode_access_token(token)
     if not payload:
         await websocket.close(code=4001, reason="Token invalido")
         return
-    
+
     user_id = int(payload.get("sub", 0))
     if not user_id:
         await websocket.close(code=4001, reason="Token invalido")
         return
-    
+
     await manager.connect(websocket, user_id)
     logger.info(f"WebSocket conectado: user_id={user_id}")
-    
+
     try:
         while True:
             data = await websocket.receive_json()
             msg_type = data.get("type")
-            
-            if msg_type == "message":
+
+            if msg_type == "ping":
+                await websocket.send_json({"type": "pong"})
+
+            elif msg_type == "message":
                 conversation_id = data.get("conversation_id")
                 content = data.get("content", "").strip()
-                
+
                 if not conversation_id or not content:
                     continue
-                
+
                 db = SessionLocal()
                 try:
                     conversation = messageService.get_conversation_by_id(db, conversation_id)
                     if not conversation:
                         logger.warning(f"Conversacion {conversation_id} no encontrada para user {user_id}")
                         continue
-                    
+
                     if not _is_participant(conversation, user_id, db):
                         logger.warning(f"User {user_id} intento enviar mensaje en conversacion {conversation_id} sin acceso")
                         continue
-                    
+
                     message = messageService.send_message(
-                        db=db,
-                        conversation_id=conversation_id,
-                        sender_id=user_id,
-                        content=content
+                        db=db, conversation_id=conversation_id, sender_id=user_id, content=content
                     )
-                    
+
                     db.refresh(conversation)
-                    
+
                     recipient_id = _get_recipient_user_id(conversation, user_id)
-                    logger.info(f"WS message: sender={user_id}, conv={conversation_id}, recipient_user_id={recipient_id}, msg_id={message.id}")
-                    
+
                     sender_user = db.query(User).filter(User.id == user_id).first()
                     sender_name = sender_user.full_name if sender_user else payload.get("email", "Usuario")
                     is_client = conversation.user_id == user_id
-                    
-                    sender_info = {
-                        "id": user_id,
-                        "name": sender_name,
-                        "role": "client" if is_client else "advisor"
-                    }
-                    
+
                     message_data = {
                         "type": "message",
                         "data": {
@@ -251,22 +198,17 @@ async def websocket_endpoint(
                             "content": message.content,
                             "is_read": message.is_read,
                             "created_at": message.created_at.isoformat() if message.created_at else None,
-                            "sender": sender_info
+                            "sender": {"id": user_id, "name": sender_name, "role": "client" if is_client else "advisor"}
                         }
                     }
-                    
+
                     await manager.send_personal_message(message_data, user_id)
-                    
                     if recipient_id:
-                        found = recipient_id in manager.active_connections
-                        logger.info(f"Enviando a recipient {recipient_id}, conectado={found}")
                         await manager.send_personal_message(message_data, recipient_id)
-                    else:
-                        logger.warning(f"No se pudo determinar recipient_id para mensaje {message.id}")
-                    
+
                 finally:
                     db.close()
-            
+
             elif msg_type == "typing":
                 conversation_id = data.get("conversation_id")
                 if conversation_id:
@@ -276,18 +218,13 @@ async def websocket_endpoint(
                         if conversation and _is_participant(conversation, user_id, db):
                             recipient_id = _get_recipient_user_id(conversation, user_id)
                             if recipient_id:
-                                typing_data = {
-                                    "type": "typing",
-                                    "conversation_id": conversation_id,
-                                    "user_id": user_id
-                                }
-                                await manager.send_personal_message(typing_data, recipient_id)
+                                await manager.send_personal_message(
+                                    {"type": "typing", "conversation_id": conversation_id, "user_id": user_id},
+                                    recipient_id
+                                )
                     finally:
                         db.close()
-            
-            elif msg_type == "ping":
-                await websocket.send_json({"type": "pong"})
-    
+
     except WebSocketDisconnect:
         logger.info(f"WebSocket desconectado: user_id={user_id}")
         manager.disconnect(websocket, user_id)

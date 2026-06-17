@@ -18,7 +18,7 @@ export const useNotificationsStore = defineStore('notifications', {
   actions: {
     async fetchNotifications(params = {}) {
       const auth = useAuthStore()
-      if (!auth.isLogged || !auth.token) return
+      if (!auth.isLogged || !auth.backendToken) return
 
       this.loading = true
       this.error = null
@@ -36,7 +36,7 @@ export const useNotificationsStore = defineStore('notifications', {
 
     async fetchUnreadCount() {
       const auth = useAuthStore()
-      if (!auth.isLogged || !auth.token) return
+      if (!auth.isLogged || !auth.backendToken) return
 
       try {
         const { data } = await notificationsApi.getUnreadCount({ user_id: auth.userId })

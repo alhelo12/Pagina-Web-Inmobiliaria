@@ -5,7 +5,9 @@ import { useNotificationsStore } from '@/stores/notificationsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import AppIcon from '@/components/shared/AppIcon.vue'
-import { useNotificationWebSocket } from '@/composables/useNotificationWebSocket'
+import { useWebSocket } from '@/composables/useWebSocket'
+import { useToast } from '@/composables/useToast'
+import { playNotificationSound } from '@/utils/notificationSound'
 import {
   getNotificationMeta,
   groupByDate,
@@ -16,8 +18,23 @@ const router = useRouter()
 const store = useNotificationsStore()
 const auth = useAuthStore()
 const { notifications, unreadCount, loading } = storeToRefs(store)
+const { addToast } = useToast()
 
-const { connect: wsConnect, disconnect: wsDisconnect } = useNotificationWebSocket()
+function handleNotification(notif) {
+  store.addNotification(notif)
+  playNotificationSound()
+  addToast({
+    title: notif.title,
+    message: notif.message,
+    type: 'info',
+    duration: 5000
+  })
+}
+
+const { connect: wsConnect, disconnect: wsDisconnect } = useWebSocket({
+  onNotification: handleNotification,
+  autoConnect: false
+})
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 let pollInterval = null
@@ -73,7 +90,7 @@ const safeWsConnect = () => {
 }
 
 onMounted(() => {
-  if (!auth.isLogged || !auth.token) return
+  if (!auth.isLogged) return
   store.fetchNotifications()
   store.fetchUnreadCount()
   safeWsConnect()

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useMessagesStore } from '@/stores/messagesStore'
-import { useChatWebSocket } from '@/composables/useChatWebSocket'
+import { useWebSocket } from '@/composables/useWebSocket'
 import { formatDateGroup } from '@/utils/chatUtils'
 import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
@@ -62,10 +62,11 @@ function handleWebSocketTyping(data) {
   }
 }
 
-const { wsConnected, connect, disconnect, send, sendTyping } = useChatWebSocket(
-  handleWebSocketMessage,
-  handleWebSocketTyping
-)
+const { connected: wsConnected, connect, disconnect, send, sendTyping } = useWebSocket({
+  onMessage: handleWebSocketMessage,
+  onTyping: handleWebSocketTyping,
+  autoConnect: false
+})
 
 const fetchConversations = async () => {
   try {
