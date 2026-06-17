@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { usePropertyStore } from '@/stores/propertyStore'
-import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
@@ -157,10 +157,13 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 
 <template>
   <section class="properties-admin">
-    <AdminDashboardHeader
+    <DashboardHeader
       v-model:search="search"
       eyebrow="Gestión inmobiliaria"
       title="Propiedades"
+      :show-search="true"
+      :show-export="true"
+      :show-profile="true"
       add-label="Agregar propiedad"
       :profile-name="auth.userEmail?.split('@')?.[0] || 'Admin'"
       :profile-email="auth.userEmail || ''"

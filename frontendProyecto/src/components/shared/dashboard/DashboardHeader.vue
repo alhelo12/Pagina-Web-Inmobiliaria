@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <header class="dash-header">
     <div class="title-wrap">
       <p>{{ eyebrow }}</p>
@@ -11,10 +11,10 @@
       </div>
       <button v-if="showExport" class="ghost" @click="$emit('export')">Exportar</button>
       <button v-if="showAdd" class="primary" @click="$emit('add')">{{ addLabel }}</button>
-      <div class="profile">
+      <div v-if="showProfile" class="profile">
         <span class="avatar">{{ avatarInitial }}</span>
         <div>
-          <strong>{{ profileName || 'Admin' }}</strong>
+          <strong>{{ profileName || 'Usuario' }}</strong>
           <small>{{ profileEmail || 'Cuenta activa' }}</small>
         </div>
       </div>
@@ -27,12 +27,13 @@ import { computed } from 'vue'
 
 const props = defineProps({
   eyebrow: { type: String, default: 'Dashboard' },
-  title: { type: String, default: 'Panel Administrativo' },
+  title: { type: String, default: 'Panel' },
   search: { type: String, default: '' },
   searchPlaceholder: { type: String, default: 'Buscar propiedad...' },
-  showSearch: { type: Boolean, default: true },
-  showExport: { type: Boolean, default: true },
-  showAdd: { type: Boolean, default: true },
+  showSearch: { type: Boolean, default: false },
+  showExport: { type: Boolean, default: false },
+  showAdd: { type: Boolean, default: false },
+  showProfile: { type: Boolean, default: false },
   addLabel: { type: String, default: 'Agregar' },
   profileName: { type: String, default: '' },
   profileEmail: { type: String, default: '' }
@@ -40,7 +41,7 @@ const props = defineProps({
 defineEmits(['update:search', 'export', 'add'])
 
 const avatarInitial = computed(() => {
-  const name = props.profileName || props.profileEmail || 'A'
+  const name = props.profileName || props.profileEmail || 'U'
   return name.trim().charAt(0).toUpperCase()
 })
 </script>
@@ -72,9 +73,7 @@ button:hover { filter: brightness(1.03); box-shadow: 0 10px 18px rgba(7, 23, 45,
 @media (max-width: 640px) {
   .dash-header { padding: 18px 16px; }
   .actions { display: grid; grid-template-columns: 1fr; }
-  .ghost,
-  .primary,
-  .profile { width: 100%; }
+  .ghost, .primary, .profile { width: 100%; }
   .search-box input { width: 100%; }
 }
 </style>

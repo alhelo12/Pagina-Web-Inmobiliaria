@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
-import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
 import NotificationSkeleton from '@/components/shared/NotificationSkeleton.vue'
 import NotificationPreferences from '@/components/shared/NotificationPreferences.vue'
@@ -19,7 +19,8 @@ const store = useNotificationsStore()
 const { notifications, loading, unreadCount } = storeToRefs(store)
 
 const activeFilter = ref('all')
-const showPreferences = ref(false)const role = 'client'
+const showPreferences = ref(false)
+const role = 'client'
 
 const typeFilters = computed(() => getTypeFilters(role))
 
@@ -77,7 +78,7 @@ onMounted(() => {
 
 <template>
   <section class="notifications-page">
-    <ClientDashboardHeader
+    <DashboardHeader
       eyebrow="Panel de Cliente"
       title="Notificaciones"
     />

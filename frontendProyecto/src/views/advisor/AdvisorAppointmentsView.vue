@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { appointmentsApi } from '@/api/appointments'
-import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
 import AppIcon from '@/components/shared/AppIcon.vue'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
@@ -62,7 +62,7 @@ onMounted(() => {
 
 <template>
   <section class="appointments-page">
-    <AdvisorDashboardHeader eyebrow="Panel del Asesor" title="Mis Citas" />
+    <DashboardHeader eyebrow="Panel del Asesor" title="Mis Citas" />
     <Breadcrumb :crumbs="[{ label: 'Citas', path: '/advisor/citas' }]" />
 
     <section class="metrics">

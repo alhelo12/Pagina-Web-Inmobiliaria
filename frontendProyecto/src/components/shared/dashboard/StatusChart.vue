@@ -1,6 +1,6 @@
-﻿<template>
+<template>
   <article class="chart-card">
-    <h3>Estado de propiedades</h3>
+    <h3>{{ title }}</h3>
     <div class="bars">
       <div v-for="item in points" :key="item.label" class="bar-item">
         <div class="bar-wrap">
@@ -17,6 +17,7 @@
 import { computed } from 'vue'
 
 const props = defineProps({
+  title: { type: String, default: 'Estado de propiedades' },
   dataset: { type: Array, default: () => [] }
 })
 

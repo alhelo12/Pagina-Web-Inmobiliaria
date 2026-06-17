@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
-import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
@@ -257,8 +257,8 @@ onUnmounted(() => {
 
 <template>
   <section class="my-properties">
-    <ClientDashboardHeader
-      :search="search"
+    <DashboardHeader
+      v-model:search="search"
       eyebrow="Gestión"
       title="Mis Propiedades"
       :show-search="true"
@@ -267,7 +267,6 @@ onUnmounted(() => {
       :profile-name="auth.userEmail?.split('@')?.[0] || 'Cliente'"
       :profile-email="auth.userEmail || ''"
       @add="router.push('/cliente/publicar')"
-      @search="(val) => search = val"
     />
 
     <Breadcrumb :crumbs="[{ label: 'Mis Propiedades', path: '/cliente/mis-propiedades' }]" />

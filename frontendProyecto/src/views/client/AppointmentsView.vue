@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
 import { appointmentsApi } from '@/api/appointments'
-import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
@@ -170,7 +170,7 @@ onMounted(async () => {
 
 <template>
   <section class="appointments-page">
-    <ClientDashboardHeader
+    <DashboardHeader
       eyebrow="Panel de Cliente"
       title="Mis Citas"
     />

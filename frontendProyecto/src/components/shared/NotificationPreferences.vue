@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { notificationPreferencesApi } from '@/api/notificationPreferences'
 import { useAuthStore } from '@/stores/authStore'
-import { NOTIFICATION_META } from '@/constants/notifications'
+import { getNotificationMeta, getTypeFilters } from '@/constants/notifications'
 import AppIcon from '@/components/shared/AppIcon.vue'
 
 const emit = defineEmits(['close'])
@@ -10,8 +10,7 @@ const auth = useAuthStore()
 const preferences = ref([])
 const loading = ref(true)
 
-const visibleTypes = Object.entries(NOTIFICATION_META)
-  .filter(([, meta]) => meta.roles.includes(auth.role))
+const visibleTypes = getTypeFilters(auth.role).map(t => [t.key, { label: t.label, color: t.color, icon: getNotificationMeta(t.key).icon }])
 
 const getPref = (type) => {
   const p = preferences.value.find(pref => pref.type === type)
@@ -72,7 +71,6 @@ onMounted(async () => {
             </span>
             <div>
               <strong>{{ meta.label }}</strong>
-              <small>{{ meta.roles.includes('client') && meta.roles.includes('advisor') ? 'Cliente y asesor' : meta.roles.includes('client') ? 'Solo cliente' : 'Solo asesor' }}</small>
             </div>
           </div>
           <label class="toggle">

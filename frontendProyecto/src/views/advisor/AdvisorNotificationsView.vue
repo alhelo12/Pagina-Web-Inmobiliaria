@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { storeToRefs } from 'pinia'
-import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 import NotificationSkeleton from '@/components/shared/NotificationSkeleton.vue'
@@ -73,7 +73,7 @@ onMounted(() => {
 
 <template>
   <section class="notifications-page">
-    <AdvisorDashboardHeader eyebrow="Panel del Asesor" title="Notificaciones" />
+    <DashboardHeader eyebrow="Panel del Asesor" title="Notificaciones" />
     <Breadcrumb :crumbs="[{ label: 'Notificaciones', path: '/advisor/notificaciones' }]" />
 
     <div class="section-header">

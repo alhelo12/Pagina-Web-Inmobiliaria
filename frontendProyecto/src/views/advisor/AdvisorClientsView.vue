@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { storeToRefs } from 'pinia'
-import AdvisorDashboardHeader from '@/components/advisor/dashboard/AdvisorDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const store = usePropertyStore()
@@ -60,10 +60,9 @@ onMounted(() => {
 
 <template>
   <section class="clients-view">
-    <AdvisorDashboardHeader
+    <DashboardHeader
       eyebrow="Gestión de clientes"
       title="Mis Clientes"
-      :show-add="false"
     />
 
     <div class="filters-bar">

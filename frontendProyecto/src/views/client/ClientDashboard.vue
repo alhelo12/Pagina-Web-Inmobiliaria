@@ -7,11 +7,11 @@ import { usePropertyStore } from '@/stores/propertyStore'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { useAppointmentsStore } from '@/stores/appointmentsStore'
 import { storeToRefs } from 'pinia'
-import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
-import ClientActivityPanel from '@/components/client/dashboard/ClientActivityPanel.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
+import ActivityFeed from '@/components/shared/dashboard/ActivityFeed.vue'
+import RecentList from '@/components/shared/dashboard/RecentList.vue'
 import ClientFavoritesPreview from '@/components/client/dashboard/ClientFavoritesPreview.vue'
 import RelationshipPanel from '@/components/client/RelationshipPanel.vue'
-import ClientRecentList from '@/components/client/dashboard/ClientRecentList.vue'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const auth = useAuthStore()
@@ -39,6 +39,32 @@ const pendingCount = computed(() => {
   return properties.value.filter(p => p.submitted_by_user_id === uid && p.status === 'pending').length
 })
 
+const activityItems = computed(() => {
+  return (notifStore.notifications || []).map(n => ({
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    timestamp: n.created_at,
+    unread: !n.is_read,
+    property_id: n.property_id,
+    type: n.type
+  }))
+})
+
+const typeIcons = {
+  advisor_assigned: 'user', approved: 'check', rejected: 'x-circle',
+  sold: 'home', property_updated: 'pencil'
+}
+
+const handleActivityClick = async (item) => {
+  if (item.unread) {
+    await notifStore.markAsRead(item.id)
+  }
+  if (item.property_id) {
+    router.push(`/propiedades/${item.property_id}`)
+  }
+}
+
 onMounted(async () => {
   loadingDashboard.value = true
   error.value = ''
@@ -47,6 +73,7 @@ onMounted(async () => {
       favStore.fetchFavorites(),
       propertyStore.fetch(),
       notifStore.fetchUnreadCount(),
+      notifStore.fetchNotifications({ limit: 10 }),
       apptStore.fetchUpcoming(7)
     ])
   } catch (err) {
@@ -59,7 +86,7 @@ onMounted(async () => {
 
 <template>
   <section class="dashboard">
-    <ClientDashboardHeader
+    <DashboardHeader
       eyebrow="Dashboard"
       title="Mi Panel"
       :show-add="true"
@@ -75,7 +102,21 @@ onMounted(async () => {
     <template v-else>
       <div class="overview-grid">
         <div class="grid-area-activity">
-          <ClientActivityPanel />
+          <ActivityFeed
+            subtitle="Notificaciones"
+            title="Actividad Reciente"
+            :items="activityItems"
+            :loading="notifStore.loading"
+            empty-text="No tienes actividad reciente"
+            @item-click="handleActivityClick"
+          >
+            <template #badge>
+              <span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount }} nuevas</span>
+            </template>
+            <template #footer>
+              <RouterLink to="/cliente/notificaciones" class="view-all">Ver todas las notificaciones</RouterLink>
+            </template>
+          </ActivityFeed>
         </div>
 
         <div class="grid-area-favorites">
@@ -91,9 +132,13 @@ onMounted(async () => {
         </div>
 
         <div class="grid-area-publications">
-          <ClientRecentList
+          <RecentList
+            subtitle="Publicaciones"
             title="Mis Publicaciones"
             :items="myProperties"
+            :show-price="true"
+            :show-status="false"
+            :item-route="(item) => `/propiedades/${item.id}`"
             empty-text="No has publicado propiedades."
           />
         </div>
@@ -192,6 +237,16 @@ onMounted(async () => {
   padding: 0 6px;
   flex-shrink: 0;
 }
+.unread-badge {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.view-all { color: var(--color-navy); font-size: 13px; font-weight: 600; text-decoration: none; }
+.view-all:hover { color: var(--color-gold); }
 
 @media (max-width: 1200px) {
   .overview-grid {

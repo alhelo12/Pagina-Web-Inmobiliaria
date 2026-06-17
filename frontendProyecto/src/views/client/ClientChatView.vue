@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useMessagesStore } from '@/stores/messagesStore'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
 import { formatDateGroup } from '@/utils/chatUtils'
-import ClientDashboardHeader from '@/components/client/dashboard/ClientDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import AppIcon from '@/components/shared/AppIcon.vue'
 import ConversationItem from '@/components/shared/ConversationItem.vue'
 import ChatBubble from '@/components/shared/ChatBubble.vue'
@@ -236,7 +236,7 @@ function stopPolling() {
 
 <template>
   <div class="chat-page">
-    <ClientDashboardHeader eyebrow="Panel de Cliente" title="Mensajes" />
+    <DashboardHeader eyebrow="Panel de Cliente" title="Mensajes" />
 
     <div class="chat-container">
       <aside class="conversations-list" :class="{ 'mobile-show': showConversations }">

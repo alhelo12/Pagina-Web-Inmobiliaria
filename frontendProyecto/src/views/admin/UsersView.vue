@@ -5,7 +5,7 @@ import { usersApi } from '@/api/users'
 import { authApi } from '@/api/auth'
 import { advisorsApi } from '@/api/advisors'
 import { useAuthStore } from '@/stores/authStore'
-import AdminDashboardHeader from '@/components/admin/dashboard/AdminDashboardHeader.vue'
+import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
@@ -231,13 +231,15 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 
 <template>
   <section class="admin-users">
-    <AdminDashboardHeader
+    <DashboardHeader
       v-model:search="search"
       eyebrow="Equipo y clientes"
       title="Usuarios"
+      :show-search="true"
+      :show-export="false"
+      :show-profile="true"
       add-label="Agregar usuario"
       search-placeholder="Buscar por nombre o email..."
-      :show-export="false"
       :profile-name="auth.userEmail?.split('@')?.[0] || 'Admin'"
       :profile-email="auth.userEmail || ''"
       @add="openModal()"
