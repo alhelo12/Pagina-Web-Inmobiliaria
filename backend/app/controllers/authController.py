@@ -1,7 +1,7 @@
 """
 Controller: Authentication
 
-Endpoints para registro y login de usuarios con JWT.
+Endpoints para registro, login, verificación de email y reseteo de contraseña.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -12,7 +12,6 @@ from pydantic import BaseModel, EmailStr
 from app.dbConfig.databaseSession import get_db
 from app.services import authService, userService
 from app.core.security import create_token_for_user
-from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.core.rateLimiter import limiter
 from app.schemas import (
@@ -25,16 +24,26 @@ from app.schemas import (
 from app.models import User
 
 
-# ── Schemas locales para los endpoints de validación ────────────────────────
 class EmailCheckRequest(BaseModel):
     email: EmailStr
 
 
-class SupabaseExchangeRequest(BaseModel):
-    supabase_token: str
-
 class PasswordValidateRequest(BaseModel):
     password: str
+
+
+class SendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
 
 router = APIRouter(
     prefix="/auth",
@@ -53,58 +62,25 @@ def register(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ):
-    """
-    Registrar nuevo usuario
-    
-    - **full_name**: Nombre completo
-    - **email**: Email único
-    - **password**: Contraseña (mínimo 8 caracteres, letra y número)
-    - **phone**: Teléfono (opcional)
-    - **role_id**: ID del rol (1=admin, 2=advisor, 3=client)
-    
-    Validaciones:
-    - Email único
-    - Contraseña con requisitos mínimos
-    - Rol debe existir
-    
-    Retorna el usuario creado (sin token).
-    Para obtener token, hacer login después del registro.
-    """
     user = authService.register_user(db, user_data)
     return user
+
 
 @router.post("/register/client", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("3 per hour")
 def register_client(
     request: Request,
-    client_data: ClientRegister,  # ← CAMBIAR de UserCreate a ClientRegister
+    client_data: ClientRegister,
     db: Session = Depends(get_db)
 ):
-    """
-    Registrar nuevo cliente (registro público)
-    
-    NO requiere role_id (se asigna automáticamente como 'client').
-    
-    - **full_name**: Nombre completo
-    - **email**: Email único
-    - **password**: Contraseña (mínimo 8 caracteres)
-    - **phone**: Teléfono (opcional)
-    
-    Retorna el usuario creado (sin token).
-    Para obtener token, hacer login después del registro.
-    """
-    # Convertir ClientRegister a UserCreate con role_id=3
     from app.models import Role
-    
-    # Obtener el rol 'client'
     client_role = db.query(Role).filter(Role.name == 'client').first()
     if not client_role:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error de configuración: rol 'client' no existe"
         )
-    
-    # Crear UserCreate con role_id
+
     user_create_data = UserCreate(
         full_name=client_data.full_name,
         email=client_data.email,
@@ -112,10 +88,9 @@ def register_client(
         phone=client_data.phone,
         role_id=client_role.id
     )
-    
     user = authService.register_user(db, user_create_data)
-    return user
 
+    return user
 
 
 # ==========================================
@@ -129,156 +104,130 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    """
-    Login de usuario (retorna token JWT)
-    
-    Usa OAuth2PasswordRequestForm (estándar OAuth2):
-    - **username**: Email del usuario
-    - **password**: Contraseña
-    
-    Retorna:
-    - **access_token**: Token JWT
-    - **token_type**: "bearer"
-    
-    Para usar el token en otros endpoints:
-```
-    Authorization: Bearer <access_token>
-```
-    
-    Errores:
-    - 401: Credenciales incorrectas
-    - 403: Usuario inactivo
-    """
-    # OAuth2PasswordRequestForm usa "username" pero nosotros usamos email
     user = authService.authenticate_user(db, form_data.username, form_data.password)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Usuario inactivo. Contacta al administrador."
         )
-    
-    # Crear token JWT
+
     access_token = create_token_for_user(
         user_id=user.id,
         email=user.email,
         role_name=user.role.name
     )
-    
+
     return {
         "access_token": access_token,
         "token_type": "bearer"
     }
 
 
-@router.post("/exchange")
-@limiter.limit("10 per minute")
-def exchange_supabase_token(
-    request: Request,
-    body: SupabaseExchangeRequest,
+# ==========================================
+# VERIFICACIÓN DE EMAIL
+# ==========================================
+
+@router.post("/send-verification")
+def send_verification(
+    body: SendVerificationRequest,
+    db: Session = Depends(get_db),
+    request: Request = None
+):
+    """
+    Envía email de verificación al usuario.
+    Si SMTP no está configurado, devuelve el token en la respuesta (desarrollo).
+    """
+    user = userService.get_user_by_email(db, body.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+
+    if user.is_email_verified:
+        return {"message": "El email ya está verificado"}
+
+    from app.core.security import create_email_token
+
+    sent = authService.send_verification_email(db, user)
+    if sent:
+        return {"message": "Email de verificación enviado"}
+
+    # ponytail: si SMTP no está configurado, devolvemos el token para desarrollo
+    token = create_email_token(user.email, "email_verify")
+    return {
+        "message": "SMTP no configurado. Token de verificación (solo desarrollo):",
+        "token": token
+    }
+
+
+@router.get("/verify-email/{token}")
+def verify_email(
+    token: str,
     db: Session = Depends(get_db)
 ):
     """
-    Intercambia un token de Supabase por un token JWT del backend.
-
-    El frontend debe llamar este endpoint DESPUÉS de hacer login con Supabase,
-    usando el token de Supabase para obtener un token del backend.
-
-    Flujo:
-    1. Frontend hace login con Supabase → obtiene Supabase token
-    2. Frontend llama /auth/exchange con el Supabase token
-    3. Backend valida el token con Supabase
-    4. Backend busca/crea el usuario por email en su DB
-    5. Backend devuelve JWT propio con user ID entero
-    6. Frontend usa el JWT del backend para todas las llamadas API
+    Verifica el email del usuario usando un token JWT.
     """
-    supabase_url = settings.SUPABASE_URL
-    supabase_anon_key = settings.SUPABASE_ANON_KEY
-
-    if not supabase_url or not supabase_anon_key:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Supabase no está configurado en el backend"
-        )
-
-    supabase_token = body.supabase_token
-
-    try:
-        import urllib.request
-        import json as json_module
-
-        verify_url = supabase_url.rstrip("/") + "/auth/v1/user"
-        req = urllib.request.Request(
-            verify_url,
-            headers={
-                "apikey": supabase_anon_key,
-                "Authorization": f"Bearer {supabase_token}"
-            }
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            user_data = json_module.loads(resp.read().decode())
-
-        email = user_data.get("email")
-        if not email:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token de Supabase inválido: sin email"
-            )
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token de Supabase inválido o expirado"
-        )
-
-    user = userService.get_user_by_email(db, email)
-    if not user:
-        from app.models import Role
-        client_role = db.query(Role).filter(Role.name == "client").first()
-        if not client_role:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Rol 'client' no existe en la base de datos"
-            )
-
-        from app.schemas import UserCreate
-        from app.services.authService import hash_password
-        import secrets
-        temp_password = secrets.token_urlsafe(16)
-        user_data = UserCreate(
-            full_name=email.split("@")[0],
-            email=email,
-            password=temp_password,
-            phone=None,
-            role_id=client_role.id
-        )
-        user = userService.create_user(db, user_data, hash_password(temp_password))
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo. Contacta al administrador."
-        )
-
-    access_token = create_token_for_user(
-        user_id=user.id,
-        email=user.email,
-        role_name=user.role.name
-    )
-
+    user = authService.verify_email_token(db, token)
     return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "role": user.role.name,
-        "user_id": user.id,
+        "message": "Email verificado correctamente",
+        "email": user.email
+    }
+
+
+# ==========================================
+# RECUPERACIÓN DE CONTRASEÑA
+# ==========================================
+
+@router.post("/forgot-password")
+def forgot_password(
+    body: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+    request: Request = None
+):
+    """
+    Envía email con token para restablecer la contraseña.
+    Si SMTP no está configurado, devuelve el token en la respuesta (desarrollo).
+    """
+    user = userService.get_user_by_email(db, body.email)
+    if not user:
+        # No revelar si el email existe o no
+        return {"message": "Si el email existe, recibirás un enlace para restablecer tu contraseña"}
+
+    from app.core.security import create_email_token
+
+    sent = authService.send_reset_password_email(db, user)
+    if sent:
+        return {"message": "Si el email existe, recibirás un enlace para restablecer tu contraseña"}
+
+    # ponytail: si SMTP no está configurado, devolvemos el token para desarrollo
+    token = create_email_token(user.email, "password_reset")
+    return {
+        "message": "SMTP no configurado. Token de reseteo (solo desarrollo):",
+        "token": token
+    }
+
+
+@router.post("/reset-password")
+def reset_password(
+    body: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Restablece la contraseña usando un token JWT.
+    """
+    user = authService.reset_password_with_token(db, body.token, body.new_password)
+    return {
+        "message": "Contraseña actualizada correctamente",
         "email": user.email
     }
 
@@ -291,26 +240,11 @@ def exchange_supabase_token(
 def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Obtener información del usuario autenticado
-    
-    Requiere token JWT en header:
-```
-    Authorization: Bearer <token>
-```
-    
-    Retorna:
-    - Información completa del usuario autenticado
-    
-    Errores:
-    - 401: Token inválido o expirado
-    - 403: Usuario inactivo
-    """
     return current_user
 
 
 # ==========================================
-# CAMBIO DE CONTRASEÑA
+# CAMBIO DE CONTRASEÑA (autenticado)
 # ==========================================
 
 @router.post("/change-password", response_model=UserResponse)
@@ -319,29 +253,9 @@ def change_password(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    Cambiar contraseña de usuario autenticado
-    
-    Requiere token JWT en header.
-    
-    Body:
-    - **current_password**: Contraseña actual
-    - **new_password**: Nueva contraseña
-    
-    Validaciones:
-    - Contraseña actual correcta
-    - Nueva contraseña cumple requisitos
-    - Nueva contraseña diferente a la actual
-    
-    Errores:
-    - 401: Token inválido o contraseña actual incorrecta
-    - 400: Nueva contraseña inválida
-    
-    Nota: user_id se extrae del token JWT automáticamente.
-    """
     user = authService.change_password(
         db,
-        current_user.id,  # Extraído del token
+        current_user.id,
         password_data.current_password,
         password_data.new_password
     )
@@ -357,17 +271,6 @@ def check_email_available(
     body: EmailCheckRequest,
     db: Session = Depends(get_db)
 ):
-    """
-    Verificar si un email está disponible (registro en tiempo real).
-
-    Body JSON:
-    - **email**: Email a verificar
-
-    Retorna:
-    - available: True si está disponible, False si ya existe
-
-    Se usa POST para que el email no quede expuesto en logs ni en historial del navegador.
-    """
     available = authService.validate_email_available(db, body.email)
     return {
         "email": body.email,
@@ -377,21 +280,8 @@ def check_email_available(
 
 @router.post("/validate-password")
 def validate_password(body: PasswordValidateRequest):
-    """
-    Validar requisitos de contraseña (feedback en tiempo real).
-
-    Body JSON:
-    - **password**: Contraseña a validar
-
-    Retorna:
-    - valid: True si cumple los requisitos
-    - errors: Lista de errores si no cumple
-
-    Se usa POST para que la contraseña no quede en logs ni en historial del navegador.
-    """
     try:
         authService.validate_password_strength(body.password)
         return {"valid": True, "errors": []}
     except HTTPException as e:
         return {"valid": False, "errors": [e.detail]}
-    

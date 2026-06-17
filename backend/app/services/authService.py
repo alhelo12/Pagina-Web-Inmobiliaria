@@ -303,3 +303,129 @@ def get_password_hash(password: str) -> str:
         Hash de la contraseña
     """
     return hash_password(password)
+
+
+# ==========================================
+# EMAIL (smtplib - sin dependencias externas)
+# ==========================================
+
+def send_email(to: str, subject: str, body: str) -> bool:
+    """
+    Enviar email usando SMTP configurado en settings.
+    Retorna True si se envió, False si SMTP no está configurado.
+    """
+    from app.core.config import settings
+    import smtplib
+    from email.mime.text import MIMEText
+
+    if not settings.SMTP_HOST or not settings.SMTP_PORT:
+        return False
+
+    msg = MIMEText(body, "html")
+    msg["Subject"] = subject
+    msg["From"] = settings.SMTP_FROM_EMAIL or "noreply@inmobiliaria.com"
+    msg["To"] = to
+
+    try:
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+            if settings.SMTP_USER and settings.SMTP_PASSWORD:
+                server.starttls()
+                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+            server.send_message(msg)
+        return True
+    except Exception:
+        return False
+
+
+def send_verification_email(db: Session, user: User, base_url: str = "http://localhost:5173") -> bool:
+    """
+    Genera token de verificación y envía email al usuario.
+    """
+    from app.core.security import create_email_token
+
+    token = create_email_token(user.email, "email_verify")
+    verify_url = f"{base_url}/verificado?token={token}"
+
+    body = f"""
+    <h2>Verifica tu correo electrónico</h2>
+    <p>Hola {user.full_name},</p>
+    <p>Haz clic en el siguiente enlace para verificar tu cuenta:</p>
+    <p><a href="{verify_url}">{verify_url}</a></p>
+    <p>Este enlace expira en 15 minutos.</p>
+    """
+    return send_email(user.email, "Verifica tu correo - Inmobiliaria", body)
+
+
+def send_reset_password_email(db: Session, user: User, base_url: str = "http://localhost:5173") -> bool:
+    """
+    Genera token de reseteo y envía email al usuario.
+    """
+    from app.core.security import create_email_token
+
+    token = create_email_token(user.email, "password_reset")
+    reset_url = f"{base_url}/nueva-contrasena?token={token}"
+
+    body = f"""
+    <h2>Restablece tu contraseña</h2>
+    <p>Hola {user.full_name},</p>
+    <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+    <p><a href="{reset_url}">{reset_url}</a></p>
+    <p>Este enlace expira en 15 minutos.</p>
+    <p>Si no solicitaste este cambio, ignora este mensaje.</p>
+    """
+    return send_email(user.email, "Restablece tu contraseña - Inmobiliaria", body)
+
+
+def verify_email_token(db: Session, token: str) -> User:
+    """
+    Valida un token de verificación de email y marca al usuario como verificado.
+    """
+    from app.core.security import decode_access_token
+
+    payload = decode_access_token(token)
+    if not payload or payload.get("purpose") != "email_verify":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token inválido o expirado"
+        )
+
+    email = payload.get("sub")
+    user = userService.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+
+    user.is_email_verified = True
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def reset_password_with_token(db: Session, token: str, new_password: str) -> User:
+    """
+    Valida un token de reseteo y actualiza la contraseña.
+    """
+    from app.core.security import decode_access_token
+
+    payload = decode_access_token(token)
+    if not payload or payload.get("purpose") != "password_reset":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token inválido o expirado"
+        )
+
+    email = payload.get("sub")
+    user = userService.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+
+    validate_password_strength(new_password)
+    user.password_hash = hash_password(new_password)
+    db.commit()
+    db.refresh(user)
+    return user

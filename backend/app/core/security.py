@@ -112,3 +112,22 @@ def verify_token(token: str) -> Optional[dict]:
         Payload decodificado o None
     """
     return decode_access_token(token)
+
+
+def create_email_token(email: str, purpose: str, expires_minutes: int = 15) -> str:
+    """
+    Crear token JWT para verificación de email o reseteo de contraseña.
+    
+    Args:
+        email: Email del usuario
+        purpose: 'email_verify' o 'password_reset'
+        expires_minutes: Minutos hasta expiración (default 15)
+        
+    Returns:
+        Token JWT
+    """
+    token_data = {
+        "sub": email,
+        "purpose": purpose
+    }
+    return create_access_token(token_data, timedelta(minutes=expires_minutes))

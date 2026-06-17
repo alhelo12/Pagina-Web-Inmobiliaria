@@ -16,7 +16,7 @@ const propertyId = computed(() => route.params.id)
 const isEdit = computed(() => Boolean(propertyId.value))
 
 const needsEmailVerification = computed(() =>
-  auth.role === 'client' && auth.isSupabaseUser && !auth.isEmailVerified
+  auth.role === 'client' && !auth.isEmailVerified
 )
 
 const sendingEmail = ref(false)
@@ -26,7 +26,7 @@ const resendEmail = async () => {
   sendingEmail.value = true
   emailSent.value = false
   try {
-    await auth.resendVerificationEmail(auth.userEmail)
+    await auth.sendVerificationEmail()
     emailSent.value = true
   } catch {
     // silent

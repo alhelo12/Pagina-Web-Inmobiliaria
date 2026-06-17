@@ -17,11 +17,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const password = ref('')
 const confirm = ref('')
@@ -35,12 +36,18 @@ const submit = async () => {
     return
   }
 
+  const token = route.query.token
+  if (!token) {
+    error.value = 'Enlace inválido o expirado.'
+    return
+  }
+
   loading.value = true
   try {
-    await auth.updatePassword(password.value)
+    await auth.resetPassword(token, password.value)
     router.push({ path: '/login', query: { message: 'Contraseña actualizada correctamente.' } })
   } catch (err) {
-    error.value = err?.message ?? 'No se pudo actualizar la contraseña.'
+    error.value = err?.response?.data?.detail ?? err?.message ?? 'No se pudo actualizar la contraseña.'
   } finally {
     loading.value = false
   }

@@ -31,14 +31,14 @@ const sendingEmail = ref(false)
 const emailSent = ref(false)
 
 const needsEmailVerification = computed(() =>
-  auth.role === 'client' && auth.isSupabaseUser && !auth.isEmailVerified
+  auth.role === 'client' && !auth.isEmailVerified
 )
 
 const resendEmail = async () => {
   sendingEmail.value = true
   emailSent.value = false
   try {
-    await auth.resendVerificationEmail(auth.userEmail)
+    await auth.sendVerificationEmail()
     emailSent.value = true
     setTimeout(() => { emailSent.value = false }, 5000)
   } catch {

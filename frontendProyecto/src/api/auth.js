@@ -1,14 +1,7 @@
-/**
- * API: Autenticación
- * Cubre: login, registro de cliente, perfil actual,
- *        cambio de contraseña, validaciones.
- */
 import api from './axios'
 
 export const authApi = {
-  /** Login — devuelve { access_token, token_type } */
   login(email, password) {
-    // El backend espera multipart/form-data (OAuth2PasswordRequestForm)
     const form = new URLSearchParams()
     form.append('username', email)
     form.append('password', password)
@@ -17,39 +10,46 @@ export const authApi = {
     })
   },
 
-  /** Registro público de cliente */
   registerClient(data) {
     return api.post('/auth/register/client', data)
   },
 
-  /**
-   * Registro con rol específico — solo para admin
-   * role_id: 1=admin, 2=advisor, 3=client
-   */
   register(data) {
     return api.post('/auth/register', data)
   },
 
-  /** Perfil del usuario autenticado */
   me() {
     return api.get('/auth/me')
   },
 
-  /** Cambio de contraseña */
   changePassword(currentPassword, newPassword) {
     return api.post('/auth/change-password', {
       current_password: currentPassword,
-      new_password:     newPassword
+      new_password: newPassword
     })
   },
 
-  /** Verificar disponibilidad de email (POST, no GET) */
   checkEmail(email) {
     return api.post('/auth/check-email', { email })
   },
 
-  /** Validar fortaleza de contraseña (POST) */
   validatePassword(password) {
     return api.post('/auth/validate-password', { password })
+  },
+
+  sendVerification(email) {
+    return api.post('/auth/send-verification', { email })
+  },
+
+  verifyEmail(token) {
+    return api.get(`/auth/verify-email/${token}`)
+  },
+
+  forgotPassword(email) {
+    return api.post('/auth/forgot-password', { email })
+  },
+
+  resetPassword(token, newPassword) {
+    return api.post('/auth/reset-password', { token, new_password: newPassword })
   }
 }

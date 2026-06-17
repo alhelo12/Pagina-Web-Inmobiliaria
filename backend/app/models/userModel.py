@@ -84,6 +84,13 @@ class User(BaseModel):
         comment="Si el usuario está activo en el sistema"
     )
 
+    is_email_verified = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Si el email del usuario ha sido verificado"
+    )
+
     user_preferences = Column(
         JSON,
         default=lambda: {"all": True},

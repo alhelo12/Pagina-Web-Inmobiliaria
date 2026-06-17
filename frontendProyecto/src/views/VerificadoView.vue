@@ -1,16 +1,35 @@
 ﻿<script setup>
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { authApi } from '@/api/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
+const message = ref('')
 
-onMounted(() => {
-  if (auth.isLogged && auth.isSupabaseUser) {
+onMounted(async () => {
+  const token = route.query.token
+  if (!token) {
+    message.value = 'Enlace inválido o expirado.'
+    return
+  }
+
+  try {
+    await authApi.verifyEmail(token)
     auth.isEmailVerified = true
     auth.persistSession()
-    setTimeout(() => router.push('/cliente/dashboard'), 2000)
+    message.value = 'Correo verificado correctamente.'
+    setTimeout(() => {
+      if (auth.isLogged) {
+        router.push('/cliente/dashboard')
+      } else {
+        router.push('/login')
+      }
+    }, 2000)
+  } catch {
+    message.value = 'El enlace ha expirado o es inválido.'
   }
 })
 </script>
@@ -18,10 +37,9 @@ onMounted(() => {
 <template>
   <section class="state-wrap">
     <article class="state-card">
-      <h1>Tu correo ha sido verificado.</h1>
+      <h1>{{ message || 'Verificando...' }}</h1>
       <p v-if="auth.isLogged">Redirigiendo a tu panel...</p>
-      <p v-else>Ya puedes iniciar sesión.</p>
-      <RouterLink to="/login" class="state-btn">Ir a login</RouterLink>
+      <RouterLink v-else to="/login" class="state-btn">Ir a login</RouterLink>
     </article>
   </section>
 </template>

@@ -1,6 +1,6 @@
 -- ==========================================
 -- SISTEMA INMOBILIARIO - SCHEMA DATABASE
--- Version: 1.6.0
+-- Version: 1.7.0
 -- Descripción: Base de datos para sistema de gestión inmobiliaria
 --              con sistema de aprobación de propiedades, chat cliente-asesor,
 --              seguimiento post-venta, asignación formal cliente-asesor,
@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     role_id INT REFERENCES roles(id),
     is_active BOOLEAN DEFAULT TRUE,
+    is_email_verified BOOLEAN DEFAULT FALSE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
