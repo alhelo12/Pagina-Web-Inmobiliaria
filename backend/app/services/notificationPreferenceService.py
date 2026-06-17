@@ -1,69 +1,44 @@
 from sqlalchemy.orm import Session
-from typing import List, Optional
 from fastapi import HTTPException, status
-
-from app.models import NotificationPreference, User
+from app.models import User
 from app.schemas.notificationSchema import NOTIFICATION_TYPES
 
 
-def get_preferences(db: Session, user_id: int) -> List[NotificationPreference]:
-    prefs = db.query(NotificationPreference).filter(
-        NotificationPreference.user_id == user_id
-    ).all()
-    
-    existing_types = {p.type for p in prefs}
+def get_preferences(db: Session, user_id: int) -> list[dict]:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return []
+    prefs = user.user_preferences or {"all": True}
+    result = []
     for nt in NOTIFICATION_TYPES:
-        if nt not in existing_types:
-            pref = NotificationPreference(user_id=user_id, type=nt, enabled=True)
-            db.add(pref)
-            prefs.append(pref)
-    
-    if existing_types != set(NOTIFICATION_TYPES.keys()):
-        db.commit()
-        for p in prefs:
-            db.refresh(p)
-    
-    return prefs
+        result.append({
+            "id": 0,
+            "user_id": user_id,
+            "type": nt,
+            "enabled": prefs.get(nt, prefs.get("all", True))
+        })
+    return result
 
 
-def set_preference(
-    db: Session,
-    user_id: int,
-    notification_type: str,
-    enabled: bool
-) -> NotificationPreference:
+def set_preference(db: Session, user_id: int, notification_type: str, enabled: bool) -> dict:
     if notification_type not in NOTIFICATION_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Tipo de notificación inválido: {notification_type}"
         )
-    
-    pref = db.query(NotificationPreference).filter(
-        NotificationPreference.user_id == user_id,
-        NotificationPreference.type == notification_type
-    ).first()
-    
-    if pref:
-        pref.enabled = enabled
-    else:
-        pref = NotificationPreference(
-            user_id=user_id,
-            type=notification_type,
-            enabled=enabled
-        )
-        db.add(pref)
-    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+    prefs = user.user_preferences or {}
+    prefs[notification_type] = enabled
+    user.user_preferences = prefs
     db.commit()
-    db.refresh(pref)
-    return pref
+    return {"id": 0, "user_id": user_id, "type": notification_type, "enabled": enabled}
 
 
 def is_enabled(db: Session, user_id: int, notification_type: str) -> bool:
-    pref = db.query(NotificationPreference).filter(
-        NotificationPreference.user_id == user_id,
-        NotificationPreference.type == notification_type
-    ).first()
-    
-    if pref is None:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
         return True
-    return pref.enabled
+    prefs = user.user_preferences or {"all": True}
+    return prefs.get(notification_type, prefs.get("all", True))

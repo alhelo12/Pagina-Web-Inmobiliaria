@@ -1,112 +1,53 @@
-"""
-Middleware: Activity Logger
-
-Registra automáticamente actividades de usuarios en endpoints clave.
-"""
-
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-from typing import Callable
-import json
-import re
-
+import asyncio
+from functools import wraps
 from app.dbConfig.databaseSession import SessionLocal
 from app.services import activityLogService
-from app.core.security import decode_access_token
-
-LOGGED_PATHS = {
-    "POST": [
-        (r"^/properties$", "property_created", "property"),
-        (r"^/properties/\d+/images/upload$", "property_image_uploaded", "property"),
-        (r"^/appointments$", "appointment_created", "appointment"),
-        (r"^/messages/\d+$", "message_sent", "message"),
-    ],
-    "PUT": [
-        (r"^/properties/\d+$", "property_updated", "property"),
-    ],
-    "PATCH": [
-        (r"^/properties/\d+/approve$", "property_approved", "property"),
-        (r"^/properties/\d+/reject$", "property_rejected", "property"),
-        (r"^/properties/\d+/mark-sold$", "property_sold", "property"),
-        (r"^/properties/\d+/take$", "property_taken", "property"),
-        (r"^/appointments/\d+/confirm$", "appointment_confirmed", "appointment"),
-        (r"^/appointments/\d+/cancel$", "appointment_cancelled", "appointment"),
-        (r"^/appointments/\d+/complete$", "appointment_completed", "appointment"),
-    ],
-    "DELETE": [
-        (r"^/properties/\d+$", "property_deleted", "property"),
-    ],
-}
-
-SKIP_PATHS = {
-    "/auth/login",
-    "/auth/register",
-    "/auth/register/client",
-    "/auth/exchange",
-    "/auth/check-email",
-    "/auth/validate-password",
-    "/health",
-    "/health/db",
-    "/",
-}
 
 
-class ActivityLoggerMiddleware(BaseHTTPMiddleware):
-    """Middleware que registra actividades de usuarios"""
+def log_activity(action: str, entity_type: str = None, entity_id_param: str = None):
+    def decorator(func):
+        if asyncio.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_wrapper(*args, **kwargs):
+                result = await func(*args, **kwargs)
+                _log(action, entity_type, entity_id_param, kwargs)
+                return result
+            return async_wrapper
+        else:
+            @wraps(func)
+            def sync_wrapper(*args, **kwargs):
+                result = func(*args, **kwargs)
+                _log(action, entity_type, entity_id_param, kwargs)
+                return result
+            return sync_wrapper
+    return decorator
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        path = request.url.path
-        method = request.method
 
-        if path in SKIP_PATHS:
-            return await call_next(request)
+def _log(action, entity_type, entity_id_param, kwargs):
+    entity_id = None
+    if entity_id_param and entity_id_param in kwargs:
+        entity_id = kwargs[entity_id_param]
+    elif entity_type:
+        candidate = f"{entity_type}_id"
+        if candidate in kwargs:
+            entity_id = kwargs[candidate]
 
-        action = None
-        entity_type = None
-        entity_id = None
+    user = kwargs.get("current_user")
+    user_id = user.id if user else None
 
-        patterns = LOGGED_PATHS.get(method, [])
-        for pattern, act, etype in patterns:
-            match = re.match(pattern, path)
-            if match:
-                action = act
-                entity_type = etype
-                path_parts = path.strip("/").split("/")
-                if len(path_parts) >= 2 and path_parts[1].isdigit():
-                    entity_id = int(path_parts[1])
-                break
+    db = kwargs.get("db")
+    own_session = False
+    if db is None:
+        db = SessionLocal()
+        own_session = True
 
-        if not action:
-            return await call_next(request)
-
-        user_id = None
-        token = request.headers.get("Authorization", "").replace("Bearer ", "")
-        if token:
-            try:
-                payload = decode_access_token(token)
-                if payload:
-                    user_id = payload.get("user_id")
-            except Exception:
-                pass
-
-        ip_address = request.client.host if request.client else None
-
-        response = await call_next(request)
-
-        if response.status_code < 400:
-            try:
-                db = SessionLocal()
-                activityLogService.log_activity(
-                    db=db,
-                    user_id=user_id,
-                    action=action,
-                    entity_type=entity_type,
-                    entity_id=entity_id,
-                    ip_address=ip_address
-                )
-                db.close()
-            except Exception:
-                pass
-
-        return response
+    try:
+        activityLogService.log_activity(
+            db=db, user_id=user_id, action=action,
+            entity_type=entity_type, entity_id=entity_id,
+        )
+    except Exception:
+        pass
+    finally:
+        if own_session:
+            db.close()

@@ -1,15 +1,11 @@
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.dbConfig.databaseSession import get_db
 from app.core.dependencies import get_current_user
 from app.models import User
 from app.services import notificationPreferenceService
-from app.schemas.notificationPreferenceSchema import (
-    NotificationPreferenceResponse,
-    NotificationPreferencesListResponse,
-    NotificationPreferenceUpdate
-)
 
 router = APIRouter(
     prefix="/notifications/preferences",
@@ -17,23 +13,26 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=NotificationPreferencesListResponse)
+class UpdateBody(BaseModel):
+    enabled: bool
+
+
+@router.get("")
 def get_my_preferences(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     prefs = notificationPreferenceService.get_preferences(db, current_user.id)
-    return NotificationPreferencesListResponse(preferences=prefs)
+    return {"preferences": prefs}
 
 
-@router.put("/{notification_type}", response_model=NotificationPreferenceResponse)
+@router.put("/{notification_type}")
 def update_preference(
     notification_type: str,
-    body: NotificationPreferenceUpdate,
+    body: UpdateBody,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    pref = notificationPreferenceService.set_preference(
+    return notificationPreferenceService.set_preference(
         db, current_user.id, notification_type, body.enabled
     )
-    return pref

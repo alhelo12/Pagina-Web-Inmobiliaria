@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 from app.dbConfig.databaseSession import get_db
 from app.services import appointmentService
+from app.core.activityLogger import log_activity
 from app.core.dependencies import (
     get_current_user,
     require_advisor
@@ -34,6 +35,7 @@ router = APIRouter(
 # ==========================================
 
 @router.post("", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
+@log_activity("appointment_created", "appointment")
 def create_appointment(
     appointment_data: AppointmentCreate,
     client_id: int = Query(..., description="ID del cliente"),
@@ -170,6 +172,7 @@ def update_appointment(
 
 
 @router.delete("/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
+@log_activity("appointment_cancelled", "appointment", "appointment_id")
 def cancel_appointment(
     appointment_id: int,
     current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
@@ -247,6 +250,7 @@ def get_advisor_appointments(
 
 
 @router.patch("/{appointment_id}/confirm", response_model=AppointmentResponse)
+@log_activity("appointment_confirmed", "appointment", "appointment_id")
 def confirm_appointment(
     appointment_id: int,
     current_user: User = Depends(require_advisor),  # 🔐 Solo advisors
@@ -283,6 +287,7 @@ def confirm_appointment(
 
 
 @router.patch("/{appointment_id}/complete", response_model=AppointmentResponse)
+@log_activity("appointment_completed", "appointment", "appointment_id")
 def complete_appointment(
     appointment_id: int,
     current_user: User = Depends(require_advisor),  # 🔐 Solo advisors
@@ -361,6 +366,7 @@ def get_property_appointments(
 
 
 @router.get("/stats/summary")
+@log_activity("dashboard_appointment_stats", "dashboard")
 def get_appointments_stats(
     current_user: User = Depends(require_advisor),  # 🔐 Solo advisors/admin
     db: Session = Depends(get_db)

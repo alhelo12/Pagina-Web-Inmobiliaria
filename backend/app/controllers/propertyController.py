@@ -12,6 +12,7 @@ from app.dbConfig.databaseSession import get_db
 from app.core.config import settings
 from app.services import propertyService
 from app.core.dependencies import get_current_user, require_advisor_or_admin, verify_user_owns_resource
+from app.core.activityLogger import log_activity
 from app.schemas import (
     PropertyCreate, PropertyUpdate, PropertyResponse,
     PropertyListResponse, PropertySearchFilters, NearbySearchParams
@@ -99,6 +100,7 @@ def get_pending_properties(
 
 # ── ESTADÍSTICAS (asesor/admin) ──────────────────────────────────────────────
 @router.get("/stats/summary")
+@log_activity("dashboard_property_stats", "dashboard")
 def get_properties_summary(
     current_user: User = Depends(require_advisor_or_admin),
     db: Session = Depends(get_db)
@@ -108,6 +110,7 @@ def get_properties_summary(
 
 # ── ANALYTICS AVANZADOS ──────────────────────────────────────────────────────
 @router.get("/analytics/trends")
+@log_activity("dashboard_property_trends", "dashboard")
 def get_property_trends(
     months: int = Query(12, ge=1, le=24, description="Meses hacia atrás"),
     current_user: User = Depends(require_advisor_or_admin),
@@ -173,6 +176,7 @@ def get_properties_stats_by_advisor(
 
 # ── TOMAR PROPIEDAD (asesor) ─────────────────────────────────────────────────
 @router.patch("/{property_id}/take", response_model=PropertyResponse)
+@log_activity("property_taken", "property", "property_id")
 def take_property(
     property_id: int,
     current_user: User = Depends(require_advisor_or_admin),
@@ -229,6 +233,7 @@ def get_property(
 
 # ── CREAR PROPIEDAD (cliente autenticado) ────────────────────────────────────
 @router.post("", response_model=PropertyResponse, status_code=status.HTTP_201_CREATED)
+@log_activity("property_created", "property")
 def create_property(
     property_data: PropertyCreate,
     current_user: User = Depends(get_current_user),
@@ -240,6 +245,7 @@ def create_property(
 
 # ── ACTUALIZAR PROPIEDAD ─────────────────────────────────────────────────────
 @router.put("/{property_id}", response_model=PropertyResponse)
+@log_activity("property_updated", "property", "property_id")
 def update_property(
     property_id: int,
     property_data: PropertyUpdate,
@@ -256,6 +262,7 @@ def update_property(
 
 # ── ELIMINAR PROPIEDAD ───────────────────────────────────────────────────────
 @router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT)
+@log_activity("property_deleted", "property", "property_id")
 def delete_property(
     property_id: int,
     current_user: User = Depends(get_current_user),
@@ -272,6 +279,7 @@ def delete_property(
 
 # ── APROBAR (asesor) ─────────────────────────────────────────────────────────
 @router.patch("/{property_id}/approve", response_model=PropertyResponse)
+@log_activity("property_approved", "property", "property_id")
 def approve_property(
     property_id: int,
     current_user: User = Depends(require_advisor_or_admin),
@@ -286,6 +294,7 @@ def approve_property(
 
 # ── RECHAZAR (asesor) ────────────────────────────────────────────────────────
 @router.patch("/{property_id}/reject", response_model=PropertyResponse)
+@log_activity("property_rejected", "property", "property_id")
 def reject_property(
     property_id: int,
     reason: Optional[str] = Query(None),
@@ -297,6 +306,7 @@ def reject_property(
 
 # ── MARCAR VENDIDA (asesor) ──────────────────────────────────────────────────
 @router.patch("/{property_id}/mark-sold", response_model=PropertyResponse)
+@log_activity("property_sold", "property", "property_id")
 def mark_property_sold(
     property_id: int,
     current_user: User = Depends(require_advisor_or_admin),
@@ -306,6 +316,7 @@ def mark_property_sold(
 
 
 @router.post("/{property_id}/images/upload", status_code=status.HTTP_201_CREATED)
+@log_activity("property_image_uploaded", "property", "property_id")
 async def upload_property_image(
     property_id: int,
     image: UploadFile = File(...),

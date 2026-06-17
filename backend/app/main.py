@@ -14,7 +14,6 @@ from typing import Optional
 
 from app.core.config import settings
 from app.core.rateLimiter import limiter
-from app.core.activityLogger import ActivityLoggerMiddleware
 from app.core.websocket import manager
 from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection, SessionLocal
 from app.core.security import decode_access_token
@@ -73,9 +72,6 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
             "retry_after": str(exc.detail)
         }
     )
-
-# Activity Logger Middleware
-app.add_middleware(ActivityLoggerMiddleware)
 
 # Servir archivos estaticos (imagenes de propiedades)
 media_dir = Path("media")

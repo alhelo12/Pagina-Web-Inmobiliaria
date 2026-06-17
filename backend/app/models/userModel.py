@@ -17,7 +17,7 @@ Relaciones:
     - favorites: One-to-Many con Favorite
 """
 
-from sqlalchemy import Column, String, Boolean, Integer, ForeignKey
+from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.dbConfig.baseModels import BaseModel
 
@@ -83,6 +83,12 @@ class User(BaseModel):
         default=True,
         comment="Si el usuario está activo en el sistema"
     )
+
+    user_preferences = Column(
+        JSON,
+        default=lambda: {"all": True},
+        comment="Preferencias de notificación del usuario (JSON)"
+    )
     
     # ==========================================
     # RELACIONES (Usar STRINGS para evitar imports circulares)
@@ -135,14 +141,6 @@ class User(BaseModel):
     # Notificaciones recibidas por el usuario
     notifications = relationship(
         "Notification",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        lazy="dynamic"
-    )
-
-    # Relación con NotificationPreference (One-to-Many)
-    notification_preferences = relationship(
-        "NotificationPreference",
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="dynamic"
