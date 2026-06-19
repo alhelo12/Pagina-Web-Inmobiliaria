@@ -51,7 +51,11 @@ onMounted(async () => {
 })
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
+  localStorage.removeItem('backendToken')
+  localStorage.removeItem('role')
+  localStorage.removeItem('backendUserId')
+  localStorage.removeItem('isEmailVerified')
+  localStorage.removeItem('userEmail')
   router.push('/')
 }
 </script>

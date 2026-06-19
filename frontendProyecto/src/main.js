@@ -1,8 +1,6 @@
-import { createApp } from 'vue'
+﻿import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
-import router from './router'
-import { useAuthStore } from '@/stores/authStore'
 import { registerSW } from 'virtual:pwa-register'
 import { loadNotificationMeta } from '@/constants/notifications'
 import { loadEnums } from '@/utils/enums'
@@ -15,8 +13,12 @@ const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
+
+// Importar router DESPUÉS de instalar Pinia para evitar useStore() en guards antes de tiempo
+import router from './router'
 app.use(router)
 
+import { useAuthStore } from '@/stores/authStore'
 const auth = useAuthStore()
 auth.loadSession()
 
