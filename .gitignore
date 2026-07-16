@@ -19,3 +19,5 @@ backend/media/properties/*
 .vscode/
 .idea/
 .DS_Store
+/.opencode
+opencode.json
