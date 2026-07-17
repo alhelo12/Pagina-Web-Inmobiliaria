@@ -8,7 +8,6 @@ Este es el unico endpoint del sistema que no requiere autenticacion.
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
 from typing import Optional
-from slowapi.errors import RateLimitExceeded
 
 from app.dbConfig.databaseSession import get_db
 from app.services import contactService
@@ -17,7 +16,6 @@ from app.core.rateLimiter import limiter
 from app.models import User
 from app.schemas.contactSchema import (
     ContactCreate,
-    ContactResponse,
     ContactDetailResponse,
     ContactListResponse,
     ContactStatusUpdate,

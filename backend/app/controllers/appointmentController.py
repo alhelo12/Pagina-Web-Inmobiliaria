@@ -7,7 +7,6 @@ Endpoints para gestión de citas entre clientes y asesores.
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional
-from datetime import datetime, timedelta
 
 from app.dbConfig.databaseSession import get_db
 from app.services import appointmentService
@@ -20,6 +19,7 @@ from app.schemas import (
     AppointmentCreate,
     AppointmentUpdate,
     AppointmentResponse,
+    AppointmentDetailResponse,
     AppointmentListResponse
 )
 from app.models import User
@@ -327,7 +327,7 @@ def complete_appointment(
 # ENDPOINTS DE BÚSQUEDA
 # ==========================================
 
-@router.get("/upcoming/list", response_model=AppointmentListResponse)
+@router.get("/upcoming/list", response_model=list[AppointmentDetailResponse])
 def get_upcoming_appointments(
     client_id: int = Query(..., description="ID del cliente"),
     days_ahead: int = Query(7, ge=1, le=30, description="Días hacia adelante"),
@@ -346,11 +346,13 @@ def get_upcoming_appointments(
             detail="No puedes ver citas de otros usuarios"
         )
     
-    result = appointmentService.get_upcoming_appointments(db, client_id, days_ahead)
+    result = appointmentService.get_upcoming_appointments(
+        db, client_id=client_id, days_ahead=days_ahead
+    )
     return result
 
 
-@router.get("/property/{property_id}/appointments", response_model=AppointmentListResponse)
+@router.get("/property/{property_id}/appointments", response_model=list[AppointmentDetailResponse])
 def get_property_appointments(
     property_id: int,
     current_user: User = Depends(require_advisor),  # 🔐 Solo advisors/admin
@@ -376,5 +378,5 @@ def get_appointments_stats(
     
     Resumen general de citas por status.
     """
-    stats = appointmentService.get_appointments_stats(db)
+    stats = appointmentService.get_appointment_stats(db)
     return stats

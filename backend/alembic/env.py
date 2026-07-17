@@ -22,23 +22,8 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Import Base and all models so Alembic can detect changes
-from app.dbConfig.baseModels import Base
-from app.models import (
-    Role,
-    User,
-    Advisor,
-    Property,
-    PropertyImage,
-    Appointment,
-    Favorite,
-    Notification,
-    Conversation,
-    Message,
-    PostSaleFollowup,
-    ClientAdvisorAssignment,
-    ActivityLog,
-    ContactInquiry,
-)
+from app.dbConfig.baseModels import Base  # noqa: E402
+import app.models  # noqa: E402, F401
 
 target_metadata = Base.metadata
 

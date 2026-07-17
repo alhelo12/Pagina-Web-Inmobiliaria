@@ -301,7 +301,7 @@ def get_active_users_count(db: Session) -> int:
         Número de usuarios activos
     """
     return db.query(func.count(User.id))\
-        .filter(User.is_active == True)\
+        .filter(User.is_active.is_(True))\
         .scalar()
 
 
@@ -359,7 +359,7 @@ def validate_user_can_be_deleted(db: Session, user_id: int) -> tuple[bool, Optio
         admin_count = db.query(func.count(User.id))\
             .join(Role)\
             .filter(Role.name == 'admin')\
-            .filter(User.is_active == True)\
+            .filter(User.is_active.is_(True))\
             .scalar()
 
         if admin_count <= 1:
@@ -381,8 +381,8 @@ def get_user_stats(db: Session) -> dict:
         advisors_count, clients_count
     """
     total = db.query(func.count(User.id)).scalar()
-    active = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
-    inactive = db.query(func.count(User.id)).filter(User.is_active == False).scalar()
+    active = db.query(func.count(User.id)).filter(User.is_active.is_(True)).scalar()
+    inactive = db.query(func.count(User.id)).filter(User.is_active.is_(False)).scalar()
     advisors = db.query(func.count(User.id))\
         .join(Role).filter(Role.name == 'advisor').scalar()
     clients = db.query(func.count(User.id))\
@@ -411,7 +411,6 @@ def get_recent_activity(db: Session, limit: int = 10) -> list:
     Returns:
         Lista de actividades recientes
     """
-    from app.models import Property, Advisor
 
     activities = []
 

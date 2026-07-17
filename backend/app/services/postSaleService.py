@@ -6,7 +6,7 @@ Maneja creación automática, encuestas, métricas de satisfacción.
 """
 
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func, and_
+from sqlalchemy import func
 from typing import Optional, List
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status

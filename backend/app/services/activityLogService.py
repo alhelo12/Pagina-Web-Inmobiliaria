@@ -8,9 +8,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import Optional, List
 from datetime import datetime, timedelta
-from fastapi import Request
 
-from app.models import ActivityLog, User
+from app.models import ActivityLog
 
 
 def log_activity(

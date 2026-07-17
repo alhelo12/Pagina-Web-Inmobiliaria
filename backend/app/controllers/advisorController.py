@@ -18,6 +18,8 @@ from app.schemas import (
     AdvisorListResponse,
     AdvisorStats
 )
+from app.core.dependencies import require_admin, require_advisor_or_admin
+from app.models import User
 
 router = APIRouter(
     prefix="/advisors",
@@ -31,8 +33,8 @@ router = APIRouter(
 
 @router.get("", response_model=AdvisorListResponse)
 def get_advisors(
-    skip: int = Query(0, ge=0, description="Registros a saltar"),
-    limit: int = Query(20, ge=1, le=100, description="Máximo de registros"),
+    page: int = Query(1, ge=1, description="Número de página"),
+    per_page: int = Query(20, ge=1, le=100, description="Resultados por página"),
     min_rating: Optional[float] = Query(None, ge=0.0, le=5.0, description="Rating mínimo"),
     db: Session = Depends(get_db)
 ):
@@ -40,22 +42,24 @@ def get_advisors(
     Listar asesores
     
     Query params:
-    - **skip**: Paginación
-    - **limit**: Máximo de resultados (1-100)
+    - **page**: Página actual (empieza en 1)
+    - **per_page**: Máximo de resultados por página (1-100)
     - **min_rating**: Rating mínimo para filtrar (0.0-5.0)
     
     Retorna:
     - Lista de asesores
     - Total de asesores
+    - Paginación
     """
-    advisors = advisorService.get_advisors(db, skip, limit, min_rating)
+    skip = (page - 1) * per_page
+    advisors = advisorService.get_advisors(db, skip, per_page, min_rating)
     total = advisorService.count_advisors(db)
     
     return {
         "advisors": advisors,
         "total": total,
-        "skip": skip,
-        "limit": limit
+        "page": page,
+        "per_page": per_page
     }
 
 
@@ -145,14 +149,12 @@ def get_advisor_by_user(
 @router.post("", response_model=AdvisorResponse, status_code=status.HTTP_201_CREATED)
 def create_advisor(
     advisor_data: AdvisorCreate,
-    user_id: int = Query(..., description="ID del usuario (temporal, con JWT se extraerá del token)"),
+    user_id: int = Query(..., ge=1, description="ID del usuario asesor"),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Crear perfil de asesor
-    
-    Query params:
-    - **user_id**: ID del usuario (TEMPORAL, con JWT del token)
+    Crear perfil de asesor (solo admin)
     
     Body:
     - **license_number**: Número de licencia (opcional)
@@ -169,8 +171,6 @@ def create_advisor(
     Errores:
     - 404: Usuario no encontrado
     - 400: Usuario no es asesor o ya tiene perfil
-    
-    Nota: Con JWT, se validará que el usuario autenticado sea el mismo.
     """
     advisor = advisorService.create_advisor(db, user_id, advisor_data)
     return advisor
@@ -184,6 +184,7 @@ def create_advisor(
 def update_advisor(
     advisor_id: int,
     advisor_data: AdvisorUpdate,
+    current_user: User = Depends(require_advisor_or_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -199,11 +200,11 @@ def update_advisor(
     
     Validaciones:
     - Asesor debe existir
+    - Solo el mismo asesor o admin puede actualizar
     
     Errores:
     - 404: Asesor no encontrado
-    
-    Nota: Con JWT, solo el mismo asesor o admin podrá actualizar.
+    - 403: No autorizado
     """
     advisor = advisorService.update_advisor(db, advisor_id, advisor_data)
     
@@ -211,6 +212,13 @@ def update_advisor(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Asesor no encontrado"
+        )
+    
+    # Verificar autorización: solo el mismo asesor o admin
+    if current_user.is_advisor() and (not current_user.advisor or current_user.advisor.id != advisor_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes actualizar el perfil de otro asesor"
         )
     
     return advisor
@@ -223,6 +231,7 @@ def update_advisor(
 @router.delete("/{advisor_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_advisor(
     advisor_id: int,
+    current_user: User = Depends(require_advisor_or_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -234,11 +243,21 @@ def delete_advisor(
     NOTA: Esto solo elimina el perfil de asesor, NO el usuario.
     El usuario permanece con rol 'advisor' pero sin perfil extendido.
     
+    Validaciones:
+    - Asesor debe existir
+    - Solo admin puede eliminar perfiles de asesores
+    
     Errores:
     - 404: Asesor no encontrado
-    
-    Nota: Con JWT, solo admin podrá eliminar perfiles de asesores.
+    - 403: No autorizado
     """
+    # Solo admin puede eliminar perfiles de asesores
+    if not current_user.is_admin():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo administradores pueden eliminar perfiles de asesores"
+        )
+    
     success = advisorService.delete_advisor(db, advisor_id)
     
     if not success:
@@ -320,7 +339,7 @@ def get_top_advisors(
     order_by: str = Query(
         "rating",
         description="Criterio de ordenamiento",
-        regex="^(rating|properties|sales)$"
+        pattern="^(rating|properties|sales)$"
     ),
     db: Session = Depends(get_db)
 ):
@@ -358,6 +377,7 @@ def get_top_advisors(
 def update_advisor_rating(
     advisor_id: int,
     new_rating: float = Query(..., ge=0.0, le=5.0, description="Nuevo rating (0.0-5.0)"),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -372,13 +392,12 @@ def update_advisor_rating(
     Validaciones:
     - Rating debe estar entre 0.0 y 5.0
     - Asesor debe existir
+    - Solo admin puede actualizar ratings
     
     Errores:
     - 404: Asesor no encontrado
     - 400: Rating inválido
-    
-    Nota: Con JWT, solo admin podrá actualizar ratings.
-    En producción, implementar sistema de reviews para cálculo automático.
+    - 403: No autorizado
     """
     advisor = advisorService.update_advisor_rating(db, advisor_id, new_rating)
     return advisor

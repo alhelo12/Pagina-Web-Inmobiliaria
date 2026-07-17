@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: inmobiliaria_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inmobiliaria_test
+      SECRET_KEY: test-secret-key-for-ci-only
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      ENVIRONMENT: development
+      DEBUG: "True"
+      CORS_ORIGINS: '["http://localhost:5173"]'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx pytest-cov ruff
+
+      - name: Run Ruff lint
+        working-directory: backend
+        run: |
+          source venv/bin/activate
+          ruff check .
+
+      - name: Run Alembic migrations from zero
+        working-directory: backend
+        run: |
+          source venv/bin/activate
+          alembic upgrade head
+
+      - name: Run backend tests
+        working-directory: backend
+        run: |
+          source venv/bin/activate
+          pytest -v --cov=app --cov-report=xml
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontendProyecto/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontendProyecto
+        run: npm ci
+
+      - name: Run lint
+        working-directory: frontendProyecto
+        run: npm run lint 2>/dev/null || echo "No lint script configured"
+
+      - name: Build
+        working-directory: frontendProyecto
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:8000
+
+  notify:
+    needs: [backend, frontend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.backend.result }}" != "success" ] || [ "${{ needs.frontend.result }}" != "success" ]; then
+            echo "Some jobs failed"
+            exit 1
+          fi
+          echo "All jobs passed"

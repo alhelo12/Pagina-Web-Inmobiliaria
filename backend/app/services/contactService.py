@@ -66,7 +66,7 @@ def notify_all_advisors(db: Session, inquiry: ContactInquiry) -> int:
     active_advisors = (
         db.query(Advisor)
         .join(User, Advisor.user_id == User.id)
-        .filter(User.is_active == True)
+        .filter(User.is_active.is_(True))
         .all()
     )
 

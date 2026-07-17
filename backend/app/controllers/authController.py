@@ -14,6 +14,7 @@ from app.services import authService, userService
 from app.core.security import create_token_for_user
 from app.core.dependencies import get_current_user
 from app.core.rateLimiter import limiter
+from app.core.config import is_production
 from app.schemas import (
     UserCreate,
     ClientRegister,
@@ -59,10 +60,25 @@ router = APIRouter(
 @limiter.limit("3 per hour")
 def register(
     request: Request,
-    user_data: UserCreate,
+    client_data: ClientRegister,
     db: Session = Depends(get_db)
 ):
-    user = authService.register_user(db, user_data)
+    from app.models import Role
+    client_role = db.query(Role).filter(Role.name == 'client').first()
+    if not client_role:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error de configuración: rol 'client' no existe"
+        )
+
+    user_create_data = UserCreate(
+        full_name=client_data.full_name,
+        email=client_data.email,
+        password=client_data.password,
+        phone=client_data.phone,
+        role_id=client_role.id
+    )
+    user = authService.register_user(db, user_create_data)
     return user
 
 
@@ -161,12 +177,16 @@ def send_verification(
     if sent:
         return {"message": "Email de verificación enviado"}
 
-    # ponytail: si SMTP no está configurado, devolvemos el token para desarrollo
-    token = create_email_token(user.email, "email_verify")
-    return {
-        "message": "SMTP no configurado. Token de verificación (solo desarrollo):",
-        "token": token
-    }
+    # Solo devolver token en desarrollo, nunca en producción
+    if not is_production():
+        from app.core.security import create_email_token
+        token = create_email_token(user.email, "email_verify")
+        return {
+            "message": "SMTP no configurado. Token de verificación (solo desarrollo):",
+            "token": token
+        }
+
+    return {"message": "Email de verificación enviado"}
 
 
 @router.get("/verify-email/{token}")
@@ -209,12 +229,16 @@ def forgot_password(
     if sent:
         return {"message": "Si el email existe, recibirás un enlace para restablecer tu contraseña"}
 
-    # ponytail: si SMTP no está configurado, devolvemos el token para desarrollo
-    token = create_email_token(user.email, "password_reset")
-    return {
-        "message": "SMTP no configurado. Token de reseteo (solo desarrollo):",
-        "token": token
-    }
+    # Solo devolver token en desarrollo, nunca en producción
+    if not is_production():
+        from app.core.security import create_email_token
+        token = create_email_token(user.email, "password_reset")
+        return {
+            "message": "SMTP no configurado. Token de reseteo (solo desarrollo):",
+            "token": token
+        }
+
+    return {"message": "Si el email existe, recibirás un enlace para restablecer tu contraseña"}
 
 
 @router.post("/reset-password")

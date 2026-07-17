@@ -73,18 +73,22 @@ source venv/bin/activate # Linux/Mac
 # 3. Dependencias
 pip install -r requirements.txt
 
-# 4. Base de datos
-psql -U postgres -c "CREATE DATABASE inmobiliaria_db"
-psql -U postgres -d inmobiliaria_db -f docs/inmobiliaria_db.sql
-
-# 5. Variables de entorno
+# 4. Variables de entorno
 cp .env-example.txt .env
 # Editar DATABASE_URL y SECRET_KEY
 
-# 6. Migraciones
+# 5. Base de datos (usar migraciones, NO el dump SQL)
+psql -U postgres -c "CREATE DATABASE inmobiliaria_db"
 alembic upgrade head
 
-# 7. Servidor
+# 6. (Opcional) Cargar datos de prueba desde dump SQL
+# psql -U postgres -d inmobiliaria_db -f docs/inmobiliaria_db.sql
+
+# 7. Crear usuario admin manualmente (requerido tras migración limpia)
+# python -c "from app.core.security import hash_password; print(hash_password('TU_PASSWORD_SEGURA'))"
+# Insertar el hash resultante en la BD con rol admin
+
+# 8. Servidor
 uvicorn app.main:app --reload
 ```
 

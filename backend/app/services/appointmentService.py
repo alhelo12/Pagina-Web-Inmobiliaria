@@ -11,7 +11,7 @@ from typing import Optional, List
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 
-from app.models import Appointment, User, Advisor, Property
+from app.models import Appointment, Advisor, Property
 from app.schemas import AppointmentCreate, AppointmentUpdate
 from app.services import notificationService
 
@@ -541,6 +541,26 @@ def check_advisor_availability(
         .count()
     
     return conflicts == 0
+
+
+def get_property_appointments(
+    db: Session,
+    property_id: int
+) -> List[Appointment]:
+    """
+    Obtener citas de una propiedad
+    
+    Args:
+        db: Sesión de base de datos
+        property_id: ID de la propiedad
+        
+    Returns:
+        Lista de citas de la propiedad
+    """
+    return db.query(Appointment)\
+        .filter(Appointment.property_id == property_id)\
+        .order_by(Appointment.scheduled_date.desc())\
+        .all()
 
 
 # ==========================================

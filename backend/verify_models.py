@@ -51,13 +51,13 @@ def verify_relationships():
                         other_model = rel.entity.class_
                         other_rel = other_model.__mapper__.relationships.get(rel.back_populates)
                         if other_rel:
-                            print(f"     - ✅ Relación bidireccional OK")
+                            print("     - ✅ Relación bidireccional OK")
                         else:
                             print(f"     - ⚠️ WARNING: back_populates '{rel.back_populates}' no existe en {rel.entity.class_.__name__}")
                     except Exception as e:
                         print(f"     - ❌ ERROR verificando back_populates: {e}")
                 else:
-                    print(f"     - ⚠️ Sin back_populates")
+                    print("     - ⚠️ Sin back_populates")
                 
                 print()
     

@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { enumOptions } from '@/utils/enums'
 
 const emit = defineEmits(['filter'])
 
@@ -7,6 +8,9 @@ const city  = ref('Tuxtla Gutiérrez')
 const type  = ref('')
 const tx    = ref('')
 const maxPrice = ref('')
+
+const typeOptions = computed(() => enumOptions('property_types'))
+const txOptions = computed(() => enumOptions('transaction_types'))
 
 const apply = () => {
   const params = {}
@@ -31,16 +35,12 @@ const reset = () => {
       <span class="divider"></span>
       <select v-model="type" class="filter-select">
         <option value="">Tipo</option>
-        <option value="house">Casa</option>
-        <option value="apartment">Departamento</option>
-        <option value="land">Terreno</option>
-        <option value="commercial">Local comercial</option>
+        <option v-for="opt in typeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
       </select>
       <span class="divider"></span>
       <select v-model="tx" class="filter-select">
         <option value="">Operación</option>
-        <option value="sale">Venta</option>
-        <option value="rent">Renta</option>
+        <option v-for="opt in txOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
       </select>
       <span class="divider"></span>
       <input v-model="maxPrice" type="number" placeholder="Precio máx" class="filter-input price-input" />

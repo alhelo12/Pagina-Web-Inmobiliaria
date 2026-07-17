@@ -5,7 +5,7 @@ Sistema Inmobiliario - Backend API
 
 import logging
 from pathlib import Path
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, Request, WebSocket, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
@@ -14,13 +14,10 @@ from typing import Optional
 
 from app.core.config import settings
 from app.core.rateLimiter import limiter
-from app.core.websocket import manager
-from app.dbConfig.databaseSession import get_db, get_pool_status, test_db_connection, SessionLocal
-from app.core.security import decode_access_token
-from app.services import messageService
-from app.models import Advisor, User
-
-logger = logging.getLogger(__name__)
+from app.core.request_id import RequestIDMiddleware
+from app.core.logging import configure_logging
+from app.dbConfig.databaseSession import get_pool_status, test_db_connection
+from app.services.websocketService import websocket_endpoint
 
 # ==========================================
 # IMPORTAR ROUTERS
@@ -39,6 +36,14 @@ from app.controllers.clientAdvisorController import router as client_advisor_rou
 from app.controllers.activityLogController import router as activity_log_router
 from app.controllers.contactController import router as contact_router
 from app.controllers.constantsController import router as constants_router
+
+configure_logging(
+    level="INFO" if settings.ENVIRONMENT == "production" else "DEBUG",
+    json_output=settings.ENVIRONMENT == "production",
+    include_request_id=True
+)
+
+logger = logging.getLogger(__name__)
 
 # Ejecutar prueba al iniciar
 test_db_connection()
@@ -60,6 +65,9 @@ app.add_middleware(
     allow_methods=settings.CORS_ALLOW_METHODS,
     allow_headers=settings.CORS_ALLOW_HEADERS,
 )
+
+# Request ID middleware (debe ir antes de CORS para capturar todos)
+app.add_middleware(RequestIDMiddleware)
 
 # Rate Limiting
 app.state.limiter = limiter
@@ -85,6 +93,7 @@ app.mount("/media", StaticFiles(directory=str(media_dir)), name="media")
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(property_router)
+app.include_router(client_advisor_router)
 app.include_router(advisor_router)
 app.include_router(appointment_router)
 app.include_router(favorite_router)
@@ -92,7 +101,6 @@ app.include_router(notification_router)
 app.include_router(notification_preference_router)
 app.include_router(message_router)
 app.include_router(post_sale_router)
-app.include_router(client_advisor_router)
 app.include_router(activity_log_router)
 app.include_router(contact_router)
 app.include_router(constants_router)
@@ -101,138 +109,16 @@ app.include_router(constants_router)
 # WEBSOCKET UNIFICADO
 # ==========================================
 
-def _is_participant(conversation, user_id: int, db) -> bool:
-    if conversation.user_id == user_id:
-        return True
-    if conversation.advisor:
-        return conversation.advisor.user_id == user_id
-    return False
-
-
-def _get_recipient_user_id(conversation, sender_user_id: int) -> Optional[int]:
-    if conversation.user_id == sender_user_id:
-        return conversation.advisor.user_id if conversation.advisor else None
-    return conversation.user_id
-
-
 @app.websocket("/ws")
-async def websocket_endpoint(
+async def websocket_route(
     websocket: WebSocket,
     token: Optional[str] = Query(None)
 ):
     """
     WebSocket unificado para chat y notificaciones en tiempo real.
-
-    Conexion: ws://localhost:8000/ws?token=JWT_TOKEN
-
-    Mensajes recibidos:
-    - {"type": "ping"}
-    - {"type": "message", "conversation_id": 1, "content": "..."}
-    - {"type": "typing", "conversation_id": 1}
-
-    Mensajes enviados:
-    - {"type": "pong"}
-    - {"type": "message", "data": {...}}
-    - {"type": "typing", "conversation_id": 1, "user_id": 1}
-    - {"type": "notification", "data": {...}}
+    Delegado a websocketService para mantener main.py limpio.
     """
-    if not token:
-        await websocket.close(code=4001, reason="Token requerido")
-        return
-
-    payload = decode_access_token(token)
-    if not payload:
-        await websocket.close(code=4001, reason="Token invalido")
-        return
-
-    user_id = int(payload.get("sub", 0))
-    if not user_id:
-        await websocket.close(code=4001, reason="Token invalido")
-        return
-
-    await manager.connect(websocket, user_id)
-    logger.info(f"WebSocket conectado: user_id={user_id}")
-
-    try:
-        while True:
-            data = await websocket.receive_json()
-            msg_type = data.get("type")
-
-            if msg_type == "ping":
-                await websocket.send_json({"type": "pong"})
-
-            elif msg_type == "message":
-                conversation_id = data.get("conversation_id")
-                content = data.get("content", "").strip()
-
-                if not conversation_id or not content:
-                    continue
-
-                db = SessionLocal()
-                try:
-                    conversation = messageService.get_conversation_by_id(db, conversation_id)
-                    if not conversation:
-                        logger.warning(f"Conversacion {conversation_id} no encontrada para user {user_id}")
-                        continue
-
-                    if not _is_participant(conversation, user_id, db):
-                        logger.warning(f"User {user_id} intento enviar mensaje en conversacion {conversation_id} sin acceso")
-                        continue
-
-                    message = messageService.send_message(
-                        db=db, conversation_id=conversation_id, sender_id=user_id, content=content
-                    )
-
-                    db.refresh(conversation)
-
-                    recipient_id = _get_recipient_user_id(conversation, user_id)
-
-                    sender_user = db.query(User).filter(User.id == user_id).first()
-                    sender_name = sender_user.full_name if sender_user else payload.get("email", "Usuario")
-                    is_client = conversation.user_id == user_id
-
-                    message_data = {
-                        "type": "message",
-                        "data": {
-                            "id": message.id,
-                            "conversation_id": message.conversation_id,
-                            "sender_id": message.sender_id,
-                            "content": message.content,
-                            "is_read": message.is_read,
-                            "created_at": message.created_at.isoformat() if message.created_at else None,
-                            "sender": {"id": user_id, "name": sender_name, "role": "client" if is_client else "advisor"}
-                        }
-                    }
-
-                    await manager.send_personal_message(message_data, user_id)
-                    if recipient_id:
-                        await manager.send_personal_message(message_data, recipient_id)
-
-                finally:
-                    db.close()
-
-            elif msg_type == "typing":
-                conversation_id = data.get("conversation_id")
-                if conversation_id:
-                    db = SessionLocal()
-                    try:
-                        conversation = messageService.get_conversation_by_id(db, conversation_id)
-                        if conversation and _is_participant(conversation, user_id, db):
-                            recipient_id = _get_recipient_user_id(conversation, user_id)
-                            if recipient_id:
-                                await manager.send_personal_message(
-                                    {"type": "typing", "conversation_id": conversation_id, "user_id": user_id},
-                                    recipient_id
-                                )
-                    finally:
-                        db.close()
-
-    except WebSocketDisconnect:
-        logger.info(f"WebSocket desconectado: user_id={user_id}")
-        manager.disconnect(websocket, user_id)
-    except Exception as e:
-        logger.error(f"WebSocket error para user {user_id}: {e}", exc_info=True)
-        manager.disconnect(websocket, user_id)
+    await websocket_endpoint(websocket, token)
 
 
 # ==========================================

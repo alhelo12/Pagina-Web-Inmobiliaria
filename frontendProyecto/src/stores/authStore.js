@@ -2,7 +2,7 @@
 import apiClient from '@/api/axios'
 import { authApi } from '@/api/auth'
 
-function decodeJwtPayload(token) {
+export function decodeJwtPayload(token) {
   try {
     return JSON.parse(atob(token.split('.')[1]))
   } catch { return null }
@@ -104,7 +104,11 @@ export const useAuthStore = defineStore('auth', {
 
       if (savedBackendToken && savedUserId && savedRole) {
         const payload = decodeJwtPayload(savedBackendToken)
-        if (payload?.exp && payload.exp * 1000 < Date.now()) {
+        if (!payload) {
+          await this.logout()
+          return
+        }
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
           await this.logout()
           return
         }

@@ -7,7 +7,7 @@ Logica de negocio para mensajes directos entre cliente y asesor.
 import logging
 import bleach
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import or_, and_, func, text
+from sqlalchemy import or_, func
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional, Tuple
 
@@ -287,7 +287,7 @@ def mark_conversation_read(
     result = db.query(Message).filter(
         Message.conversation_id == conversation_id,
         Message.sender_id != reader_id,
-        Message.is_read == False
+        Message.is_read.is_(False)
     ).update({"is_read": True}, synchronize_session=False)
     db.commit()
     return result
@@ -304,5 +304,5 @@ def count_unread_messages(
     return db.query(Message).filter(
         Message.conversation_id == conversation_id,
         Message.sender_id != user_id,
-        Message.is_read == False
+        Message.is_read.is_(False)
     ).count()

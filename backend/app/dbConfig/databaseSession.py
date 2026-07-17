@@ -1,13 +1,11 @@
 import os
+import logging
+
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, pool, event
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
-
-from sqlalchemy import create_engine, pool, event
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import logging
-from app.dbConfig.baseModels import Base
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -43,7 +41,7 @@ else:
         pool_recycle=DB_POOL_RECYCLE,
         pool_pre_ping=DB_POOL_PRE_PING,
         pool_timeout=30,
-        echo=True,
+        echo=DB_ECHO,
         echo_pool=False,
         connect_args={
             "connect_timeout": 10,
@@ -68,8 +66,6 @@ def receive_checkin(dbapi_conn, connection_record):
     logging.debug("Conexión devuelta al pool")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
 
 # ==========================================
 # DEPENDENCY PARA FASTAPI

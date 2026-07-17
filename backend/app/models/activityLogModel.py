@@ -8,7 +8,7 @@ Descripción:
 Tabla: activity_logs
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, TIMESTAMP
+from sqlalchemy import Column, String, Text, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.dbConfig.baseModels import BaseModel
 

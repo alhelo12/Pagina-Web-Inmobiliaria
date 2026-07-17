@@ -37,9 +37,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import { propertiesApi } from '@/api/properties'
 
 const router = useRouter()
+const auth = useAuthStore()
 const pendingCount = ref(0)
 
 onMounted(async () => {
@@ -50,12 +52,8 @@ onMounted(async () => {
   } catch {}
 })
 
-const handleLogout = () => {
-  localStorage.removeItem('backendToken')
-  localStorage.removeItem('role')
-  localStorage.removeItem('backendUserId')
-  localStorage.removeItem('isEmailVerified')
-  localStorage.removeItem('userEmail')
+const handleLogout = async () => {
+  await auth.logout()
   router.push('/')
 }
 </script>

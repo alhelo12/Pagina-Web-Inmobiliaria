@@ -5,7 +5,7 @@ DTOs para validación de datos de entrada y salida
 relacionados con seguimiento post-venta.
 """
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from enum import Enum
@@ -98,7 +98,7 @@ class PostSaleFollowupAdvisorResponse(BaseModel):
     user_id: int
     agency_name: Optional[str] = None
     rating: float
-    user: dict
+    user: PostSaleFollowupClientResponse
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -121,7 +121,9 @@ class PostSaleFollowupResponse(PostSaleFollowupBase):
 
 class PostSaleFollowupDetailResponse(PostSaleFollowupResponse):
     """Schema de respuesta detallada con relaciones"""
-    property: Optional[PostSaleFollowupPropertyResponse] = None
+    property: Optional[PostSaleFollowupPropertyResponse] = Field(
+        None, validation_alias="related_property"
+    )
     client: Optional[PostSaleFollowupClientResponse] = None
     advisor: Optional[PostSaleFollowupAdvisorResponse] = None
 

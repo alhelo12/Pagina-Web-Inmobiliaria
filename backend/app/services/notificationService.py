@@ -54,7 +54,7 @@ def get_notifications_by_user(
     query = db.query(Notification).filter(Notification.user_id == user_id)
     
     if not include_read:
-        query = query.filter(Notification.is_read == False)
+        query = query.filter(Notification.is_read.is_(False))
     
     return query.order_by(Notification.created_at.desc()).offset(skip).limit(limit).all()
 
@@ -72,7 +72,7 @@ def get_unread_count(db: Session, user_id: int) -> int:
     """
     return db.query(func.count(Notification.id)).filter(
         Notification.user_id == user_id,
-        Notification.is_read == False
+        Notification.is_read.is_(False)
     ).scalar()
 
 
@@ -202,7 +202,7 @@ def mark_all_as_read(db: Session, user_id: int) -> int:
     """
     result = db.query(Notification).filter(
         Notification.user_id == user_id,
-        Notification.is_read == False
+        Notification.is_read.is_(False)
     ).update({"is_read": True})
     
     db.commit()

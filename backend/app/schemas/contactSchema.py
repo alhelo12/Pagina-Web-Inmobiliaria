@@ -4,7 +4,7 @@ Schemas de Contacto (Pydantic)
 DTOs para validacion del formulario de contacto publico.
 """
 
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from enum import Enum

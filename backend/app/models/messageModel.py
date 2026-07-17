@@ -11,7 +11,7 @@ Tabla: messages
     Mensajes individuales dentro de una conversacion.
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, DateTime, UniqueConstraint
+from sqlalchemy import Column, Text, Integer, ForeignKey, Boolean, DateTime, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.dbConfig.baseModels import BaseModel
 

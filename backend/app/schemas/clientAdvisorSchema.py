@@ -49,7 +49,7 @@ class ClientAdvisorAdvisorResponse(BaseModel):
     user_id: int
     agency_name: Optional[str] = None
     rating: float
-    user: dict
+    user: ClientAdvisorClientResponse
 
     model_config = ConfigDict(from_attributes=True)
 

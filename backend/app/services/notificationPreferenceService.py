@@ -29,7 +29,7 @@ def set_preference(db: Session, user_id: int, notification_type: str, enabled: b
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
-    prefs = user.user_preferences or {}
+    prefs = dict(user.user_preferences or {})
     prefs[notification_type] = enabled
     user.user_preferences = prefs
     db.commit()

@@ -112,10 +112,17 @@ Aplicado en todas las tablas que tienen columna `updated_at`. Se ejecuta automá
 El archivo `inmobiliaria_db.sql` incluye datos iniciales:
 
 - **3 roles**: admin (id=1), advisor (id=2), client (id=3)
-- **1 admin**: `admin@inmobiliaria.com` / `Admin123`
 - **2 asesores**: con propiedades de ejemplo
 - **Propiedades**: algunas aprobadas visibles, otras pendientes para demostración
 - **Triggers**: función `update_updated_at_column()` y su aplicación en cada tabla
+
+**NOTA**: El usuario administrador inicial NO se incluye en el dump por seguridad. 
+Debes crearlo manualmente tras la instalación:
+```bash
+# Generar hash de contraseña segura
+python -c "from app.core.security import hash_password; print(hash_password('TU_PASSWORD_SEGURA'))"
+# Insertar en BD con el hash generado
+```
 
 Para recargar desde cero:
 

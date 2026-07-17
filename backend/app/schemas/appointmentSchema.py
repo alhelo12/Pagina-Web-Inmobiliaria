@@ -38,15 +38,6 @@ class AppointmentBase(BaseModel):
     appointment_type: AppointmentTypeEnum = Field(default=AppointmentTypeEnum.VIEWING, description="Tipo de cita")
     notes: Optional[str] = Field(None, max_length=1000, description="Notas adicionales")
     
-    @field_validator('scheduled_date')
-    @classmethod
-    def validate_future_date(cls, v):
-        """Validar que la fecha sea futura"""
-        if v < datetime.now():
-            raise ValueError('La fecha de la cita debe ser futura')
-        return v
-
-
 # ==========================================
 # SCHEMAS DE ENTRADA (Request)
 # ==========================================
@@ -77,6 +68,13 @@ class AppointmentCreate(AppointmentBase):
     """
     advisor_id: int = Field(..., ge=1, description="ID del asesor")
     property_id: Optional[int] = Field(None, ge=1, description="ID de la propiedad (opcional)")
+
+    @field_validator('scheduled_date')
+    @classmethod
+    def validate_future_date(cls, v):
+        if v < datetime.now():
+            raise ValueError('La fecha de la cita debe ser futura')
+        return v
 
 
 class AppointmentUpdate(BaseModel):
@@ -160,7 +158,7 @@ class AppointmentAdvisorResponse(BaseModel):
     user_id: int
     agency_name: Optional[str] = None
     rating: float
-    user: dict  # {id, full_name, email, phone}
+    user: AppointmentClientResponse
     
     model_config = ConfigDict(from_attributes=True)
 

@@ -7,10 +7,12 @@ Funciones para manejo de JWT (JSON Web Tokens) y seguridad.
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
-import os
 from dotenv import load_dotenv
 from app.core.config import settings
-from app.services.authService import verify_password, hash_password as get_password_hash
+from app.services.authService import hash_password, verify_password
+
+get_password_hash = hash_password
+__all__ = ["get_password_hash", "hash_password", "verify_password"]
 
 load_dotenv()
 

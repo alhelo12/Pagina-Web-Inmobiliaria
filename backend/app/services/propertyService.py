@@ -7,7 +7,7 @@ Incluye CRUD, sistema de aprobación y filtros avanzados.
 
 from pathlib import Path
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func, and_, or_, text
+from sqlalchemy import func, and_, text
 from typing import Optional, List, Tuple
 from fastapi import HTTPException, status
 
@@ -389,7 +389,7 @@ def reject_property(db: Session, property_id: int, reason: Optional[str] = None)
 
 def mark_as_sold(db: Session, property_id: int) -> Property:
     """
-    Marcar propiedad como vendida/rentada
+    Marcar propiedad como vendida
     
     Args:
         db: Sesión de base de datos
@@ -417,25 +417,26 @@ def mark_as_sold(db: Session, property_id: int) -> Property:
     
     db_property.status = 'sold'
     
-    db.commit()
-    db.refresh(db_property)
-    
-    # Crear notificación al propietario
     try:
+        db.commit()
+        db.refresh(db_property)
+        
+        # Crear notificación al propietario
         notificationService.notify_property_sold(db, property_id)
-    except Exception:
-        pass  # No fallar si no se puede crear la notificación
-    
-    # Crear seguimientos post-venta automáticos
-    try:
+        
+        # Crear seguimientos post-venta automáticos
         postSaleService.create_auto_followups_on_sale(
             db=db,
             property_id=property_id,
             client_id=db_property.submitted_by_user_id,
             advisor_id=db_property.advisor_id
         )
-    except Exception:
-        pass  # No fallar si no se pueden crear los seguimientos
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al marcar propiedad como vendida: {str(e)}"
+        )
     
     return db_property
 
@@ -717,18 +718,22 @@ def add_property_image(
     return db_image
 
 
-def delete_property_image(db: Session, image_id: int) -> bool:
+def delete_property_image(db: Session, property_id: int, image_id: int) -> bool:
     """
     Eliminar imagen de propiedad
     
     Args:
         db: Sesión de base de datos
+        property_id: ID de la propiedad (para verificación de ownership)
         image_id: ID de la imagen
         
     Returns:
-        True si se eliminó, False si no existe
+        True si se eliminó, False si no existe o no pertenece a la propiedad
     """
-    db_image = db.query(PropertyImage).filter(PropertyImage.id == image_id).first()
+    db_image = db.query(PropertyImage).filter(
+        PropertyImage.id == image_id,
+        PropertyImage.property_id == property_id
+    ).first()
     
     if not db_image:
         return False
@@ -842,38 +847,43 @@ def take_property(db: Session, property_id: int, advisor_id: int) -> Property:
             detail="Solo se pueden tomar propiedades pendientes"
         )
     
+    # Usar SELECT FOR UPDATE para evitar race conditions
+    db_property = db.query(Property).filter(Property.id == property_id).with_for_update().first()
+    
+    if not db_property or db_property.advisor_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Esta propiedad ya fue tomada por otro asesor"
+        )
+    
     db_property.advisor_id = advisor_id
-    db.commit()
-    db.refresh(db_property)
-
-    # Crear notificación al propietario
+    
     try:
+        db.commit()
+        db.refresh(db_property)
+        
+        # Crear notificación al propietario
         notificationService.notify_property_taken(db, property_id, advisor_id)
-    except Exception:
-        pass  # No fallar si no se puede crear la notificación
-
-    from sqlalchemy import func
-
-    # Crear conversación y mensaje automático
-    try:
+        
+        # Crear conversación y mensaje automático
         existing_conv = db.query(Conversation).filter(
             Conversation.user_id == db_property.submitted_by_user_id,
             Conversation.advisor_id == advisor_id
         ).first()
-
+        
         if not existing_conv:
             advisor = db.query(Advisor).options(
                 selectinload(Advisor.user)
             ).filter(Advisor.id == advisor_id).first()
             advisor_name = advisor.user.full_name if advisor and advisor.user else "un asesor"
-
+            
             conversation = Conversation(
                 user_id=db_property.submitted_by_user_id,
                 advisor_id=advisor_id
             )
             db.add(conversation)
             db.flush()
-
+            
             auto_msg = Message(
                 conversation_id=conversation.id,
                 sender_id=db_property.submitted_by_user_id,
@@ -886,7 +896,11 @@ def take_property(db: Session, property_id: int, advisor_id: int) -> Property:
             conversation.last_message_at = auto_msg.created_at
             db.commit()
     except Exception as e:
-        print(f"[propertyService] Error creando conversación: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al tomar la propiedad: {str(e)}"
+        )
     
     return db_property
 
@@ -949,7 +963,7 @@ def get_available_properties(db: Session, skip: int = 0, limit: int = 20) -> Lis
         db.query(Property)
         .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.status == 'pending')
-        .filter(Property.advisor_id == None)
+        .filter(Property.advisor_id.is_(None))
         .offset(skip)
         .limit(limit)
         .all()
@@ -989,7 +1003,7 @@ def get_advisor_properties_with_available(
         db.query(Property)
         .options(selectinload(Property.images), selectinload(Property.owner))
         .filter(Property.status == 'pending')
-        .filter(Property.advisor_id == None)
+        .filter(Property.advisor_id.is_(None))
         .all()
     )
     
@@ -1020,7 +1034,7 @@ def get_property_stats_by_advisor(db: Session, advisor_id: int) -> dict:
     
     available = db.query(func.count(Property.id)).filter(
         Property.status == 'pending',
-        Property.advisor_id == None
+        Property.advisor_id.is_(None)
     ).scalar()
     
     clients_count = db.query(func.count(func.distinct(Property.submitted_by_user_id))).filter(

@@ -6,13 +6,11 @@ Endpoints para gestión de notificaciones de usuarios.
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import Optional
 
 from app.dbConfig.databaseSession import get_db
 from app.services import notificationService
 from app.core.dependencies import get_current_user
 from app.schemas import (
-    NotificationResponse,
     NotificationListResponse,
     NotificationCountResponse,
     NotificationMarkReadResponse

@@ -10,7 +10,7 @@ from typing import Optional
 from fastapi import HTTPException, status
 import bcrypt as _bcrypt
 
-from app.models import User, Role
+from app.models import User
 from app.schemas import UserCreate, UserLogin
 from app.services import userService
 

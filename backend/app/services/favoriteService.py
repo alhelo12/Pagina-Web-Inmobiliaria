@@ -12,7 +12,6 @@ from typing import Optional, List
 from fastapi import HTTPException, status
 
 from app.models import Favorite, Property, User
-from app.schemas import FavoriteCreate
 
 
 # ==========================================
@@ -485,7 +484,7 @@ def cleanup_orphaned_favorites(db: Session) -> int:
     # pero se incluye por seguridad
     orphaned = db.query(Favorite)\
         .outerjoin(Property, Favorite.property_id == Property.id)\
-        .filter(Property.id == None)\
+        .filter(Property.id.is_(None))\
         .delete(synchronize_session=False)
     
     db.commit()

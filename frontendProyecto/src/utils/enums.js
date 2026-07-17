@@ -1,4 +1,5 @@
 import apiClient from '@/api/axios'
+import { shallowRef } from 'vue'
 
 const DEFAULTS = {
   property_types: ['house', 'apartment', 'land', 'commercial'],
@@ -22,19 +23,19 @@ const LABELS = {
   followup_statuses: { pending: 'Pendiente', completed: 'Completado', skipped: 'Saltado' },
 }
 
-let _values = null
+const _values = shallowRef(null)
 
 export async function loadEnums() {
   try {
     const { data } = await apiClient.get('/constants')
-    _values = data
+    _values.value = data
   } catch {
-    _values = { ...DEFAULTS }
+    _values.value = { ...DEFAULTS }
   }
 }
 
 function getValues(name) {
-  return _values?.[name] ?? DEFAULTS[name] ?? []
+  return _values.value?.[name] ?? DEFAULTS[name] ?? []
 }
 
 export function enumValues(name) {

@@ -15,11 +15,9 @@ from app.schemas.postSaleSchema import (
     PostSaleFollowupCreate,
     PostSaleFollowupComplete,
     PostSaleFollowupSkip,
-    PostSaleFollowupResponse,
     PostSaleFollowupDetailResponse,
     PostSaleFollowupListResponse,
-    PostSaleStats,
-    PostSaleFollowupFilter
+    PostSaleStats
 )
 from app.models import User, PostSaleFollowup
 
@@ -152,80 +150,6 @@ def get_overdue_followups(
     )
 
 
-@router.get("/{followup_id}", response_model=PostSaleFollowupDetailResponse)
-def get_followup(
-    followup_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Obtener detalle de un seguimiento"""
-    followup = postSaleService.get_followup_by_id(db=db, followup_id=followup_id)
-    
-    if not followup:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Seguimiento no encontrado"
-        )
-    
-    if current_user.is_client() and followup.client_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este seguimiento"
-        )
-    
-    return followup
-
-
-@router.patch("/{followup_id}/complete", response_model=PostSaleFollowupDetailResponse)
-def complete_followup(
-    followup_id: int,
-    complete_data: PostSaleFollowupComplete,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Marcar seguimiento como completado"""
-    followup = postSaleService.get_followup_by_id(db=db, followup_id=followup_id)
-    
-    if not followup:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Seguimiento no encontrado"
-        )
-    
-    if current_user.is_client() and followup.client_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este seguimiento"
-        )
-    
-    return postSaleService.complete_followup(
-        db=db,
-        followup_id=followup_id,
-        complete_data=complete_data
-    )
-
-
-@router.patch("/{followup_id}/skip", response_model=PostSaleFollowupDetailResponse)
-def skip_followup(
-    followup_id: int,
-    skip_data: PostSaleFollowupSkip,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Omitir seguimiento"""
-    if not current_user.is_admin() and not current_user.is_advisor():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo administradores y asesores pueden omitir seguimientos"
-        )
-    
-    return postSaleService.skip_followup(
-        db=db,
-        followup_id=followup_id,
-        skip_data=skip_data
-    )
-
-
 @router.get("/stats", response_model=PostSaleStats)
 def get_stats(
     current_user: User = Depends(get_current_user),
@@ -255,3 +179,123 @@ def get_advisor_ranking(
         )
     
     return postSaleService.get_advisor_post_sale_ranking(db=db, limit=limit)
+
+
+@router.get("/{followup_id}", response_model=PostSaleFollowupDetailResponse)
+def get_followup(
+    followup_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener detalle de un seguimiento"""
+    followup = postSaleService.get_followup_by_id(db=db, followup_id=followup_id)
+    
+    if not followup:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Seguimiento no encontrado"
+        )
+    
+    if current_user.is_client() and followup.client_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes acceso a este seguimiento"
+        )
+    
+    # Asesor solo ve sus propios seguimientos
+    if current_user.is_advisor():
+        if not current_user.advisor:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Perfil de asesor no encontrado"
+            )
+        if followup.advisor_id != current_user.advisor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes acceso a este seguimiento"
+            )
+    
+    return followup
+
+
+@router.patch("/{followup_id}/complete", response_model=PostSaleFollowupDetailResponse)
+def complete_followup(
+    followup_id: int,
+    complete_data: PostSaleFollowupComplete,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Marcar seguimiento como completado"""
+    followup = postSaleService.get_followup_by_id(db=db, followup_id=followup_id)
+    
+    if not followup:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Seguimiento no encontrado"
+        )
+    
+    if current_user.is_client() and followup.client_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes acceso a este seguimiento"
+        )
+    
+    # Asesor solo completa sus propios seguimientos
+    if current_user.is_advisor():
+        if not current_user.advisor:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Perfil de asesor no encontrado"
+            )
+        if followup.advisor_id != current_user.advisor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No puedes completar seguimientos de otro asesor"
+            )
+    
+    return postSaleService.complete_followup(
+        db=db,
+        followup_id=followup_id,
+        complete_data=complete_data
+    )
+
+
+@router.patch("/{followup_id}/skip", response_model=PostSaleFollowupDetailResponse)
+def skip_followup(
+    followup_id: int,
+    skip_data: PostSaleFollowupSkip,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Omitir seguimiento"""
+    if not current_user.is_admin() and not current_user.is_advisor():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo administradores y asesores pueden omitir seguimientos"
+        )
+    
+    followup = postSaleService.get_followup_by_id(db=db, followup_id=followup_id)
+    if not followup:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Seguimiento no encontrado"
+        )
+    
+    # Asesor solo omite sus propios seguimientos
+    if current_user.is_advisor():
+        if not current_user.advisor:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Perfil de asesor no encontrado"
+            )
+        if followup.advisor_id != current_user.advisor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No puedes omitir seguimientos de otro asesor"
+            )
+    
+    return postSaleService.skip_followup(
+        db=db,
+        followup_id=followup_id,
+        skip_data=skip_data
+    )

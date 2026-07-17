@@ -89,14 +89,14 @@ class PropertyImageResponse(PropertyImageBase):
 
 class PropertyBase(BaseModel):
     """Schema base con campos comunes de propiedad"""
-    title: str = Field(..., min_length=10, max_length=255, description="Título de la propiedad")
+    title: str = Field(..., max_length=255, description="Título de la propiedad")
     description: Optional[str] = Field(None, max_length=5000, description="Descripción detallada")
     price: float = Field(..., gt=0, description="Precio en la moneda local")
     property_type: PropertyTypeEnum = Field(..., description="Tipo de propiedad")
     transaction_type: TransactionTypeEnum = Field(default=TransactionTypeEnum.SALE, description="Venta o renta")
     
     # Ubicación
-    address: str = Field(..., min_length=10, max_length=500, description="Dirección completa")
+    address: str = Field(..., max_length=500, description="Dirección completa")
     city: str = Field(..., min_length=2, max_length=100, description="Ciudad")
     latitude: Optional[float] = Field(None, ge=-90, le=90, description="Latitud")
     longitude: Optional[float] = Field(None, ge=-180, le=180, description="Longitud")
@@ -136,7 +136,8 @@ class PropertyCreate(PropertyBase):
             "square_meters": 150
         }
     """
-    pass
+    title: str = Field(..., min_length=10, max_length=255, description="Título de la propiedad")
+    address: str = Field(..., min_length=10, max_length=500, description="Dirección completa")
 
 
 class PropertyUpdate(BaseModel):

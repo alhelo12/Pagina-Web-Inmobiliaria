@@ -128,7 +128,7 @@ def get_current_user_optional(
             return user
         
         return None
-    except:
+    except (TypeError, ValueError):
         return None
 
 

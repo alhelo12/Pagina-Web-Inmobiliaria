@@ -14,10 +14,8 @@ from app.core.dependencies import get_current_user
 from app.schemas.clientAdvisorSchema import (
     ClientAdvisorAssignmentCreate,
     ClientAdvisorAssignmentDeactivate,
-    ClientAdvisorAssignmentResponse,
     ClientAdvisorAssignmentDetailResponse,
-    ClientAdvisorAssignmentListResponse,
-    AssignmentStatusEnum
+    ClientAdvisorAssignmentListResponse
 )
 from app.models import User, Advisor
 

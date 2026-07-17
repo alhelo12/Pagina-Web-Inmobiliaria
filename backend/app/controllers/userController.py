@@ -9,7 +9,7 @@ from typing import Optional
 from app.dbConfig.databaseSession import get_db
 from app.services import userService
 from app.core.dependencies import get_current_user, require_admin, verify_user_owns_resource
-from app.schemas import UserCreate, UserUpdate, UserResponse, UserListResponse
+from app.schemas import UserUpdate, UserResponse, UserListResponse
 from app.models import User
 
 router = APIRouter(prefix="/users", tags=["Users"])

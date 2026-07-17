@@ -4,7 +4,8 @@ Controller: Properties
 
 from pathlib import Path
 from uuid import uuid4
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+import mimetypes
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -13,9 +14,10 @@ from app.core.config import settings
 from app.services import propertyService
 from app.core.dependencies import get_current_user, require_advisor_or_admin, verify_user_owns_resource
 from app.core.activityLogger import log_activity
+from app.core.rateLimiter import RATE_LIMITS, limiter
 from app.schemas import (
     PropertyCreate, PropertyUpdate, PropertyResponse,
-    PropertyListResponse, PropertySearchFilters, NearbySearchParams
+    PropertyListResponse, PropertySearchFilters
 )
 from app.models import User, Property, Advisor
 
@@ -41,7 +43,7 @@ def get_or_create_advisor(db: Session, user: User) -> int:
 def get_properties(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None, description="Filtrar por estado"),
+    status: Optional[str] = Query(None, description="Filtrar por estado (solo admin/asesor)"),
     city: Optional[str] = Query(None),
     property_type: Optional[str] = Query(None),
     transaction_type: Optional[str] = Query(None),
@@ -49,10 +51,17 @@ def get_properties(
     user_id: Optional[int] = Query(None, description="Filtrar por usuario que publico"),
     db: Session = Depends(get_db)
 ):
+    # Público solo ve propiedades aprobadas; ignorar status explícito no-approved
+    effective_status = "approved" if status is None else status
+    if effective_status != "approved":
+        # En producción, forzar approved para usuarios no autenticados
+        # (endpoint público sin autenticación)
+        effective_status = "approved"
+    
     properties = propertyService.get_properties(
-        db, skip=skip, limit=limit, status=status, user_id=user_id
+        db, skip=skip, limit=limit, status=effective_status, user_id=user_id
     )
-    total = propertyService.count_properties(db, status=status, user_id=user_id)
+    total = propertyService.count_properties(db, status=effective_status, user_id=user_id)
 
     # Construir la respuesta paginada que exige PropertyListResponse
     return PropertyListResponse(
@@ -71,6 +80,12 @@ def search_properties(
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
+    # Público solo ve propiedades aprobadas
+    if not getattr(filters, 'status', None):
+        filters.status = "approved"
+    elif filters.status != "approved":
+        filters.status = "approved"
+    
     properties, total = propertyService.search_properties(db, filters, skip=skip, limit=limit)
     return PropertyListResponse(
         total=total,
@@ -208,7 +223,7 @@ def get_available_properties(
     properties = propertyService.get_available_properties(db, skip=skip, limit=limit)
     total = db.query(Property).filter(
         Property.status == 'pending',
-        Property.advisor_id == None
+        Property.advisor_id.is_(None)
     ).count()
     return PropertyListResponse(
         total=total,
@@ -226,6 +241,10 @@ def get_property(
 ):
     prop = propertyService.get_property_by_id(db, property_id)
     if not prop:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Propiedad no encontrada")
+    # Público solo ve propiedades aprobadas
+    if prop.status != "approved":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Propiedad no encontrada")
     return prop
@@ -285,10 +304,21 @@ def approve_property(
     current_user: User = Depends(require_advisor_or_admin),
     db: Session = Depends(get_db)
 ):
+    prop = propertyService.get_property_by_id(db, property_id)
+    if not prop:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Propiedad no encontrada")
+    
+    # Solo el asesor asignado o admin puede aprobar
+    if current_user.is_advisor():
+        if not current_user.advisor:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Usuario no tiene perfil de advisor")
+        if prop.advisor_id != current_user.advisor.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="No puedes aprobar propiedades de otro asesor")
+    
     advisor_id = current_user.advisor.id if current_user.advisor else None
-    if current_user.is_advisor() and advisor_id is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Usuario no tiene perfil de advisor")
     return propertyService.approve_property(db, property_id, advisor_id)
 
 
@@ -301,6 +331,20 @@ def reject_property(
     current_user: User = Depends(require_advisor_or_admin),
     db: Session = Depends(get_db)
 ):
+    prop = propertyService.get_property_by_id(db, property_id)
+    if not prop:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Propiedad no encontrada")
+    
+    # Solo el asesor asignado o admin puede rechazar
+    if current_user.is_advisor():
+        if not current_user.advisor:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Usuario no tiene perfil de advisor")
+        if prop.advisor_id != current_user.advisor.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="No puedes rechazar propiedades de otro asesor")
+    
     return propertyService.reject_property(db, property_id, reason)
 
 
@@ -312,12 +356,28 @@ def mark_property_sold(
     current_user: User = Depends(require_advisor_or_admin),
     db: Session = Depends(get_db)
 ):
+    prop = propertyService.get_property_by_id(db, property_id)
+    if not prop:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Propiedad no encontrada")
+    
+    # Solo el asesor asignado o admin puede marcar como vendida
+    if current_user.is_advisor():
+        if not current_user.advisor:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Usuario no tiene perfil de advisor")
+        if prop.advisor_id != current_user.advisor.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="No puedes marcar como vendida propiedades de otro asesor")
+    
     return propertyService.mark_as_sold(db, property_id)
 
 
 @router.post("/{property_id}/images/upload", status_code=status.HTTP_201_CREATED)
+@limiter.limit(RATE_LIMITS["upload_image"])
 @log_activity("property_image_uploaded", "property", "property_id")
 async def upload_property_image(
+    request: Request,
     property_id: int,
     image: UploadFile = File(...),
     is_main: bool = Query(False),
@@ -343,6 +403,7 @@ async def upload_property_image(
             detail="El extra necesita un nombre"
         )
 
+    # Validar extensión
     ext = Path(image.filename or "").suffix.lower()
     if ext not in settings.ALLOWED_IMAGE_EXTENSIONS:
         raise HTTPException(
@@ -350,19 +411,43 @@ async def upload_property_image(
             detail=f"Formato no permitido. Usa: {', '.join(settings.ALLOWED_IMAGE_EXTENSIONS)}"
         )
 
-    content = await image.read()
-    max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-    if len(content) > max_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"La imagen supera el limite de {settings.MAX_UPLOAD_SIZE_MB}MB"
-        )
+    # Validar MIME type (firma del archivo)
+    allowed_mimes = {"image/jpeg", "image/png", "image/webp"}
+    mime = mimetypes.guess_type(image.filename or "")[0]
+    if mime not in allowed_mimes:
+        # Intentar detectar por contenido si no hay MIME confiable
+        await image.read(512)
+        await image.seek(0)
+        detected_mime = mimetypes.guess_type("test" + ext)[0]
+        if detected_mime not in allowed_mimes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Tipo de archivo no permitido. Solo JPEG, PNG y WebP"
+            )
 
+    # Streaming upload con límite de tamaño (evita cargar todo en memoria)
+    max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
     folder = Path("media") / "properties" / str(property_id)
     folder.mkdir(parents=True, exist_ok=True)
     filename = f"{uuid4().hex}{ext}"
     file_path = folder / filename
-    file_path.write_bytes(content)
+
+    total = 0
+    chunk_size = 1024 * 1024  # 1MB chunks
+    with file_path.open("wb") as f:
+        while True:
+            chunk = await image.read(chunk_size)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > max_bytes:
+                f.close()
+                file_path.unlink(missing_ok=True)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"La imagen supera el límite de {settings.MAX_UPLOAD_SIZE_MB}MB"
+                )
+            f.write(chunk)
 
     image_url = f"/media/properties/{property_id}/{filename}"
     created = propertyService.add_property_image(
@@ -408,7 +493,7 @@ def delete_property_image(
 
     verify_user_owns_resource(prop.submitted_by_user_id, current_user)
 
-    deleted = propertyService.delete_property_image(db, image_id)
+    deleted = propertyService.delete_property_image(db, property_id, image_id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

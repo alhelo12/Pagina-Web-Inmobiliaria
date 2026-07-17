@@ -18,12 +18,8 @@ onMounted(() => {
   msgStore.fetchConversations()
 })
 
-const handleLogout = () => {
-  localStorage.removeItem('backendToken')
-  localStorage.removeItem('role')
-  localStorage.removeItem('backendUserId')
-  localStorage.removeItem('isEmailVerified')
-  localStorage.removeItem('userEmail')
+const handleLogout = async () => {
+  await auth.logout()
   router.push('/')
 }
 </script>
