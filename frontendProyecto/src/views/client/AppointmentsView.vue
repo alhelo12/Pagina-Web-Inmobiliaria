@@ -303,51 +303,55 @@ onMounted(async () => {
 }
 
 .btn-add {
-  padding: 10px 18px;
-  background: var(--color-gold);
-  color: var(--color-navy);
-  border: none;
+  padding: 12px 22px;
+  background: var(--color-petrol);
+  color: #fff;
+  border: 1px solid var(--color-petrol);
   border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background 0.2s ease;
 }
 
 .btn-add:hover {
-  filter: brightness(1.03);
-  box-shadow: 0 10px 18px rgba(7, 23, 45, 0.12);
+  background: var(--color-ink);
+  box-shadow: none;
 }
 
 .btn-cancel {
   padding: 10px 18px;
-  background: #eee7dc;
-  color: #40566e;
-  border: none;
+  background: transparent;
+  color: var(--color-petrol);
+  border: 1px solid var(--color-line);
   border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 .btn-cancel:hover {
-  background: #ddd0bb;
+  border-color: var(--color-brass);
+  background: transparent;
 }
 
 .form-card {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08);
+  box-shadow: none;
 }
 
 .form-card h3 {
-  margin: 0 0 20px;
-  color: var(--color-navy);
-  font-size: 18px;
-  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 500;
 }
 
 .form-grid {
@@ -367,9 +371,11 @@ onMounted(async () => {
 }
 
 .form-group label {
-  color: var(--color-navy);
-  font-size: 13px;
+  color: var(--color-petrol);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
 .form-group select,
@@ -379,9 +385,9 @@ onMounted(async () => {
   border: 1px solid var(--color-line);
   border-radius: 8px;
   font-size: 14px;
-  color: var(--color-navy);
+  color: var(--color-petrol);
   background: #fff;
-  transition: 0.3s ease;
+  transition: border-color 0.2s ease;
   font-family: inherit;
 }
 
@@ -389,8 +395,8 @@ onMounted(async () => {
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--color-gold);
-  box-shadow: 0 0 0 3px rgba(214, 168, 72, 0.12);
+  border-color: var(--color-petrol);
+  box-shadow: none;
 }
 
 .form-actions {
@@ -402,18 +408,20 @@ onMounted(async () => {
 
 .btn-save {
   padding: 12px 24px;
-  background: var(--color-navy);
+  background: var(--color-petrol);
   color: #fff;
-  border: none;
+  border: 1px solid var(--color-petrol);
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background 0.2s ease;
 }
 
 .btn-save:hover:not(:disabled) {
-  background: #0a1525;
+  background: var(--color-ink);
 }
 
 .btn-save:disabled {
@@ -435,9 +443,9 @@ onMounted(async () => {
   padding: 24px;
   text-align: center;
   color: var(--color-muted);
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .error-msg {
@@ -447,8 +455,8 @@ onMounted(async () => {
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #eadfcf;
-  border-top-color: var(--color-gold);
+  border: 3px solid var(--color-line);
+  border-top-color: var(--color-brass);
   border-radius: 50%;
   margin: 0 auto 16px;
   animation: spin 0.8s linear infinite;
@@ -461,17 +469,19 @@ onMounted(async () => {
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
   border-radius: 12px;
 }
 
-.empty-icon { color: var(--color-gold); display: block; margin-bottom: 16px; }
+.empty-icon { color: var(--color-brass); display: block; margin-bottom: 16px; }
 
 .empty-state h3 {
   margin: 0 0 8px;
-  color: var(--color-navy);
-  font-size: 18px;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 24px;
 }
 
 .empty-state p {
@@ -486,20 +496,20 @@ onMounted(async () => {
 }
 
 .appointment-card {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
   border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(7, 23, 45, 0.08);
-  transition: 0.3s ease;
+  box-shadow: none;
+  transition: border-color 0.2s ease;
 }
 
 .appointment-card:hover {
-  border-color: var(--color-gold);
-  box-shadow: 0 14px 32px rgba(7, 23, 45, 0.12);
+  border-color: var(--color-brass);
+  box-shadow: none;
 }
 
 .appointment-card.pending {
-  border-left: 3px solid var(--color-gold);
+  border-left: 3px solid var(--color-brass);
 }
 
 .appointment-header {
@@ -510,41 +520,47 @@ onMounted(async () => {
 }
 
 .appointment-type span {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-navy);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--color-petrol);
 }
 
 .type-badge {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
 .type-badge.viewing {
-  background: #f7efe0;
-  color: #8b7230;
+  background: #f4e8cd;
+  color: #7a5c1e;
 }
 
 .type-badge.inspection {
-  background: #ede9fe;
-  color: #7c3aed;
+  background: #e7edeb;
+  color: var(--color-petrol);
 }
 
 .badge {
   padding: 5px 10px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
 
-.badge.pendiente { background: #fff3ce; color: #856404; }
-.badge.confirmada { background: #dff7e9; color: #166534; }
-.badge.completada { background: #dbeafe; color: #1e40af; }
+.badge.pendiente { background: #f4e8cd; color: #7a5c1e; }
+.badge.confirmada { background: #e2f0e5; color: #166534; }
+.badge.completada { background: #e7edeb; color: var(--color-petrol); }
 .badge.cancelada { background: #fee2e2; color: #991b1b; }
 
 .appointment-body {
@@ -553,9 +569,10 @@ onMounted(async () => {
 
 .appointment-info h4 {
   margin: 0 0 6px;
-  color: var(--color-navy);
-  font-size: 15px;
-  font-weight: 700;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
 }
 
 .detail {
@@ -581,27 +598,29 @@ onMounted(async () => {
 }
 
 .appointment-actions .btn-cancel {
-  background: var(--color-navy);
+  background: var(--color-petrol);
   color: #fff;
-  border: none;
+  border: 1px solid var(--color-petrol);
   padding: 8px 16px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background 0.2s ease;
 }
 
 .appointment-actions .btn-cancel:hover {
-  background: #0a1525;
+  background: var(--color-ink);
 }
 
-.verify-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 16px; padding: 60px 40px; text-align: center; box-shadow: 0 4px 24px rgba(7,23,45,0.08); max-width: 480px; margin: 0 auto; }
-.verify-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: var(--navy); margin: 0 auto 20px; }
-.verify-card h2 { font-size: 22px; color: var(--color-navy); margin: 0 0 12px; }
+.verify-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; padding: 60px 40px; text-align: center; box-shadow: none; max-width: 480px; margin: 0 auto; }
+.verify-icon { width: 64px; height: 64px; background: var(--color-brass); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: #fff; margin: 0 auto 20px; }
+.verify-card h2 { font-size: 24px; font-family: var(--serif); font-weight: 500; color: var(--color-petrol); margin: 0 0 12px; }
 .verify-card p { color: var(--color-muted); font-size: 14px; margin: 0 0 8px; }
 .verify-hint { font-size: 13px; color: var(--color-muted); margin-bottom: 24px !important; }
-.verify-btn { padding: 12px 28px; border: none; border-radius: 10px; background: var(--color-gold); color: var(--color-navy); font-size: 14px; font-weight: 700; cursor: pointer; }
+.verify-btn { padding: 12px 28px; border: 1px solid var(--color-petrol); border-radius: 8px; background: var(--color-petrol); color: #fff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; cursor: pointer; }
 .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .verify-sent { margin-top: 12px !important; color: #065f46 !important; font-weight: 600; }
 

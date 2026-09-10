@@ -1,8 +1,9 @@
 <template>
   <div class="post-sale-view">
     <div class="view-header">
-      <h1>Seguimiento Post-Venta</h1>
-      <p>Encuestas y seguimiento después de tu compra/renta</p>
+      <p class="eyebrow-label">Panel de Cliente</p>
+      <h1 class="serif-display">Seguimiento Post-Venta</h1>
+      <p class="view-sub">Encuestas y seguimiento después de tu compra/renta</p>
     </div>
 
     <div v-if="loading" class="loading">
@@ -11,7 +12,8 @@
 
     <div v-else>
       <div v-if="pendingSurvey" class="survey-alert">
-        <h2>Tienes una encuesta pendiente</h2>
+        <p class="eyebrow-label">Acción requerida</p>
+        <h2 class="serif-display">Tienes una encuesta pendiente</h2>
         <SatisfactionSurvey
           :followup="pendingSurvey"
           @completed="onSurveyCompleted"
@@ -20,7 +22,8 @@
       </div>
 
       <div class="followups-section">
-        <h2>Historial de Seguimientos</h2>
+        <p class="eyebrow-label">Historial</p>
+        <h2 class="serif-display">Historial de Seguimientos</h2>
 
         <div v-if="followups.length === 0" class="empty-state">
           <p>No hay seguimientos registrados</p>
@@ -133,32 +136,41 @@ function formatDate(dateStr) {
   padding: 24px;
   max-width: 900px;
   margin: 0 auto;
+  background: var(--color-ivory);
 }
 
 .view-header {
   margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .view-header h1 {
   margin: 0 0 8px;
-  font-size: 1.8rem;
-  color: #1e293b;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 500;
+  color: var(--color-petrol);
 }
 
-.view-header p {
+.view-sub {
   margin: 0;
-  color: #64748b;
+  color: var(--color-muted);
+  font-size: 14px;
 }
 
 .loading {
   text-align: center;
   padding: 40px;
-  color: #64748b;
+  color: var(--color-muted);
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
 }
 
 .survey-alert {
-  background: #fef3c7;
-  border: 1px solid #f59e0b;
+  background: #faf5e9;
+  border: 1px solid var(--color-brass);
+  border-left: 3px solid var(--color-brass);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
@@ -166,22 +178,25 @@ function formatDate(dateStr) {
 
 .survey-alert h2 {
   margin: 0 0 16px;
-  font-size: 1.2rem;
-  color: #92400e;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--color-petrol);
 }
 
 .followups-section h2 {
   margin: 0 0 16px;
-  font-size: 1.3rem;
-  color: #1e293b;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--color-petrol);
 }
 
 .empty-state {
   text-align: center;
   padding: 40px;
-  background: #f8fafc;
+  background: #fff;
+  border: 1px solid var(--color-line);
   border-radius: 12px;
-  color: #94a3b8;
+  color: var(--color-muted);
 }
 
 .followups-list {
@@ -191,23 +206,24 @@ function formatDate(dateStr) {
 }
 
 .followup-card {
-  background: white;
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-left: 3px solid var(--color-line);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #e2e8f0;
+  box-shadow: none;
 }
 
 .followup-card.completed {
-  border-left-color: #22c55e;
+  border-left-color: #166534;
 }
 
 .followup-card.pending {
-  border-left-color: #f59e0b;
+  border-left-color: var(--color-brass);
 }
 
 .followup-card.skipped {
-  border-left-color: #94a3b8;
+  border-left-color: var(--color-muted);
 }
 
 .followup-header {
@@ -219,38 +235,49 @@ function formatDate(dateStr) {
 
 .followup-type {
   font-weight: 600;
-  color: #334155;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-petrol);
 }
 
 .followup-status {
   padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  border-radius: 999px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .followup-status.pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: #f4e8cd;
+  color: #7a5c1e;
 }
 
 .followup-status.completed {
-  background: #dcfce7;
+  background: #e2f0e5;
   color: #166534;
 }
 
 .followup-status.skipped {
-  background: #f1f5f9;
-  color: #64748b;
+  background: transparent;
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
 }
 
 .followup-details p {
   margin: 4px 0;
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--color-muted);
 }
 
 .followup-details strong {
-  color: #1e293b;
+  color: var(--color-petrol);
+}
+
+@media (max-width: 768px) {
+  .post-sale-view { padding: 16px; }
+  .followup-header { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 </style>

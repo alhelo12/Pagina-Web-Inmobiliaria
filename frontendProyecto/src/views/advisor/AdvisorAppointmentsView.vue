@@ -163,17 +163,18 @@ onMounted(() => {
 }
 
 .card {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 10px 24px rgba(7, 23, 45, 0.08);
-  transition: 0.3s ease;
+  box-shadow: none;
+  transition: border-color 0.2s ease;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(7, 23, 45, 0.12);
+  transform: none;
+  box-shadow: none;
+  border-color: var(--color-brass);
 }
 
 .card-icon {
@@ -192,20 +193,24 @@ onMounted(() => {
 
 .card span {
   color: var(--color-muted);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
 .card strong {
   display: block;
   margin-top: 8px;
-  color: var(--color-navy);
-  font-size: 30px;
-  font-weight: 700;
+  color: var(--color-petrol);
+  font-size: 34px;
+  font-weight: 500;
+  font-family: var(--serif);
+  line-height: 1;
 }
 
 .card small {
-  color: #87909b;
+  color: var(--color-muted);
   font-size: 12px;
 }
 
@@ -213,7 +218,7 @@ onMounted(() => {
   padding: 60px;
   text-align: center;
   color: var(--color-muted);
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
   border-radius: 12px;
 }
@@ -224,7 +229,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border: 3px solid var(--color-line);
-  border-top-color: var(--color-gold);
+  border-top-color: var(--color-brass);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -235,17 +240,19 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
   border-radius: 12px;
 }
 
-.empty-icon { color: var(--color-gold); display: block; margin-bottom: 16px; }
+.empty-icon { color: var(--color-brass); display: block; margin-bottom: 16px; }
 
 .empty-state h3 {
   margin: 0 0 8px;
-  color: var(--color-navy);
-  font-size: 18px;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 24px;
 }
 
 .empty-state p {
@@ -261,16 +268,16 @@ onMounted(() => {
 }
 
 .appointment-card {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
   border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(7, 23, 45, 0.08);
-  transition: 0.3s ease;
+  box-shadow: none;
+  transition: border-color 0.2s ease;
 }
 
 .appointment-card:hover {
-  border-color: var(--color-gold);
-  box-shadow: 0 14px 32px rgba(7, 23, 45, 0.12);
+  border-color: var(--color-brass);
+  box-shadow: none;
 }
 
 .appointment-header {
@@ -281,28 +288,32 @@ onMounted(() => {
 }
 
 .type-badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.type-badge.viewing { background: #f7efe0; color: #8b7230; }
-.type-badge.inspection { background: #ede9fe; color: #7c3aed; }
+.type-badge.viewing { background: #f4e8cd; color: #7a5c1e; }
+.type-badge.inspection { background: #e7edeb; color: var(--color-petrol); }
 
 .badge {
   padding: 5px 10px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
 
-.badge.pendiente { background: #fff3ce; color: #856404; }
-.badge.confirmada { background: #dff7e9; color: #166534; }
-.badge.completada { background: #dbeafe; color: #1e40af; }
+.badge.pendiente { background: #f4e8cd; color: #7a5c1e; }
+.badge.confirmada { background: #e2f0e5; color: #166534; }
+.badge.completada { background: #e7edeb; color: var(--color-petrol); }
 .badge.cancelada { background: #fee2e2; color: #991b1b; }
 
 .appointment-body {
@@ -311,9 +322,10 @@ onMounted(() => {
 
 .appointment-info h4 {
   margin: 0 0 6px;
-  color: var(--color-navy);
-  font-size: 15px;
-  font-weight: 700;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
 }
 
 .detail {
@@ -340,21 +352,23 @@ onMounted(() => {
 }
 
 .appointment-actions button {
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: 0.3s ease;
-  border: none;
+  transition: background 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.btn-confirm { background: #10b981; color: white; }
-.btn-confirm:hover:not(:disabled) { background: #059669; }
-.btn-cancel { background: #fee2e2; color: #dc2626; }
-.btn-cancel:hover:not(:disabled) { background: #fecaca; }
-.btn-complete { background: #2563eb; color: white; }
-.btn-complete:hover:not(:disabled) { background: #1d4ed8; }
+.btn-confirm { background: var(--color-petrol); color: #fff; border-color: var(--color-petrol); }
+.btn-confirm:hover:not(:disabled) { background: var(--color-ink); }
+.btn-cancel { background: transparent; color: var(--color-petrol); border-color: var(--color-line); }
+.btn-cancel:hover:not(:disabled) { border-color: var(--color-brass); background: transparent; }
+.btn-complete { background: var(--color-brass); color: #fff; border-color: var(--color-brass); }
+.btn-complete:hover:not(:disabled) { background: var(--color-brass-deep); }
 .appointment-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 900px) {

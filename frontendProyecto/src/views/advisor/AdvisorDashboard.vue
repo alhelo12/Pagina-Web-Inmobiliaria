@@ -26,12 +26,12 @@ const stats = computed(() => store.advisorStats || {
 })
 
 const cardConfig = [
-  { key: 'total', label: 'Mis propiedades', sublabel: 'Total asignadas', highlight: false, iconStyle: { background: '#e8edf0', color: 'var(--color-navy-2)' } },
-  { key: 'approved', label: 'Aprobadas', sublabel: 'Visibles al público', highlight: false, iconStyle: { background: '#dff7e9', color: '#166534' } },
-  { key: 'pending', label: 'Pendientes', sublabel: 'En revisión', highlight: false, iconStyle: { background: '#fff3ce', color: '#856404' } },
-  { key: 'sold', label: 'Vendidas', sublabel: 'Cerradas', highlight: true, iconStyle: { background: '#d4edda', color: '#155724' } },
-  { key: 'availableToTake', label: 'Disponibles', sublabel: 'Para tomar', highlight: false, iconStyle: { background: '#f7efe0', color: 'var(--color-navy-2)' } },
-  { key: 'clientsCount', label: 'Clientes', sublabel: 'Propietarios únicos', highlight: false, iconStyle: { background: '#f0e8fd', color: '#6b21a8' } }
+  { key: 'total', label: 'Mis propiedades', sublabel: 'Total asignadas', highlight: false, iconStyle: { background: '#e7edeb', color: '#1a3f3f' } },
+  { key: 'approved', label: 'Aprobadas', sublabel: 'Visibles al público', highlight: false, iconStyle: { background: '#e2f0e5', color: '#166534' } },
+  { key: 'pending', label: 'Pendientes', sublabel: 'En revisión', highlight: false, iconStyle: { background: '#f4e8cd', color: '#7a5c1e' } },
+  { key: 'sold', label: 'Vendidas', sublabel: 'Cerradas', highlight: true, iconStyle: { background: '#102d2d', color: '#c9a45c' } },
+  { key: 'availableToTake', label: 'Disponibles', sublabel: 'Para tomar', highlight: false, iconStyle: { background: '#f6f1e7', color: '#1a3f3f' } },
+  { key: 'clientsCount', label: 'Clientes', sublabel: 'Propietarios únicos', highlight: false, iconStyle: { background: '#ece7db', color: '#5c665f' } }
 ]
 
 const metrics = computed(() => ({
@@ -175,30 +175,57 @@ onMounted(async () => {
 .middle-grid { display: grid; gap: 14px; grid-template-columns: 2fr 1fr; }
 .overview-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
 .middle-grid > *, .overview-grid > * { min-width: 0; }
-.state { padding: 18px; color: var(--color-muted); background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; }
+
+/* JAKEDA: metrics as hairline-divided grid, large serif numerals */
+.dashboard :deep(.metrics) { background: #ece5d3; border: 1px solid var(--color-line); border-radius: 12px; padding: 0; gap: 1px; overflow: hidden; }
+.dashboard :deep(.metrics .card) { border: none; border-radius: 0; box-shadow: none; background: #fff; }
+.dashboard :deep(.metrics .card strong) { font-family: Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 700; color: #102d2d; }
+.dashboard :deep(.metrics .card.highlight) { background: #faf5e9; }
+
+/* JAKEDA: thin-rule rows inside shared cards */
+.dashboard :deep(.recent-row) {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #ece5d3;
+  border-radius: 0;
+  padding: 12px 4px;
+}
+.dashboard :deep(.recent-row:last-child) { border-bottom: none; }
+.dashboard :deep(.item-row) { background: #faf6ec; border: 1px solid #ece5d3; border-radius: 8px; }
+
+/* JAKEDA: status as text, not pills */
+.dashboard :deep(.recent-badge) { background: transparent !important; padding: 0; border-radius: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.dashboard :deep(.recent-badge.pending) { color: #8a5c00; }
+.dashboard :deep(.recent-badge.approved) { color: #166534; }
+.dashboard :deep(.recent-badge.rejected) { color: #991b1b; }
+.dashboard :deep(.recent-badge.sold) { color: #1a3f3f; }
+
+.state { padding: 18px; color: var(--color-muted); background: #fff; border: 1px solid var(--color-line); border-radius: 12px; }
 .error-msg { color: #991b1b; }
 .empty { margin: 0; color: var(--color-muted); }
-.actions-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.action-item { padding: 12px; border-radius: 8px; background: #faf9f7; border: 1px solid var(--color-line); }
+.actions-list { display: flex; flex-direction: column; gap: 0; flex: 1; }
+.action-item { padding: 12px 4px; border-radius: 0; background: transparent; border: none; border-bottom: 1px solid #ece5d3; }
+.action-item:last-child { border-bottom: none; }
 .action-info { min-width: 0; }
-.action-info strong { display: block; color: var(--color-navy); font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.action-info strong { display: block; color: #102d2d; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .action-info span { display: block; color: var(--color-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.action-info small { display: block; color: var(--color-navy); font-weight: 700; font-size: 13px; margin-top: 4px; }
-.review-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: var(--color-navy); color: #fff; font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: .2s; width: 100%; }
-.review-btn:hover { filter: brightness(1.1); }
-.available-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
+.action-info small { display: block; color: #102d2d; font-weight: 700; font-size: 13px; margin-top: 4px; }
+.review-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: #102d2d; color: #f3ede0; font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: background .2s ease; width: 100%; }
+.review-btn:hover { background: #1a3f3f; }
+.available-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 18px; }
 .available-head { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-.available-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.available-head h3 { margin: 0; color: var(--color-navy); font-size: 18px; min-width: 0; }
-.available-list { display: grid; gap: 10px; }
-.available-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-line); background: #fff; }
+.available-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.available-head h3 { margin: 0; color: #102d2d; font-size: 20px; min-width: 0; font-family: Georgia, 'Times New Roman', serif; }
+.available-list { display: grid; gap: 0; }
+.available-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 12px 4px; border-radius: 0; border: none; border-bottom: 1px solid #ece5d3; background: transparent; }
+.available-row:last-child { border-bottom: none; }
 .available-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: #f0ece4; }
 .available-thumb { width: 100%; height: 100%; object-fit: cover; }
 .available-info { flex: 1; min-width: 0; }
-.available-info strong { display: block; color: var(--color-navy); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.available-info strong { display: block; color: #102d2d; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .available-info span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
-.available-row small { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; }
-.take-btn { padding: 6px 12px; border-radius: 6px; background: var(--color-gold); color: var(--color-navy); font-weight: 600; font-size: 12px; border: none; cursor: pointer; transition: .2s; }
+.available-row small { color: #1a3f3f; font-weight: 700; white-space: nowrap; }
+.take-btn { padding: 6px 12px; border-radius: 6px; background: var(--color-gold); color: #102d2d; font-weight: 700; font-size: 12px; border: none; cursor: pointer; transition: filter .2s ease; }
 .take-btn:hover { filter: brightness(1.05); }
 @media (max-width: 1050px) {
   .middle-grid { grid-template-columns: 1fr; }

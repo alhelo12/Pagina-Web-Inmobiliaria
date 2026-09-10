@@ -47,26 +47,36 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="register-page">
-    <div class="register-right">
-      <div class="register-card">
+  <div class="auth">
+
+    <!-- ── Panel fotográfico ── -->
+    <aside class="auth-photo">
+      <RouterLink to="/" class="brand">
+        <span class="brand-mark">J</span>
+        <span class="brand-name">JAKEDA</span>
+      </RouterLink>
+
+      <blockquote class="quote">
+        <p class="serif-display">“Publica tu propiedad con respaldo jurídico.”</p>
+        <cite>Miles de personas confían en Jakeda cada día</cite>
+      </blockquote>
+    </aside>
+
+    <!-- ── Panel marfil: formulario ── -->
+    <div class="auth-form">
+      <div class="auth-card">
 
         <!-- Éxito -->
         <div v-if="success" class="success-state">
-          <div class="card-logo">✓</div>
-          <div class="card-header">
-            <h1>¡Cuenta creada!</h1>
-            <p class="subtitle">Tu cuenta fue creada correctamente.<br/>Redirigiendo al inicio de sesión...</p>
-          </div>
+          <p class="eyebrow-label">Jakeda · Registro</p>
+          <h1 class="serif-display">¡Cuenta creada!</h1>
+          <p class="sub">Tu cuenta fue creada correctamente.<br />Redirigiendo al inicio de sesión...</p>
         </div>
 
         <template v-else>
-          <!-- Logo + encabezado -->
-          <div class="card-header">
-            <div class="card-logo">J</div>
-            <h1>Crear cuenta</h1>
-            <p class="subtitle">Regístrate para publicar tu propiedad<br/>y recibir asesoría personalizada</p>
-          </div>
+          <p class="eyebrow-label">Jakeda · Registro</p>
+          <h1 class="serif-display">Crea tu cuenta</h1>
+          <p class="sub">Regístrate para publicar tu propiedad<br />y recibir asesoría personalizada</p>
 
           <!-- Error -->
           <div v-if="error" class="alert-error">
@@ -75,50 +85,37 @@ const submit = async () => {
             <button class="close-error" @click="error = ''">✕</button>
           </div>
 
-          <form @submit.prevent="submit" class="register-form">
+          <form @submit.prevent="submit" class="form">
 
             <!-- Nombre + Apellido -->
             <div class="field-row">
-              <div class="field">
-                <label>Nombre</label>
-                <div class="input-wrapper">
-                  <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  <input v-model="form.first_name" type="text" placeholder="Tu nombre" autocomplete="given-name" required />
-                </div>
+              <div class="field-underline">
+                <label class="flabel" for="reg-first">Nombre</label>
+                <input id="reg-first" v-model="form.first_name" type="text" placeholder="Tu nombre" autocomplete="given-name" required />
               </div>
-              <div class="field">
-                <label>Apellido</label>
-                <div class="input-wrapper">
-                  <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  <input v-model="form.last_name" type="text" placeholder="Tu apellido" autocomplete="family-name" required />
-                </div>
+              <div class="field-underline">
+                <label class="flabel" for="reg-last">Apellido</label>
+                <input id="reg-last" v-model="form.last_name" type="text" placeholder="Tu apellido" autocomplete="family-name" required />
               </div>
             </div>
 
             <!-- Correo -->
-            <div class="field">
-              <label>Correo electrónico</label>
-              <div class="input-wrapper">
-                <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <input v-model="form.email" type="email" placeholder="correo@ejemplo.com" autocomplete="email" required />
-              </div>
+            <div class="field-underline">
+              <label class="flabel" for="reg-email">Correo electrónico</label>
+              <input id="reg-email" v-model="form.email" type="email" placeholder="correo@ejemplo.com" autocomplete="email" required />
             </div>
 
             <!-- Teléfono -->
-            <div class="field">
-              <label>Teléfono <span class="optional">(opcional)</span></label>
-              <div class="input-wrapper">
-                <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 6.29 6.29l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <input v-model="form.phone" type="tel" placeholder="+52 33 1234 5678" autocomplete="tel" />
-              </div>
+            <div class="field-underline">
+              <label class="flabel" for="reg-phone">Teléfono <span class="optional">(opcional)</span></label>
+              <input id="reg-phone" v-model="form.phone" type="tel" placeholder="+52 33 1234 5678" autocomplete="tel" />
             </div>
 
             <!-- Contraseña -->
-            <div class="field">
-              <label>Contraseña</label>
-              <div class="input-wrapper">
-                <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <input v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required />
+            <div class="field-underline">
+              <label class="flabel" for="reg-pass">Contraseña</label>
+              <div class="uwrap">
+                <input id="reg-pass" v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required />
                 <button type="button" class="toggle-password" @click="showPassword = !showPassword">
                   <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -127,11 +124,10 @@ const submit = async () => {
             </div>
 
             <!-- Confirmar contraseña -->
-            <div class="field">
-              <label>Confirmar contraseña</label>
-              <div class="input-wrapper">
-                <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <input v-model="form.confirm" :type="showConfirm ? 'text' : 'password'" placeholder="Repite tu contraseña" autocomplete="new-password" required />
+            <div class="field-underline">
+              <label class="flabel" for="reg-confirm">Confirmar contraseña</label>
+              <div class="uwrap">
+                <input id="reg-confirm" v-model="form.confirm" :type="showConfirm ? 'text' : 'password'" placeholder="Repite tu contraseña" autocomplete="new-password" required />
                 <button type="button" class="toggle-password" @click="showConfirm = !showConfirm">
                   <svg v-if="!showConfirm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -139,7 +135,7 @@ const submit = async () => {
               </div>
             </div>
 
-            <button class="register-btn" type="submit" :disabled="loading">
+            <button class="btn-ink cta" type="submit" :disabled="loading">
               <span v-if="!loading">Crear cuenta →</span>
               <span v-else class="loading-text">
                 <svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -151,11 +147,8 @@ const submit = async () => {
 
           <div class="divider"><span>o</span></div>
 
-          <p class="login-text">¿Ya tienes una cuenta?</p>
-          <RouterLink to="/login" class="login-link-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Iniciar sesión
-          </RouterLink>
+          <p class="alt-text">¿Ya tienes una cuenta?</p>
+          <RouterLink to="/login" class="btn-ink cta alt">Iniciar sesión</RouterLink>
         </template>
 
       </div>
@@ -164,105 +157,115 @@ const submit = async () => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-* { box-sizing: border-box; }
-
-.register-page {
+.auth {
   min-height: 100vh;
-  display: flex;
-  font-family: 'Poppins', sans-serif;
-  background: #f5f2ec;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  background: var(--color-ivory);
 }
 
-/* ── Fondo con imagen (mismo que login) ── */
-.register-right {
-  width: 100%;
-  min-height: 100vh;
+/* ── Panel fotográfico ── */
+.auth-photo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 36px 44px 48px;
+  background: url('@/assets/images/fondo2.jpg') center / cover no-repeat;
+  color: #fff;
+  overflow: hidden;
+}
+.auth-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(7, 27, 28, 0.85) 0%, rgba(7, 27, 28, 0.35) 55%, rgba(7, 27, 28, 0.45) 100%);
+}
+.auth-photo > * { position: relative; z-index: 1; }
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  align-self: flex-start;
+}
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: var(--color-brass);
+  color: var(--color-ink);
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 20px;
+}
+.brand-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #fff;
+}
+
+.quote { margin: 0; max-width: 420px; }
+.quote p {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 3.2vw, 40px);
+  color: #fff;
+}
+.quote cite {
+  font-style: normal;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Panel marfil ── */
+.auth-form {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(5, 15, 35, 0.62) 0%,
-      rgba(7, 23, 45, 0.55) 60%,
-      rgba(5, 15, 35, 0.72) 100%
-    ),
-    url('@/assets/images/fondo2.jpg') center center / cover no-repeat;
+  padding: clamp(36px, 5vw, 64px) clamp(24px, 5vw, 72px);
+  background: var(--color-ivory);
+  overflow-y: auto;
 }
+.auth-card { width: min(440px, 100%); }
 
-/* ── Card (mismo tamaño y bordes que login) ── */
-.register-card {
-  background: white;
-  padding: 48px 44px;
-  width: 100%;
-  max-width: 480px;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+.auth-card h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(32px, 3.4vw, 44px);
+  color: var(--color-ink);
 }
-
-/* ── Logo ── */
-.card-logo {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #d4a34a, #f0c36f);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 22px;
-  color: #091d39;
-  margin: 0 auto 16px;
-  font-family: 'Georgia', 'Times New Roman', serif;
+.sub {
+  margin: 0 0 26px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-muted);
 }
-
-/* ── Encabezado ── */
-.card-header {
-  margin-bottom: 28px;
-  text-align: center;
-}
-
-.card-header h1 {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(24px, 4vw, 30px);
-  font-weight: 400;
-  color: #07172d;
-  margin: 0 0 8px;
-}
-
-.subtitle {
-  font-size: 13.5px;
-  color: #65717e;
-  line-height: 1.6;
-  margin: 0;
-}
-
 .optional {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
-  color: #a0adb8;
+  letter-spacing: 0.04em;
+  color: #a9a294;
+  text-transform: none;
 }
 
-/* ── Error ── */
+/* Error */
 .alert-error {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: #fef2f2;
+  background: #fdf3f0;
   color: #b91c1c;
   padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid #fecaca;
+  border: 1px solid #f0d5cd;
   font-size: 13px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   line-height: 1.5;
 }
-
 .alert-error svg { flex-shrink: 0; margin-top: 1px; }
-
 .close-error {
   background: none;
   border: none;
@@ -276,102 +279,45 @@ const submit = async () => {
 }
 .close-error:hover { opacity: 1; }
 
-/* ── Formulario ── */
-.register-form {
-  display: flex;
-  flex-direction: column;
-}
-
+/* Formulario underline */
+.form { display: flex; flex-direction: column; }
 .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 20px;
 }
-
-.field-row .field { margin-bottom: 0; }
-
-.field { margin-bottom: 16px; }
-
-.field label {
+.field-underline { margin-bottom: 22px; }
+.field-row .field-underline { margin-bottom: 22px; }
+.flabel {
   display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #07172d;
-  margin-bottom: 7px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  margin-bottom: 2px;
 }
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  position: absolute;
-  left: 13px;
-  color: #65717e;
-  pointer-events: none;
-}
-
-.input-wrapper input {
-  width: 100%;
-  padding: 11px 14px 11px 40px;
-  border: 1.5px solid #dde2ec;
-  border-radius: 9px;
-  font-size: 14px;
-  font-family: 'Poppins', sans-serif;
-  color: #07172d;
-  background: #fafaf8;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  outline: none;
-}
-
-.input-wrapper input::placeholder { color: #a0adb8; }
-
-.input-wrapper input:focus {
-  border-color: #07172d;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(7, 23, 45, 0.08);
-}
-
+.field-underline input::placeholder { color: #a9a294; }
+.uwrap { position: relative; display: flex; align-items: center; }
+.uwrap input { padding-right: 34px; }
 .toggle-password {
   position: absolute;
-  right: 12px;
+  right: 2px;
   background: none;
   border: none;
   cursor: pointer;
-  color: #65717e;
-  padding: 4px;
+  color: var(--color-muted);
+  padding: 6px;
   display: flex;
   align-items: center;
 }
-.toggle-password:hover { color: #07172d; }
+.toggle-password:hover { color: var(--color-ink); }
 
-/* ── Botón principal ── */
-.register-btn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 13px;
-  background: #d4a34a;
-  color: white;
-  border: none;
-  border-radius: 9px;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-  letter-spacing: 0.3px;
-}
-
-.register-btn:hover:not(:disabled) {
-  background: #b8892e;
-  box-shadow: 0 4px 14px rgba(212, 163, 74, 0.35);
-}
-
-.register-btn:active:not(:disabled) { transform: translateY(1px); }
-.register-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+/* CTA petrol full-width */
+.cta { width: 100%; margin-top: 8px; padding: 16px 22px; }
+.cta:disabled { opacity: 0.6; cursor: not-allowed; }
+.cta.alt { text-decoration: none; background: transparent; color: var(--color-petrol); }
+.cta.alt:hover { background: var(--color-petrol); color: #fff; }
 
 .loading-text {
   display: flex;
@@ -379,80 +325,42 @@ const submit = async () => {
   justify-content: center;
   gap: 8px;
 }
-
 .spin { animation: spin 0.8s linear infinite; }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Divisor ── */
+/* Divisor */
 .divider {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 24px 0 18px;
-  color: #a0adb8;
+  margin: 26px 0 18px;
+  color: #a9a294;
   font-size: 13px;
 }
-
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #e5e9f0;
+  background: var(--color-line);
 }
-
-/* ── Link login ── */
-.login-text {
+.alt-text {
   font-size: 13.5px;
-  color: #65717e;
+  color: var(--color-muted);
   text-align: center;
   margin: 0 0 12px;
 }
 
-.login-link-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  background: #07172d;
-  color: white;
-  border: none;
-  border-radius: 9px;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-
-.login-link-btn:hover {
-  background: #051525;
-  box-shadow: 0 4px 14px rgba(7, 23, 45, 0.2);
-}
-
-/* ── Estado éxito ── */
-.success-state {
-  text-align: center;
-}
+/* Estado éxito */
+.success-state { text-align: left; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .register-card { padding: 36px 32px; }
+  .auth { grid-template-columns: 1fr; }
+  .auth-photo { min-height: 280px; padding: 28px 24px 32px; }
+  .quote p { font-size: clamp(24px, 6vw, 30px); }
 }
-@media (max-width: 768px) {
-  .register-card { padding: 36px 28px; }
-}
-
 @media (max-width: 640px) {
-  .field-row { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-  .register-right { padding: 24px 16px; }
-  .register-card { padding: 28px 20px; }
-  .card-header h1 { font-size: 26px; }
+  .field-row { grid-template-columns: 1fr; gap: 0; }
 }
 </style>

@@ -198,7 +198,7 @@ onUnmounted(() => {
 }
 
 .bell-btn:hover {
-  color: #f7d9a6;
+  color: var(--color-brass);
 }
 
 .badge {
@@ -223,10 +223,10 @@ onUnmounted(() => {
   right: 0;
   width: 360px;
   max-height: 480px;
-  background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.16);
-  border: 1px solid #e7ebf3;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: none;
+  border: 1px solid var(--color-line);
   display: flex;
   flex-direction: column;
   z-index: 1000;
@@ -237,20 +237,21 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid #e7ebf3;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .dropdown-header h4 {
   margin: 0;
-  color: #07172d;
-  font-size: 16px;
-  font-weight: 700;
+  color: var(--color-petrol);
+  font-size: 17px;
+  font-weight: 500;
+  font-family: var(--serif);
 }
 
 .mark-all-btn {
   background: transparent;
   border: none;
-  color: #3b82f6;
+  color: var(--color-petrol);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -263,7 +264,7 @@ onUnmounted(() => {
 .loading, .empty {
   padding: 32px;
   text-align: center;
-  color: #65717e;
+  color: var(--color-muted);
 }
 
 .notifications-list {
@@ -274,11 +275,11 @@ onUnmounted(() => {
 .date-group-label {
   padding: 8px 16px 4px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
-  background: #ffffff;
+  letter-spacing: 0.22em;
+  color: var(--color-brass-deep);
+  background: #fff;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -290,20 +291,20 @@ onUnmounted(() => {
   padding: 12px 16px;
   cursor: pointer;
   transition: background 0.2s ease;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-line);
   align-items: flex-start;
 }
 
 .notification-item:hover {
-  background: #f8fafc;
+  background: #faf5e9;
 }
 
 .notification-item.unread {
-  background: #f0f9ff;
+  background: #faf5e9;
 }
 
 .notification-item.unread:hover {
-  background: #e0f2fe;
+  background: #f4e8cd;
 }
 
 .notification-item .icon {
@@ -323,14 +324,14 @@ onUnmounted(() => {
 
 .notification-item strong {
   display: block;
-  color: #07172d;
+  color: var(--color-petrol);
   font-size: 13px;
   margin-bottom: 4px;
 }
 
 .notification-item p {
   margin: 0 0 4px;
-  color: #65717e;
+  color: var(--color-muted);
   font-size: 12px;
   line-height: 1.4;
   display: -webkit-box;
@@ -340,7 +341,7 @@ onUnmounted(() => {
 }
 
 .notification-item small {
-  color: #9ca3af;
+  color: var(--color-muted);
   font-size: 11px;
 }
 
@@ -367,12 +368,12 @@ onUnmounted(() => {
 
 .dropdown-footer {
   padding: 12px 16px;
-  border-top: 1px solid #e7ebf3;
+  border-top: 1px solid var(--color-line);
   text-align: center;
 }
 
 .dropdown-footer a {
-  color: #3b82f6;
+  color: var(--color-petrol);
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;

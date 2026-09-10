@@ -25,8 +25,8 @@ onMounted(() => favStore.fetchFavorites())
 
     <main class="favorites">
       <section class="hero-panel">
-        <p>Dashboard personal</p>
-        <h1>Mis favoritos</h1>
+        <p class="eyebrow-label">Dashboard personal</p>
+        <h1 class="serif-display">Mis favoritos</h1>
         <span>Propiedades guardadas con una vista clara para comparar opciones.</span>
       </section>
 
@@ -39,9 +39,9 @@ onMounted(() => favStore.fetchFavorites())
       </div>
 
       <div v-else-if="!favStore.favorites.length" class="empty-state">
-        <h2>Aun no tienes propiedades favoritas</h2>
+        <h2 class="serif-display">Aun no tienes propiedades favoritas</h2>
         <p>Explora el catalogo y guarda las propiedades que quieras revisar despues.</p>
-        <RouterLink to="/propiedades" class="btn">Ver propiedades</RouterLink>
+        <RouterLink to="/propiedades" class="btn-ink">Ver propiedades</RouterLink>
       </div>
 
       <div v-else class="grid">
@@ -74,9 +74,7 @@ onMounted(() => favStore.fetchFavorites())
 .dashboard {
   display: flex;
   min-height: calc(100vh - 60px);
-  background:
-    radial-gradient(circle at 30% 0%, rgba(42,140,255,.12), transparent 28%),
-    #f5f2ec;
+  background: var(--color-ivory);
 }
 
 .dash-sidebar {
@@ -86,31 +84,34 @@ onMounted(() => favStore.fetchFavorites())
   width: 260px;
   flex: 0 0 260px;
   padding: 24px;
-  background: linear-gradient(180deg, #07172d, #102e4f);
-  box-shadow: var(--shadow-strong);
+  background: var(--color-petrol);
+  border-right: 1px solid var(--color-line);
+  box-shadow: none;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: white;
+  color: var(--color-ivory);
   margin-bottom: 28px;
 }
 
 .brand span {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  background: #d6a848;
-  color: #07172d;
+  background: var(--color-brass);
+  color: var(--color-petrol);
   font-weight: 900;
 }
 
 .brand strong {
-  letter-spacing: .12em;
+  letter-spacing: .22em;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 nav {
@@ -119,16 +120,18 @@ nav {
 }
 
 nav a {
-  padding: 13px 14px;
-  border-radius: 10px;
-  color: rgba(255,255,255,.78);
-  font-weight: 800;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: rgba(243, 238, 228, .72);
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid transparent;
 }
 
 nav a.router-link-active,
 nav a:hover {
-  background: rgba(214,168,72,.16);
-  color: #f2c46d;
+  background: rgba(185, 148, 95, .14);
+  color: var(--color-brass);
 }
 
 .favorites {
@@ -139,31 +142,28 @@ nav a:hover {
 
 .hero-panel {
   padding: 32px;
-  border-radius: 16px;
-  color: white;
-  background:
-    linear-gradient(90deg, rgba(7,23,45,.96), rgba(16,46,79,.7)),
-    url('@/assets/images/fondo2.jpg') center/cover;
-  box-shadow: var(--shadow-strong);
+  border-radius: 12px;
+  color: var(--color-ivory);
+  background: var(--color-petrol);
+  border: 1px solid var(--color-line);
+  box-shadow: none;
   margin-bottom: 24px;
 }
 
 .hero-panel p {
-  color: #f2c46d;
-  font-weight: 900;
-  letter-spacing: .16em;
-  text-transform: uppercase;
+  color: var(--color-brass);
   margin-bottom: 10px;
 }
 
 .hero-panel h1 {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(36px, 5vw, 58px);
-  margin-bottom: 10px;
+  font-size: clamp(30px, 5vw, 48px);
+  margin: 0 0 10px;
+  color: var(--color-ivory);
 }
 
 .hero-panel span {
-  color: rgba(255,255,255,.78);
+  color: rgba(243, 238, 228, .75);
+  font-size: 14px;
 }
 
 .state,
@@ -173,40 +173,31 @@ nav a:hover {
   text-align: center;
   gap: 16px;
   min-height: 330px;
-  color: #65717e;
-  background: #fffdf8;
-  border-radius: 16px;
-  box-shadow: var(--shadow-soft);
+  color: var(--color-muted);
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  box-shadow: none;
   padding: 34px;
 }
 
 .empty-state h2 {
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #07172d;
-  font-size: 32px;
+  color: var(--color-petrol);
+  font-size: 30px;
+  font-weight: 500;
+  margin: 0;
 }
 
 .error-msg { color: #991b1b; }
 .spinner {
   width: 42px;
   height: 42px;
-  border: 3px solid #eadfcf;
-  border-top-color: #d6a848;
+  border: 3px solid var(--color-line);
+  border-top-color: var(--color-brass);
   border-radius: 50%;
   animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.btn {
-  display: inline-flex;
-  min-height: 46px;
-  align-items: center;
-  padding: 0 22px;
-  border-radius: 8px;
-  background: #d6a848;
-  color: #07172d;
-  font-weight: 900;
-}
 
 .grid {
   display: grid;
@@ -215,22 +206,24 @@ nav a:hover {
 }
 
 .fav-card {
-  background: #fffdf8;
+  background: #fff;
+  border: 1px solid var(--color-line);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-soft);
-  transition: transform .24s ease, box-shadow .24s ease;
+  box-shadow: none;
+  transition: border-color .2s ease;
 }
 
 .fav-card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-strong);
+  transform: none;
+  box-shadow: none;
+  border-color: var(--color-brass);
 }
 
 .media {
   position: relative;
   height: 210px;
-  background: #102e4f;
+  background: var(--color-petrol);
   overflow: hidden;
 }
 
@@ -238,7 +231,7 @@ nav a:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent, rgba(7,23,45,.62));
+  background: linear-gradient(180deg, transparent, rgba(7, 27, 28, .45));
 }
 
 .media img {
@@ -249,7 +242,7 @@ nav a:hover {
 }
 
 .fav-card:hover img {
-  transform: scale(1.06);
+  transform: scale(1.03);
 }
 
 .media span {
@@ -257,12 +250,14 @@ nav a:hover {
   z-index: 1;
   top: 14px;
   left: 14px;
-  padding: 7px 12px;
+  padding: 6px 12px;
   border-radius: 999px;
-  background: #d6a848;
-  color: #07172d;
-  font-size: 12px;
-  font-weight: 900;
+  background: var(--color-brass);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
 
 .body {
@@ -270,25 +265,27 @@ nav a:hover {
 }
 
 .body p {
-  color: #d6a848;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: .12em;
+  color: var(--color-brass-deep);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .22em;
   text-transform: uppercase;
   margin-bottom: 8px;
 }
 
 .body h3 {
   min-height: 48px;
-  color: #07172d;
-  font-size: 20px;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 22px;
   line-height: 1.2;
   margin-bottom: 14px;
 }
 
 .body strong {
-  color: #07172d;
-  font-size: 22px;
+  color: var(--color-petrol);
+  font-size: 20px;
 }
 
 .chips {
@@ -296,15 +293,20 @@ nav a:hover {
   gap: 8px;
   margin-top: 16px;
   flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-line);
 }
 
 .chips span {
-  padding: 6px 9px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: #eef4fb;
-  color: #40566e;
-  font-size: 12px;
-  font-weight: 800;
+  background: transparent;
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 @media (max-width: 1040px) {
@@ -313,7 +315,7 @@ nav a:hover {
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 768px) {
   .dashboard {
     flex-direction: column;
   }
@@ -329,9 +331,6 @@ nav a:hover {
   .favorites {
     padding: 22px;
   }
-}
-
-@media (max-width: 560px) {
   .grid {
     grid-template-columns: 1fr;
   }

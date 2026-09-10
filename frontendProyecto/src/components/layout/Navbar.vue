@@ -1,14 +1,18 @@
 ﻿<script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import NotificationBell from '@/components/shared/NotificationBell.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const mobileOpen = ref(false)
 const scrolled = ref(false)
+// Transparent white-text nav only over the home hero; solid ivory everywhere else
+const solid = computed(() => scrolled.value || route.path !== '/')
+watch(() => route.path, () => closeAll())
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 
@@ -59,11 +63,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header :class="['navbar', { scrolled }]">
+  <header :class="['navbar', { scrolled: solid }]">
     <div class="nav-container">
       <RouterLink to="/" class="logo" @click="closeAll">
-        <span class="logo-mark">J</span>
-        <span class="logo-text">JAKEDA</span>
+        <span class="logo-text">JAKEDA<small>REAL ESTATE</small></span>
       </RouterLink>
 
       <button
@@ -122,23 +125,24 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
-  z-index: 1000;
-  background: rgba(7, 24, 44, 0.46);
-  backdrop-filter: blur(8px);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  height: 72px;
+  z-index: var(--z-nav);
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .navbar.scrolled {
-  background: rgba(7, 24, 44, 0.96);
-  box-shadow: 0 16px 36px rgba(4, 11, 23, 0.25);
+  background: rgba(243, 238, 228, 0.97);
+  border-bottom: 1px solid var(--color-line);
+  backdrop-filter: blur(10px);
 }
 
 .nav-container {
-  max-width: 1240px;
+  max-width: 1440px;
   height: 100%;
   margin: 0 auto;
-  padding: 0 22px;
+  padding: 0 clamp(16px, 3vw, 40px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -148,44 +152,45 @@ onUnmounted(() => {
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: #ffffff;
+  color: #fff;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
-
-.logo-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #d4a34a, #f0c36f);
-  color: #091d39;
-  font-weight: 800;
-}
+.navbar.scrolled .logo { color: var(--color-ink); }
 
 .logo-text {
-  font-family: 'Poppins', sans-serif;
-  font-size: 18px;
-  letter-spacing: 0.08em;
-  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.28em;
+  font-weight: 600;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.logo-text small {
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
 .menu {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 28px;
 }
 
 .menu a {
   position: relative;
   color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   font-weight: 500;
   transition: color 0.3s ease;
 }
+.navbar.scrolled .menu a { color: var(--color-ink); }
 
 .menu a::after {
   content: '';
@@ -193,15 +198,17 @@ onUnmounted(() => {
   left: 0;
   bottom: -6px;
   width: 0;
-  height: 2px;
-  background: #dcb066;
+  height: 1px;
+  background: var(--color-brass);
   transition: width 0.3s ease;
 }
 
 .menu a:hover,
 .menu a.router-link-active {
-  color: #f7d9a6;
+  color: var(--color-brass);
 }
+.navbar.scrolled .menu a:hover,
+.navbar.scrolled .menu a.router-link-active { color: var(--color-brass-deep); }
 
 .menu a:hover::after,
 .menu a.router-link-active::after {
@@ -210,17 +217,23 @@ onUnmounted(() => {
 
 .btn-login,
 .btn-account {
-  border: 1px solid rgba(220, 176, 102, 0.75);
-  border-radius: 999px;
-  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 0;
+  padding: 11px 22px;
   color: #fff;
-  background: linear-gradient(120deg, rgba(220, 176, 102, 0.18), rgba(220, 176, 102, 0.3));
-  font-family: 'Poppins', sans-serif;
-  font-size: 13px;
+  background: transparent;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   text-decoration: none;
+}
+.navbar.scrolled .btn-login,
+.navbar.scrolled .btn-account {
+  border-color: var(--color-petrol);
+  color: var(--color-petrol);
 }
 
 .btn-login::after {
@@ -229,10 +242,9 @@ onUnmounted(() => {
 
 .btn-login:hover,
 .btn-account:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(220, 176, 102, 0.24);
-  background: linear-gradient(120deg, #dcb066, #c6953b);
-  color: #0a1e3b;
+  background: var(--color-brass);
+  border-color: var(--color-brass);
+  color: #fff;
 }
 
 .account {
@@ -311,8 +323,9 @@ onUnmounted(() => {
   width: 24px;
   height: 2px;
   background: #fff;
-  border-radius: 999px;
+  border-radius: 0;
 }
+.navbar.scrolled .hamburger span { background: var(--color-ink); }
 
 @media (max-width: 900px) {
   .nav-container {

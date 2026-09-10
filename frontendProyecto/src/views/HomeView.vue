@@ -94,7 +94,7 @@ onMounted(async () => {
 
 <template>
   <main class="home-page">
-    <header class="hero reveal">
+    <header class="hero">
       <img
         class="hero-image"
         :src="heroImage"
@@ -104,14 +104,14 @@ onMounted(async () => {
       <div class="hero-overlay"></div>
 
       <div class="hero-content">
-        <p class="eyebrow">INICIO PREMIUM</p>
-        <h1>HOGARES QUE INSPIRAN TU VIDA</h1>
-        <p>
-          Explora propiedades reales con diseño, ubicación y valor. Filtra en segundos y descubre la opción ideal para ti.
+        <p class="eyebrow-label hero-eyebrow">Jakeda · Inmobiliaria premium</p>
+        <h1 class="serif-display">Hogares que inspiran tu vida</h1>
+        <p class="hero-sub">
+          Propiedades reales con diseño, ubicación y valor. Filtra en segundos y descubre la opción ideal para ti.
         </p>
         <div class="hero-actions">
-          <RouterLink to="/propiedades" class="cta-primary">Explorar propiedades</RouterLink>
-          <RouterLink to="/nosotros" class="cta-outline">Conocer más</RouterLink>
+          <RouterLink to="/propiedades" class="btn-brass">Explorar propiedades</RouterLink>
+          <RouterLink to="/nosotros" class="btn-ghost-light">Conocer más</RouterLink>
         </div>
         <div class="search-shell">
           <div class="search-bar">
@@ -144,48 +144,56 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-
-      <div class="hero-curve">
-        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0,60 C480,120 960,0 1440,60 L1440,120 L0,120 Z" fill="#f5f2ec"/>
-        </svg>
-      </div>
     </header>
+
+    <nav class="cat-strip" aria-label="Categorías">
+      <button
+        v-for="c in categories"
+        :key="c.key"
+        type="button"
+        class="cat-item"
+        :class="{ active: selectedCategory === c.key }"
+        @click="selectCategory(c.key)"
+      >
+        <span class="cat-label">{{ c.label }}</span>
+        <span class="cat-note">{{ c.note }}</span>
+      </button>
+    </nav>
 
     <section class="about reveal">
       <div class="about-img-wrap">
         <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Habitacion elegante" />
-        <button type="button" class="play-btn" aria-label="Reproducir video">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8 5v14l11-7z" fill="#fff"></path>
-          </svg>
-        </button>
       </div>
       <div class="about-content">
-        <p class="eyebrow">ABOUT US</p>
-        <h2>We Can Help You Feel More Comfortable!</h2>
+        <p class="eyebrow-label">Nosotros</p>
+        <h2 class="serif-display">Espacios que se sienten como hogar</h2>
+        <hr class="rule" />
         <p class="about-copy">
-          Need a home that reflects elegance and modern style? Explore expertly curated spaces that elevate your lifestyle and bring comfort to every moment.
+          Curaduría de propiedades con carácter: luz, proporción y ubicación. Te acompañamos con trato cercano y criterio patrimonial.
         </p>
         <article class="rating-card">
-          <strong class="rating-value">4.9/5 Rating</strong>
-          <p>Trusted by families and investors with a personalized buying experience.</p>
+          <strong class="rating-value serif-display">4.9 / 5</strong>
+          <p>La calificación de familias e inversionistas que ya encontraron su lugar.</p>
         </article>
         <article class="contact-card">
           <div>
-            <small>For More Information, Please Contact Us By Telephone Or Email</small>
-            <strong>+598 123 47 509</strong>
+            <small>Habla con un asesor por teléfono o correo</small>
+            <strong>+52 961 123 4567</strong>
           </div>
-          <RouterLink class="contact-btn" to="/contacto">CALL US</RouterLink>
+          <RouterLink class="btn-ink" to="/contacto">Llamar</RouterLink>
         </article>
       </div>
     </section>
 
     <section class="featured reveal">
       <div class="section-head">
-        <h3>Propiedades destacadas</h3>
-        <RouterLink to="/propiedades" class="link-all">Ver todas las propiedades</RouterLink>
+        <div>
+          <p class="eyebrow-label">Selección editorial</p>
+          <h3 class="serif-display">Propiedades destacadas</h3>
+        </div>
+        <RouterLink to="/propiedades" class="link-all">Ver todas las propiedades →</RouterLink>
       </div>
+      <hr class="rule" />
 
       <div v-if="propertyStore.loading" class="state">Cargando propiedades...</div>
       <div v-else-if="!highlightedProperties.length" class="state">No encontramos resultados con esos filtros.</div>
@@ -211,11 +219,13 @@ onMounted(async () => {
 
     <section class="bottom-banner reveal">
       <div class="banner-copy">
-        <p class="comfort-label">OUR SERVICES</p>
-        <h2>Comfort Are Perfectly Combined Here !</h2>
+        <p class="eyebrow-label eyebrow-on-dark">Nuestros servicios</p>
+        <h2 class="serif-display">El confort y el carácter, en un mismo lugar</h2>
+        <hr class="rule rule-light" />
         <p>
-          Special home finder offers premium interior and lifestyle value around your needs. Discover curated residences and personalized support.
+          Propiedades seleccionadas y acompañamiento personalizado según lo que buscas: habitar, rentar o invertir.
         </p>
+        <RouterLink to="/servicios" class="btn-ghost-light banner-cta">Ver servicios</RouterLink>
       </div>
       <div class="banner-cards">
         <article class="mini-card" v-for="p in highlightedProperties.slice(0, 2)" :key="`mini-${p.id}`">
@@ -232,30 +242,27 @@ onMounted(async () => {
 
 <style scoped>
 .home-page {
-  font-family: 'Poppins', sans-serif;
-  background: #f5f2ec;
-  color: #07182c;
-  padding: 0 0 64px;
+  font-family: var(--sans);
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  padding: 0 0 72px;
   overflow: hidden;
 }
 
+/* ── HERO full-bleed cinematográfico ── */
 .hero {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  max-width: 1180px;
-  margin: 18px auto 0;
-  min-height: 640px;
+  min-height: 100dvh;
+  display: flex;
+  align-items: flex-end;
+  background: var(--color-ink);
   overflow: hidden;
-  background: #07182c;
-  border-radius: 22px;
 }
 
 .hero-image {
   position: absolute;
-  right: 0;
-  top: 0;
-  width: 55%;
+  inset: 0;
+  width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
@@ -265,407 +272,367 @@ onMounted(async () => {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(to right, #07182c 0%, transparent 100%);
+  background:
+    linear-gradient(180deg, rgba(7, 27, 28, 0.55) 0%, rgba(7, 27, 28, 0.25) 42%, rgba(7, 27, 28, 0.86) 100%),
+    linear-gradient(90deg, rgba(7, 27, 28, 0.82) 0%, rgba(7, 27, 28, 0.2) 62%, transparent 100%);
 }
 
 .hero-content {
-  position: static;
-  z-index: 4;
-  max-width: 560px;
-  padding: 90px 32px 80px;
-  color: #fff;
-  grid-column: 1 / 2;
+  position: relative;
+  z-index: 3;
+  width: min(var(--container-max), 100% - (var(--container-pad) * 2));
+  margin-inline: auto;
+  padding: 16vh 0 44px;
+  color: var(--color-ivory);
+  text-align: left;
+}
+
+.hero-eyebrow {
+  color: var(--color-brass);
+  margin: 0 0 16px;
 }
 
 .hero-content h1 {
-  margin: 0 0 12px;
-  font-size: clamp(42px, 5.4vw, 72px);
-  line-height: 0.95;
-  font-weight: 800;
-}
-
-.hero-content p {
   margin: 0;
-  max-width: 470px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.86);
+  color: #fff;
+  font-size: clamp(52px, 8.5vw, 116px);
+  max-width: 12ch;
 }
 
-.eyebrow {
-  margin: 0 0 14px;
-  color: #d8a54d;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 11px;
-  font-weight: 700;
+.hero-sub {
+  margin: 18px 0 0;
+  max-width: 52ch;
+  line-height: 1.65;
+  color: rgba(243, 238, 228, 0.88);
+  font-size: clamp(15px, 1.6vw, 17px);
 }
 
 .hero-actions {
   margin-top: 28px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  width: min(520px, 100%);
 }
 
-.cta-primary,
-.cta-outline {
-  min-height: clamp(46px, 5.4vw, 54px);
-  padding: 0 clamp(16px, 2.5vw, 28px);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  font-size: clamp(15px, 1.7vw, 16px);
-  font-weight: 700;
-  text-align: center;
-  transition: transform .2s ease, opacity .2s ease;
-}
-
-.cta-primary {
-  background: #d8a54d;
-  color: #07182c;
-}
-
-.cta-outline {
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  color: #fff;
-}
-
-.hero-curve {
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  z-index: 2;        /* MENOR que el buscador */
-  line-height: 0;
-  pointer-events: none;
-}
-
-.hero-curve svg {
-  width: 100%;
-  height: 120px;
-  display: block;
-}
-
-.cta-primary:hover,
-.cta-outline:hover {
-  transform: translateY(-2px);
-}
-
+/* ── Filter strip editorial sobre héroe ── */
 .search-shell {
-  position: absolute;
-  bottom: 100px;
-  left: auto;
-  right: 8px;
-  transform: none;
-  width: min(650px, calc(100% - 16px));
-  z-index: 5;
-}
-
-@media (min-width: 1024px) {
-  .hero-actions {
-    width: min(500px, 100%);
-  }
-
-  .search-shell {
-    right: 16px;
-    bottom: 540px;
-    width: min(700px, calc(100% - 32px));
-  }
+  margin-top: 36px;
+  border-top: 1px solid rgba(243, 238, 228, 0.35);
+  padding-top: 18px;
 }
 
 .search-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1.2fr auto 1fr auto 1fr auto 1fr auto;
   align-items: center;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(10px);
-  border-radius: 999px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
-  padding: 8px 8px 8px 28px;
-  gap: 0;
+  gap: 10px;
+  background: transparent;
+  padding: 0;
 }
 
 .search-input,
 .search-select {
-  padding: 10px 4px;
-  border: none;
   background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(243, 238, 228, 0.4);
+  border-radius: 0;
+  color: var(--color-ivory);
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
-  color: #07182c;
-  min-width: 100px;
+  height: 44px;
+  padding: 0 6px;
   outline: none;
-  flex: 1;
+  min-width: 0;
 }
 
 .search-input::placeholder {
-  color: #999;
-}
-
-.search-input-city {
-  min-width: 130px;
+  color: rgba(243, 238, 228, 0.6);
 }
 
 .search-select {
   cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2307182c' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 4px center;
-  padding-right: 20px;
+}
+
+.search-select option {
+  color: var(--color-ink);
 }
 
 .search-input:focus,
 .search-select:focus {
-  box-shadow: 0 0 0 3px rgba(214, 168, 72, 0.18);
+  border-bottom-color: var(--color-brass);
 }
 
 .search-divider {
   width: 1px;
-  height: 32px;
-  background: #d8e2f0;
-  flex-shrink: 0;
-}
-
-input,
-select {
-  height: 42px;
-  border: 1px solid #dfe5ec;
-  border-radius: 8px;
-  padding: 0 11px;
-  font: inherit;
-  font-size: 13px;
-  background: #fff;
-  outline: none;
-}
-
-input:focus,
-select:focus {
-  border-color: #d8a54d;
-  box-shadow: 0 0 0 3px rgba(216, 165, 77, 0.18);
+  height: 28px;
+  background: rgba(243, 238, 228, 0.25);
 }
 
 .search-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 8px;
+  gap: 10px;
 }
 
 .search-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg, #0a355e 0%, #11497d 100%);
+  gap: 8px;
+  background: var(--color-brass);
   color: #fff;
-  border: none;
-  border-radius: 999px;
-  padding: 14px 26px;
-  font-weight: 700;
-  font-size: 16px;
-  white-space: nowrap;
-  flex-shrink: 0;
+  border: 1px solid var(--color-brass);
+  padding: 12px 22px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
   cursor: pointer;
-  font-family: 'Poppins', sans-serif;
-  transition: all .2s ease;
+  white-space: nowrap;
 }
 
 .search-btn:hover {
-  transform: scale(1.03);
-  box-shadow: 0 8px 20px rgba(10, 53, 94, 0.35);
+  background: var(--color-brass-deep);
 }
 
 .search-reset {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  background: #f5f2ec;
-  color: #07182c;
-  border: none;
+  width: 42px;
+  height: 42px;
+  background: transparent;
+  color: var(--color-ivory);
+  border: 1px solid rgba(243, 238, 228, 0.5);
   border-radius: 50%;
   cursor: pointer;
-  transition: background .2s, transform .2s;
   flex-shrink: 0;
 }
 
 .search-reset:hover {
-  background: #e8e4dc;
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Tira editorial de categorías ── */
+.cat-strip {
+  width: min(var(--container-max), 100% - (var(--container-pad) * 2));
+  margin: 0 auto;
+  padding: 26px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.cat-item {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--color-line);
+  padding: 6px 20px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cat-item:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.cat-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-petrol);
+}
+
+.cat-note {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.cat-item.active .cat-label {
+  color: var(--color-brass-deep);
+}
+
+.cat-item.active {
+  box-shadow: inset 0 2px 0 var(--color-brass);
+}
+
+/* ── Secciones editoriales ── */
+.rule {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 20px 0;
+}
+
+.rule-light {
+  border-top-color: rgba(243, 238, 228, 0.3);
+}
+
+.eyebrow-on-dark {
+  color: var(--color-brass);
 }
 
 .about,
-.featured,
-.bottom-banner {
-  max-width: 1120px;
-  margin: 70px auto 0;
+.featured {
+  width: min(var(--container-max), 100% - (var(--container-pad) * 2));
+  margin: 72px auto 0;
 }
 
 .about {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 28px;
-  align-items: center;
-}
-
-.about-img-wrap {
-  position: relative;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: clamp(28px, 4vw, 64px);
+  align-items: start;
 }
 
 .about-img-wrap img {
   width: 100%;
-  aspect-ratio: 4/3;
-  border-radius: 18px;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
-}
-
-.play-btn {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  background: #0e6b6b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.play-btn svg {
-  width: 20px;
-  height: 20px;
+  display: block;
 }
 
 .about-content h2 {
   margin: 0;
-  font-size: clamp(30px, 4vw, 44px);
-  line-height: 1.1;
-  color: #132846;
+  font-size: clamp(34px, 4.4vw, 56px);
+  color: var(--color-petrol);
 }
 
 .about-copy {
-  margin: 12px 0 0;
-  color: #4d627c;
-  line-height: 1.6;
+  margin: 0;
+  color: #43524f;
+  line-height: 1.7;
+  max-width: 52ch;
 }
 
 .rating-card,
 .contact-card {
-  background: #f7faff;
-  border-radius: 14px;
-  margin-top: 14px;
-  padding: 16px 20px;
-}
-
-.rating-card strong,
-.contact-card strong {
-  color: #113963;
+  margin-top: 22px;
+  padding: 20px 0;
+  border-top: 1px solid var(--color-line);
 }
 
 .rating-value {
-  color: #d8a54d !important;
+  font-size: clamp(38px, 4vw, 54px);
+  color: var(--color-petrol);
 }
 
 .rating-card p,
 .contact-card small {
   margin: 8px 0 0;
-  color: #667c96;
+  color: var(--color-muted);
+  line-height: 1.6;
 }
 
 .contact-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
-.contact-btn {
-  min-height: 52px;
-  padding: 0 28px;
-  background: #0a355e;
-  color: #fff;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  font-size: 15px;
-  font-weight: 700;
+.contact-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+  color: var(--color-petrol);
 }
 
+/* ── Destacadas asimétricas ── */
 .featured {
-  background: #fff;
-  border-radius: 10px;
-  border: 1px solid #e3e9f2;
-  padding: 24px;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .section-head {
   display: flex;
   justify-content: space-between;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 20px;
+  align-items: flex-end;
+  gap: 16px;
 }
 
 .section-head h3 {
-  margin: 0;
-  color: #143057;
-  font-size: clamp(24px, 3vw, 36px);
+  margin: 6px 0 0;
+  color: var(--color-petrol);
+  font-size: clamp(32px, 4vw, 52px);
 }
 
 .link-all {
   font-size: 12px;
-  font-weight: 700;
-  color: #7a8da4;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-brass-deep);
+  white-space: nowrap;
 }
 
 .state {
-  padding: 12px 0 20px;
-  color: #61748c;
+  padding: 16px 0 24px;
+  color: var(--color-muted);
 }
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 22px;
+  margin-top: 26px;
 }
 
 .card-link {
   color: inherit;
-  transition: transform .22s ease;
+  transition: transform 0.22s ease;
+  min-width: 0;
 }
 
 .card-link:hover {
   transform: translateY(-4px);
 }
 
+.card-link:nth-child(1) {
+  grid-column: span 7;
+}
+
+.card-link:nth-child(2) {
+  grid-column: span 5;
+  margin-top: 48px;
+}
+
+.card-link:nth-child(3) {
+  grid-column: 3 / span 7;
+}
+
+/* ── Cierre petrol ── */
 .bottom-banner {
-  background: linear-gradient(120deg, #07182c 0%, #0b2744 100%);
-  border-radius: 14px;
-  padding: 40px 28px;
+  width: min(var(--container-max), 100% - (var(--container-pad) * 2));
+  margin: 80px auto 0;
+  background: var(--color-petrol);
+  color: var(--color-ivory);
+  padding: clamp(32px, 4vw, 56px);
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px;
+  align-items: center;
 }
 
 .banner-copy h2 {
-  margin: 0;
+  margin: 6px 0 0;
   color: #fff;
-  line-height: 1.1;
-  font-size: clamp(30px, 4vw, 50px);
+  font-size: clamp(32px, 4vw, 54px);
 }
 
 .banner-copy p {
-  margin: 14px 0 0;
-  color: rgba(255, 255, 255, 0.83);
-  max-width: 500px;
+  margin: 0;
+  color: rgba(243, 238, 228, 0.82);
+  max-width: 52ch;
+  line-height: 1.65;
+}
+
+.banner-cta {
+  margin-top: 24px;
 }
 
 .banner-cards {
@@ -674,34 +641,37 @@ select:focus {
 }
 
 .mini-card {
-  border-radius: 14px;
-  background: #fff;
+  background: var(--color-card);
+  color: var(--color-ink);
   display: grid;
-  grid-template-columns: 94px 1fr;
-  gap: 12px;
-  padding: 10px;
+  grid-template-columns: 96px 1fr;
+  gap: 14px;
+  padding: 12px;
   align-items: center;
 }
 
+.mini-card:nth-child(2) {
+  margin-left: 32px;
+}
+
 .mini-card img {
-  width: 94px;
-  height: 94px;
-  border-radius: 10px;
+  width: 96px;
+  height: 96px;
   object-fit: cover;
 }
 
 .mini-card strong {
-  color: #102c4f;
+  color: var(--color-petrol);
 }
 
 .mini-card small {
   display: block;
   margin-top: 6px;
-  color: #6d7f94;
+  color: var(--color-muted);
 }
 
 .reveal {
-  animation: fadeUp .7s ease both;
+  animation: fadeUp 0.7s ease both;
 }
 
 @keyframes fadeUp {
@@ -715,67 +685,47 @@ select:focus {
   }
 }
 
-@media (min-width: 860px) {
-  .bottom-banner {
-    grid-template-columns: 1.1fr .9fr;
-    align-items: center;
-  }
-
-  .banner-cards {
-    justify-self: end;
-    width: min(100%, 360px);
-  }
-}
-
-@media (min-width: 900px) {
+@media (max-width: 900px) {
   .about {
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
+    grid-template-columns: 1fr;
+  }
+
+  .bottom-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .card-link:nth-child(1),
+  .card-link:nth-child(2),
+  .card-link:nth-child(3) {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  .mini-card:nth-child(2) {
+    margin-left: 0;
   }
 }
 
-@media (max-width: 1023px) {
-  .hero {
-    grid-template-columns: 1fr;
-    min-height: 700px;
-    margin-top: 0;
-    border-radius: 0 0 22px 22px;
-  }
-
-  .hero-image {
-    width: 100%;
-    object-position: center;
-  }
-
-  .hero-overlay {
-    background: linear-gradient(180deg, rgba(7, 24, 44, 0.86) 0%, rgba(7, 24, 44, 0.62) 48%, rgba(7, 24, 44, 0.9) 100%);
+@media (max-width: 768px) {
+  .home-page {
+    padding-bottom: 48px;
   }
 
   .hero-content {
-    max-width: 100%;
-    padding: 128px 20px 34px;
+    padding-top: 14vh;
   }
 
   .hero-actions {
-    grid-template-columns: 1fr;
-    width: 100%;
+    flex-direction: column;
   }
 
-  .search-shell {
-    position: relative;
-    bottom: auto;
-    right: auto;
+  .hero-actions > * {
     width: 100%;
-    max-width: 100%;
-    margin-top: 16px;
   }
 
   .search-bar {
-    flex-direction: column;
-    border-radius: 16px;
-    padding: 12px;
-    gap: 8px;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .search-divider {
@@ -784,57 +734,39 @@ select:focus {
 
   .search-input,
   .search-select {
-    padding: 10px 8px;
-    border-bottom: 1px solid #eee;
+    border: 1px solid rgba(243, 238, 228, 0.35);
+    padding: 10px 12px;
   }
 
   .search-actions {
     width: 100%;
-    justify-content: center;
-    margin-left: 0;
-    margin-top: 8px;
-    gap: 12px;
   }
 
   .search-btn {
     flex: 1;
     justify-content: center;
-    border-radius: 10px;
-    padding: 14px;
   }
 
-  .search-reset {
-    width: 46px;
-    height: 46px;
+  .cat-strip {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
-}
 
-@media (max-width: 859px) {
-  .home-page {
-    padding-bottom: 44px;
+  .cat-item {
+    border-left: none;
+    border-top: 1px solid var(--color-line);
+    padding: 12px 0 0;
+  }
+
+  .cat-item:first-child {
+    border-top: none;
+    padding-top: 0;
   }
 
   .about,
   .featured,
   .bottom-banner {
-    margin-top: 30px;
-    margin-left: 12px;
-    margin-right: 12px;
-  }
-}
-
-@media (max-width: 620px) {
-  .hero {
-    min-height: 730px;
-  }
-
-  .hero-content {
-    padding-top: 140px;
-  }
-
-  .hero-content h1 {
-    font-size: clamp(34px, 12vw, 46px);
-    line-height: 1.02;
+    margin-top: 48px;
   }
 
   .section-head {
@@ -846,10 +778,5 @@ select:focus {
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .banner-copy h2 {
-    font-size: clamp(28px, 9vw, 42px);
-  }
 }
 </style>
-

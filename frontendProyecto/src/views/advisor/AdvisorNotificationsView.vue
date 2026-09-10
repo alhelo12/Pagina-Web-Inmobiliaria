@@ -220,14 +220,14 @@ onMounted(() => {
 }
 
 .filter-btn:hover {
-  border-color: var(--color-gold);
-  color: var(--color-navy);
+  border-color: var(--color-brass);
+  color: var(--color-petrol);
 }
 
 .filter-btn.active {
-  background: var(--color-navy);
-  border-color: var(--color-navy);
-  color: var(--color-gold);
+  background: var(--color-petrol);
+  border-color: var(--color-petrol);
+  color: #fff;
 }
 
 .header-actions-row {
@@ -237,20 +237,22 @@ onMounted(() => {
 }
 
 .mark-all-btn {
-  background: var(--color-gold);
-  color: var(--color-navy);
-  border: none;
+  background: var(--color-petrol);
+  color: #fff;
+  border: 1px solid var(--color-petrol);
   padding: 10px 18px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background 0.2s ease;
 }
 
 .mark-all-btn:hover {
-  filter: brightness(1.03);
-  box-shadow: 0 10px 18px rgba(7, 23, 45, 0.12);
+  background: var(--color-ink);
+  box-shadow: none;
 }
 
 .prefs-btn {
@@ -267,8 +269,8 @@ onMounted(() => {
 }
 
 .prefs-btn:hover {
-  border-color: var(--color-gold);
-  color: var(--color-navy);
+  border-color: var(--color-brass);
+  color: var(--color-petrol);
 }
 
 .metrics {
@@ -278,17 +280,12 @@ onMounted(() => {
 }
 
 .card {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 10px 24px rgba(7, 23, 45, 0.08);
-  transition: 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(7, 23, 45, 0.12);
+  box-shadow: none;
+  transition: border-color 0.2s ease;
 }
 
 .card-icon {
@@ -306,25 +303,29 @@ onMounted(() => {
 
 .card span {
   color: var(--color-muted);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
 .card strong {
   display: block;
   margin-top: 8px;
-  color: var(--color-navy);
-  font-size: 30px;
-  font-weight: 700;
+  color: var(--color-petrol);
+  font-size: 34px;
+  font-weight: 500;
+  font-family: var(--serif);
+  line-height: 1;
 }
 
 .card small {
-  color: #87909b;
+  color: var(--color-muted);
   font-size: 12px;
 }
 
 .highlight {
-  background: linear-gradient(150deg, rgba(214, 168, 72, 0.2) 0%, var(--color-card) 100%);
+  background: #faf5e9;
 }
 
 .loading {
@@ -342,12 +343,14 @@ onMounted(() => {
   border-radius: 12px;
 }
 
-.empty-icon { color: var(--color-gold); display: block; margin-bottom: 16px; }
+.empty-icon { color: var(--color-brass); display: block; margin-bottom: 16px; }
 
 .empty-state h3 {
   margin: 0 0 8px;
-  color: var(--color-navy);
-  font-size: 18px;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 22px;
 }
 
 .empty-state p {
@@ -363,11 +366,11 @@ onMounted(() => {
 }
 
 .date-group-header {
-  font-size: 13px;
-  font-weight: 700;
-  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-brass-deep);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.22em;
   padding: 4px 4px 0;
 }
 
@@ -375,21 +378,22 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   padding: 18px;
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-line);
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 .notification-card:hover {
-  border-color: var(--color-gold);
-  box-shadow: 0 4px 12px rgba(214, 168, 72, 0.12);
+  border-color: var(--color-brass);
+  box-shadow: none;
 }
 
 .notification-card.unread {
-  background: #fdfefb;
-  border-color: #d6a848;
+  background: #faf5e9;
+  border-color: var(--color-brass);
+  border-left: 3px solid var(--color-brass);
 }
 
 .type-icon {
@@ -417,9 +421,10 @@ onMounted(() => {
 
 .notification-header h3 {
   margin: 0;
-  color: var(--color-navy);
-  font-size: 15px;
-  font-weight: 700;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 500;
 }
 
 .header-actions {
@@ -474,7 +479,7 @@ onMounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-gold);
+  background: var(--color-brass);
 }
 
 @media (max-width: 600px) {

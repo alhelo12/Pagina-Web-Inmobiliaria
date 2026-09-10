@@ -38,15 +38,14 @@ import { RouterLink } from 'vue-router'
 
 <style scoped>
 .footer {
-  background:
-    linear-gradient(90deg, rgba(7,23,45,.98), rgba(16,46,79,.96)),
-    #07172d;
-  color: white;
-  padding: 64px 24px 24px;
+  background: var(--color-ink);
+  color: #f3eee4;
+  padding: 72px 24px 24px;
+  border-top: 1px solid rgba(185, 148, 95, 0.35);
 }
 
 .footer-container {
-  max-width: 1180px;
+  max-width: 1280px;
   margin: auto;
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
@@ -55,19 +54,27 @@ import { RouterLink } from 'vue-router'
 
 .brand h3,
 h4 {
-  color: #f2c46d;
+  color: var(--color-brass);
   margin-bottom: 14px;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .brand h3 {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 28px;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 34px;
+  letter-spacing: 0.12em;
+  color: #f3eee4;
+  text-transform: none;
 }
 
 p,
 a {
   display: block;
-  color: rgba(255,255,255,.74);
+  color: rgba(243, 238, 228, 0.72);
   line-height: 1.8;
   font-size: 14px;
 }

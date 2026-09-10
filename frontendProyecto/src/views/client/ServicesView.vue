@@ -38,9 +38,10 @@ const services = [
     <header class="hero">
       <div class="overlay"></div>
       <div class="hero-content">
-        <p class="eyebrow">Servicios inmobiliarios</p>
-        <h1>Soluciones premium para compra, venta y renta</h1>
-        <p>
+        <p class="eyebrow-label hero-eyebrow">Servicios inmobiliarios</p>
+        <h1 class="serif-display">Soluciones premium para compra, venta y renta</h1>
+        <hr class="rule rule-light" />
+        <p class="hero-sub">
           Operamos con procesos claros, acompanamiento cercano y enfoque en resultados.
           Tu patrimonio se gestiona con precision y transparencia.
         </p>
@@ -50,7 +51,8 @@ const services = [
     <div class="services-wrap">
       <article v-for="service in services" :key="service.title" class="service-card">
         <span class="tag">{{ service.tag }}</span>
-        <h3>{{ service.title }}</h3>
+        <h3 class="serif-display">{{ service.title }}</h3>
+        <hr class="rule" />
         <p>{{ service.description }}</p>
         <button type="button" class="read-more">
           <span class="dot">→</span>
@@ -61,7 +63,8 @@ const services = [
 
     <section class="subscribe">
       <div class="subscribe-left">
-        <h2>Recibe novedades del mercado inmobiliario</h2>
+        <p class="eyebrow-label eyebrow-on-dark">Boletín</p>
+        <h2 class="serif-display">Recibe novedades del mercado inmobiliario</h2>
         <p>Alertas de oportunidades, tendencias y propiedades destacadas.</p>
       </div>
       <form class="subscribe-form" @submit.prevent>
@@ -74,118 +77,149 @@ const services = [
 
 <style scoped>
 .services-page {
-  font-family: 'Poppins', sans-serif;
-  background: #f7f9fd;
-  color: #0f172a;
+  font-family: var(--sans);
+  background: var(--color-ivory);
+  color: var(--color-ink);
 }
 
 .hero {
   position: relative;
-  min-height: 360px;
+  min-height: 52vh;
   display: flex;
-  align-items: center;
-  padding: 120px 22px 78px;
+  align-items: flex-end;
+  padding: 120px 22px 56px;
   background:
-    linear-gradient(110deg, rgba(7, 24, 44, 0.94), rgba(11, 35, 68, 0.78)),
+    linear-gradient(180deg, rgba(7, 27, 28, 0.72), rgba(7, 27, 28, 0.88)),
     url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1800&q=80') center/cover;
 }
 
 .overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 75% 30%, rgba(220, 176, 102, 0.18), transparent 34%);
+  background: linear-gradient(90deg, rgba(7, 27, 28, 0.6), transparent 60%);
 }
 
 .hero-content {
   position: relative;
-  max-width: 820px;
+  max-width: var(--container-max);
   margin: 0 auto;
   width: 100%;
-  color: #ffffff;
+  color: var(--color-ivory);
+  text-align: left;
 }
 
-.eyebrow {
-  margin: 0 0 10px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-  color: #f1cb8f;
+.hero-eyebrow {
+  color: var(--color-brass);
+  margin: 0 0 12px;
 }
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(30px, 4vw, 46px);
-  line-height: 1.08;
+  color: #fff;
+  font-size: clamp(40px, 5.5vw, 72px);
+  max-width: 16ch;
 }
 
-.hero p {
-  margin: 14px 0 0;
-  max-width: 700px;
-  color: rgba(255, 255, 255, 0.85);
+.rule {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 18px 0;
 }
 
+.rule-light {
+  border-top-color: rgba(243, 238, 228, 0.3);
+  max-width: 320px;
+  margin-left: 0;
+}
+
+.hero-sub {
+  margin: 0;
+  max-width: 62ch;
+  color: rgba(243, 238, 228, 0.85);
+  line-height: 1.65;
+}
+
+/* Ritmo editorial: columnas variadas, sin 3 tarjetas iguales */
 .services-wrap {
-  max-width: 1240px;
-  margin: -46px auto 0;
-  padding: 0 22px 56px;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 56px 22px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 22px;
 }
 
 .service-card {
-  background: #ffffff;
-  border: 1px solid #e8edf5;
-  border-radius: 18px;
-  padding: 24px;
-  min-height: 220px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-top: 2px solid var(--color-brass);
+  padding: 28px 26px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  gap: 6px;
+  grid-column: span 5;
 }
 
-.service-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 34px rgba(15, 23, 42, 0.12);
+.service-card:nth-child(2n) {
+  grid-column: span 7;
+}
+
+.service-card:nth-child(3n) {
+  grid-column: 2 / span 6;
+}
+
+.service-card:nth-child(4n) {
+  grid-column: span 4;
+  margin-top: 32px;
+}
+
+.service-card:nth-child(5n) {
+  grid-column: span 8;
+}
+
+.service-card:nth-child(6n) {
+  grid-column: 4 / span 6;
 }
 
 .tag {
   width: fit-content;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: #edf4ff;
-  color: #1e40af;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-brass-deep);
 }
 
 .service-card h3 {
-  margin: 4px 0 0;
-  font-size: 24px;
+  margin: 10px 0 0;
+  font-size: clamp(28px, 3vw, 38px);
+  color: var(--color-petrol);
+  line-height: 1.05;
+}
+
+.service-card .rule {
+  margin: 14px 0;
 }
 
 .service-card p {
   margin: 0;
-  color: #5f6c80;
-  line-height: 1.65;
+  color: #43524f;
+  line-height: 1.7;
   flex: 1;
 }
 
 .read-more {
   border: none;
   width: fit-content;
+  margin-top: 16px;
+  padding: 0;
   background: transparent;
-  color: #0f172a;
+  color: var(--color-petrol);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: color 0.3s ease;
 }
 
 .dot {
@@ -194,107 +228,121 @@ const services = [
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: #f2f5fb;
-  transition: all 0.3s ease;
-}
-
-.read-more:hover {
-  color: #1d4ed8;
+  border: 1px solid var(--color-brass);
+  color: var(--color-brass-deep);
 }
 
 .read-more:hover .dot {
-  background: #2563eb;
+  background: var(--color-brass);
   color: #fff;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.24);
 }
 
 .subscribe {
-  max-width: 1240px;
-  margin: 0 auto 56px;
-  border-radius: 16px;
-  background: #07182c;
-  color: #ffffff;
-  padding: 28px 24px;
-  display: flex;
+  max-width: var(--container-max);
+  margin: 0 auto 64px;
+  background: var(--color-petrol);
+  color: var(--color-ivory);
+  padding: clamp(28px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 28px;
   align-items: center;
-  justify-content: space-between;
-  gap: 22px;
+}
+
+.eyebrow-on-dark {
+  color: var(--color-brass);
 }
 
 .subscribe-left h2 {
-  margin: 0;
-  font-size: clamp(20px, 2.7vw, 30px);
+  margin: 8px 0 10px;
+  color: #fff;
+  font-size: clamp(30px, 3.5vw, 46px);
 }
 
 .subscribe-left p {
-  margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  color: rgba(243, 238, 228, 0.78);
 }
 
 .subscribe-form {
-  display: flex;
-  gap: 10px;
-  width: min(520px, 100%);
+  display: grid;
+  gap: 12px;
 }
 
 .subscribe-form input {
-  flex: 1;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border-radius: 999px;
-  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid rgba(243, 238, 228, 0.4);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-ivory);
+  padding: 12px 2px;
   outline: none;
 }
 
 .subscribe-form input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(243, 238, 228, 0.55);
+}
+
+.subscribe-form input:focus {
+  border-bottom-color: var(--color-brass);
 }
 
 .subscribe-form button {
-  border: none;
-  border-radius: 999px;
-  padding: 12px 18px;
-  background: linear-gradient(120deg, #dcb066, #be8d3e);
-  color: #0a1e3b;
-  font-weight: 700;
+  justify-self: start;
+  border: 1px solid var(--color-brass);
+  padding: 14px 26px;
+  background: var(--color-brass);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .subscribe-form button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(220, 176, 102, 0.3);
+  background: var(--color-brass-deep);
 }
 
-@media (max-width: 1050px) {
-  .services-wrap {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 900px) {
+  .service-card,
+  .service-card:nth-child(2n),
+  .service-card:nth-child(3n),
+  .service-card:nth-child(4n),
+  .service-card:nth-child(5n),
+  .service-card:nth-child(6n) {
+    grid-column: 1 / -1;
+    margin-top: 0;
   }
 
   .subscribe {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    margin-inline: 22px;
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .hero {
-    min-height: 320px;
+    min-height: auto;
     padding-top: 100px;
   }
 
   .services-wrap {
     grid-template-columns: 1fr;
-    margin-top: -28px;
+    padding: 36px 16px;
+  }
+
+  .service-card,
+  .service-card:nth-child(2n),
+  .service-card:nth-child(3n),
+  .service-card:nth-child(4n),
+  .service-card:nth-child(5n),
+  .service-card:nth-child(6n) {
+    grid-column: 1 / -1;
   }
 
   .subscribe {
-    margin-bottom: 34px;
-  }
-
-  .subscribe-form {
-    flex-direction: column;
+    margin: 0 16px 40px;
   }
 }
 </style>

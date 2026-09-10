@@ -1,8 +1,9 @@
 <template>
   <div class="advisor-post-sale">
     <div class="view-header">
-      <h1>Seguimiento Post-Venta</h1>
-      <p>Gestiona los seguimientos de tus clientes</p>
+      <p class="eyebrow-label">Panel del Asesor</p>
+      <h1 class="serif-display">Seguimiento Post-Venta</h1>
+      <p class="view-sub">Gestiona los seguimientos de tus clientes</p>
     </div>
 
     <div v-if="loading" class="loading">
@@ -30,7 +31,8 @@
       </div>
 
       <div v-if="overdue.length > 0" class="overdue-section">
-        <h2>Seguimientos Vencidos</h2>
+        <p class="eyebrow-label">Atención</p>
+        <h2 class="serif-display">Seguimientos Vencidos</h2>
         <div class="followups-list">
           <div v-for="followup in overdue" :key="followup.id" class="followup-card overdue">
             <div class="followup-header">
@@ -49,7 +51,8 @@
       </div>
 
       <div class="pending-section">
-        <h2>Próximos Seguimientos</h2>
+        <p class="eyebrow-label">Agenda</p>
+        <h2 class="serif-display">Próximos Seguimientos</h2>
 
         <div v-if="pendingFollowups.length === 0" class="empty-state">
           <p>No hay seguimientos pendientes</p>
@@ -239,59 +242,79 @@ function formatDate(dateStr) {
   padding: 24px;
   max-width: 1000px;
   margin: 0 auto;
+  background: var(--color-ivory);
 }
 
 .view-header {
   margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .view-header h1 {
   margin: 0 0 8px;
-  font-size: 1.8rem;
-  color: #1e293b;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 500;
+  color: var(--color-petrol);
 }
 
-.view-header p {
+.view-sub {
   margin: 0;
-  color: #64748b;
+  color: var(--color-muted);
+  font-size: 14px;
 }
 
 .loading {
   text-align: center;
   padding: 40px;
-  color: #64748b;
+  color: var(--color-muted);
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+  gap: 14px;
   margin-bottom: 24px;
 }
 
 .stat-card {
-  background: white;
+  background: #fff;
+  border: 1px solid var(--color-line);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
+}
+
+.stat-card.score {
+  background: #faf5e9;
 }
 
 .stat-value {
   display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-petrol);
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: #64748b;
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
 }
 
-.stat-card.pending .stat-value { color: #f59e0b; }
-.stat-card.completed .stat-value { color: #22c55e; }
-.stat-card.score .stat-value { color: #3b82f6; }
+.stat-card.pending .stat-value { color: #7a5c1e; }
+.stat-card.completed .stat-value { color: #166534; }
+.stat-card.score .stat-value { color: var(--color-petrol); }
 
 .overdue-section, .pending-section {
   margin-bottom: 24px;
@@ -299,16 +322,18 @@ function formatDate(dateStr) {
 
 .overdue-section h2, .pending-section h2 {
   margin: 0 0 16px;
-  font-size: 1.3rem;
-  color: #1e293b;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--color-petrol);
 }
 
 .empty-state {
   text-align: center;
   padding: 40px;
-  background: #f8fafc;
+  background: #fff;
+  border: 1px solid var(--color-line);
   border-radius: 12px;
-  color: #94a3b8;
+  color: var(--color-muted);
 }
 
 .followups-list {
@@ -318,16 +343,17 @@ function formatDate(dateStr) {
 }
 
 .followup-card {
-  background: white;
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-left: 3px solid var(--color-line);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #e2e8f0;
+  box-shadow: none;
 }
 
 .followup-card.overdue {
-  border-left-color: #dc2626;
-  background: #fef2f2;
+  border-left-color: #991b1b;
+  background: #fff;
 }
 
 .followup-header {
@@ -339,13 +365,17 @@ function formatDate(dateStr) {
 
 .followup-type {
   font-weight: 600;
-  color: #334155;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-petrol);
 }
 
 .client-name {
   margin: 4px 0 0;
-  font-size: 0.9rem;
-  color: #64748b;
+  font-family: var(--serif);
+  font-size: 18px;
+  color: var(--color-petrol);
 }
 
 .actions {
@@ -354,33 +384,39 @@ function formatDate(dateStr) {
 }
 
 .btn-complete, .btn-skip, .btn-confirm, .btn-cancel {
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 12px;
   font-weight: 600;
-  border: none;
-  transition: background 0.2s;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  transition: background 0.2s ease;
 }
 
 .btn-complete {
-  background: #22c55e;
-  color: white;
+  background: var(--color-petrol);
+  color: #fff;
+  border-color: var(--color-petrol);
 }
 
-.btn-complete:hover { background: #16a34a; }
+.btn-complete:hover { background: var(--color-ink); }
 
 .btn-skip {
-  background: #f1f5f9;
-  color: #64748b;
+  background: transparent;
+  border-color: var(--color-line);
+  color: var(--color-petrol);
 }
 
-.btn-skip:hover { background: #e2e8f0; }
+.btn-skip:hover { border-color: var(--color-brass); }
 
 .scheduled-date {
-  margin: 0;
+  margin: 8px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-line);
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--color-muted);
 }
 
 .modal-overlay {
@@ -397,8 +433,9 @@ function formatDate(dateStr) {
 }
 
 .modal {
-  background: white;
-  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
   padding: 24px;
   width: 90%;
   max-width: 450px;
@@ -406,29 +443,34 @@ function formatDate(dateStr) {
 
 .modal h3 {
   margin: 0 0 8px;
-  color: #1e293b;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 24px;
+  color: var(--color-petrol);
 }
 
 .modal p {
   margin: 0 0 16px;
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 
 .modal textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-line);
   border-radius: 8px;
   font-size: 1rem;
   resize: vertical;
   font-family: inherit;
   margin-bottom: 16px;
+  background: #fff;
+  color: var(--color-petrol);
 }
 
 .modal textarea:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-petrol);
 }
 
 .rating-section {
@@ -438,8 +480,11 @@ function formatDate(dateStr) {
 .rating-section label {
   display: block;
   font-weight: 600;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
   margin-bottom: 8px;
-  color: #334155;
+  color: var(--color-petrol);
 }
 
 .stars {
@@ -457,7 +502,7 @@ function formatDate(dateStr) {
 }
 
 .star-btn.active {
-  color: #f59e0b;
+  color: var(--color-brass);
 }
 
 .modal-actions {
@@ -467,12 +512,21 @@ function formatDate(dateStr) {
 }
 
 .btn-cancel {
-  background: #f1f5f9;
-  color: #64748b;
+  background: transparent;
+  border-color: var(--color-line);
+  color: var(--color-petrol);
 }
 
 .btn-confirm {
-  background: #3b82f6;
-  color: white;
+  background: var(--color-petrol);
+  border-color: var(--color-petrol);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .advisor-post-sale { padding: 16px; }
+  .followup-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .actions { width: 100%; }
+  .actions button { flex: 1; }
 }
 </style>

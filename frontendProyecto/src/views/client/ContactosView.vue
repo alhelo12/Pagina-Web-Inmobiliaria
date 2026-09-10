@@ -72,8 +72,9 @@ const submitNewsletter = () => {
     <!-- HERO -->
     <header class="hero">
       <div class="hero-inner">
-        <span class="kicker">// CONTACTO</span>
-        <h1>Hablemos de tu<br/>proximo hogar</h1>
+        <p class="eyebrow-label hero-eyebrow">Contacto</p>
+        <h1 class="serif-display">Hablemos de tu<br />próximo hogar</h1>
+        <hr class="rule rule-light" />
         <p>Estamos listos para ayudarte con asesoria inmobiliaria y respaldo juridico.</p>
       </div>
     </header>
@@ -84,7 +85,9 @@ const submitNewsletter = () => {
 
         <!-- IZQUIERDA -->
         <div class="info-col">
-          <h2>Contacta a nuestros<br/>expertos asesores</h2>
+          <p class="eyebrow-label">Asesoría directa</p>
+          <h2 class="serif-display">Contacta a nuestros<br />expertos asesores</h2>
+          <hr class="rule" />
           <p class="desc">Nuestro equipo esta listo para orientarte en la compra, venta o renta de propiedades con respaldo juridico y atencion personalizada.</p>
 
           <div class="contact-items">
@@ -116,25 +119,26 @@ const submitNewsletter = () => {
         <div class="form-col">
           <div class="form-card">
             <div class="form-header">
-              <h3>Enviar solicitud</h3>
+              <p class="eyebrow-label">Solicitud</p>
+              <h3 class="serif-display">Enviar solicitud</h3>
               <p>Completa el formulario y un asesor se pondra en contacto contigo.</p>
             </div>
             <form @submit.prevent="submitForm">
-              <div class="field">
+              <div class="field field-underline">
                 <label>Nombre completo</label>
                 <input v-model="form.name" type="text" placeholder="Tu nombre" required />
               </div>
               <div class="row-two">
-                <div class="field">
+                <div class="field field-underline">
                   <label>Correo electronico</label>
                   <input v-model="form.email" type="email" placeholder="correo@ejemplo.com" required />
                 </div>
-                <div class="field">
+                <div class="field field-underline">
                   <label>Telefono</label>
                   <input v-model="form.phone" type="tel" placeholder="+52 33 1234 5678" required />
                 </div>
               </div>
-              <div class="field">
+              <div class="field field-underline">
                 <label>Servicio de interes</label>
                 <select v-model="form.service" required>
                   <option disabled value="">Selecciona un servicio</option>
@@ -144,13 +148,14 @@ const submitNewsletter = () => {
                   <option>Asesoria juridica</option>
                 </select>
               </div>
-              <div class="field">
+              <div class="field field-underline">
                 <label>Mensaje</label>
                 <textarea v-model="form.message" rows="4" placeholder="Cuentanos sobre lo que buscas..." required></textarea>
               </div>
-              <button type="submit" class="btn-submit">
+              <p v-if="submitStatus !== 'idle'" class="form-status" :class="submitStatus">{{ submitMessage }}</p>
+              <button type="submit" class="btn-submit" :disabled="submitting">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Enviar solicitud
+                {{ submitting ? 'Enviando...' : 'Enviar solicitud' }}
               </button>
             </form>
           </div>
@@ -165,7 +170,10 @@ const submitNewsletter = () => {
 
         <div class="map-wrap">
           <div class="map-header">
-            <h4>Nuestra ubicacion</h4>
+            <div>
+              <p class="eyebrow-label">Visítanos</p>
+              <h4 class="serif-display">Nuestra ubicación</h4>
+            </div>
             <span>Guadalajara, Jalisco, Mexico</span>
           </div>
           <iframe
@@ -178,13 +186,15 @@ const submitNewsletter = () => {
 
         <div class="newsletter">
           <div class="newsletter-inner">
-            <span class="nl-kicker">// BOLETÍN INFORMATIVO</span>
-            <h3>Recibe las mejores<br/>oportunidades</h3>
+            <p class="eyebrow-label eyebrow-on-dark">Boletín informativo</p>
+            <h3 class="serif-display">Recibe las mejores<br />oportunidades</h3>
+            <hr class="rule rule-light" />
             <p>Novedades del mercado inmobiliario directamente en tu correo cada semana.</p>
-            <form @submit.prevent="submitNewsletter" class="nl-form">
+            <form @submit.prevent="submitNewsletter" class="nl-form field-underline">
               <input v-model="newsletter.email" type="email" placeholder="tu@correo.com" required />
               <button type="submit">Suscribirme</button>
             </form>
+            <p v-if="newsletterStatus !== 'idle'" class="form-status success">{{ newsletterMessage }}</p>
             <ul class="benefits">
               <li>✓ Nuevas propiedades cada semana</li>
               <li>✓ Tendencias del mercado</li>
@@ -200,81 +210,84 @@ const submitNewsletter = () => {
 </template>
 
 <style scoped>
-
-
 * { box-sizing: border-box; }
 
 .contact-page {
-  font-family: 'Poppins', sans-serif;
-  background: #f5f2ec;
-  color: #0f2a44;
+  font-family: var(--sans);
+  background: var(--color-ivory);
+  color: var(--color-ink);
 }
 
-/* ── HERO ── */
+.rule {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 20px 0;
+}
+
+.rule-light {
+  border-top-color: rgba(243, 238, 228, 0.3);
+  max-width: 320px;
+  margin-left: 0;
+}
+
+.hero-inner .rule-light {
+  margin-inline: auto;
+}
+
+/* ── HERO petrol editorial ── */
 .hero {
-  background: #0f2a44;
-  padding: 80px 24px 80px;
+  background:
+    linear-gradient(180deg, rgba(7, 27, 28, 0.78), rgba(7, 27, 28, 0.94)),
+    url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=80') center/cover;
+  padding: 120px 24px 72px;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 70% 50%, rgba(242, 201, 76, 0.07) 0%, transparent 60%);
-  pointer-events: none;
-}
-
 .hero-inner {
   position: relative;
   z-index: 1;
-  max-width: 680px;
+  max-width: 760px;
   margin: 0 auto;
 }
 
-.kicker {
-  display: inline-block;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  color: #f2c94c;
-  margin-bottom: 20px;
+.hero-eyebrow {
+  color: var(--color-brass);
+  margin: 0 0 12px;
 }
 
 .hero-inner h1 {
-  font-size: clamp(40px, 6vw, 68px);
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.1;
-  margin: 0 0 20px;
+  font-size: clamp(44px, 6vw, 76px);
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.02;
+  margin: 0;
 }
 
-.hero-inner p {
+.hero-inner > p:last-child {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(243, 238, 228, 0.78);
   line-height: 1.7;
   margin: 0;
 }
 
-/* ── MAIN SECTION ── */
+/* ── MAIN SECTION marfil ── */
 .main-section {
-  background: #ffffff;
-  padding: 72px 0;
+  background: var(--color-ivory);
+  padding: 64px 0 72px;
 }
 
 .container {
-  max-width: 1180px;
+  max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 48px;
+  padding: 0 32px;
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 72px;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: clamp(32px, 5vw, 72px);
   align-items: start;
 }
 
-/* INFO IZQUIERDA */
 .info-col {
   display: flex;
   flex-direction: column;
@@ -282,312 +295,298 @@ const submitNewsletter = () => {
 }
 
 .info-col h2 {
-  font-size: clamp(26px, 3vw, 36px);
-  font-weight: 800;
-  color: #0f2a44;
-  line-height: 1.2;
-  margin: 0 0 18px;
+  font-size: clamp(34px, 3.5vw, 50px);
+  font-weight: 500;
+  color: var(--color-petrol);
+  line-height: 1.05;
+  margin: 8px 0 0;
 }
 
 .desc {
-  font-size: 14px;
-  color: #65717e;
-  line-height: 1.8;
-  margin: 0 0 40px;
+  font-size: 15px;
+  color: #43524f;
+  line-height: 1.75;
+  margin: 0 0 36px;
 }
 
 .contact-items {
   display: flex;
   flex-direction: column;
-  gap: 24px;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
   gap: 16px;
+  padding: 20px 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.contact-item:last-child {
+  border-bottom: 1px solid var(--color-line);
 }
 
 .item-icon {
   width: 48px;
   height: 48px;
-  background: #fdf8ee;
-  border: 1.5px solid rgba(242, 201, 76, 0.45);
-  border-radius: 12px;
+  background: transparent;
+  border: 1px solid var(--color-brass);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
   flex-shrink: 0;
+  color: var(--color-brass-deep);
 }
 
 .item-body span {
   display: block;
-  font-size: 12px;
-  color: #8a9bac;
-  margin-bottom: 3px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 4px;
 }
 
 .item-body strong {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f2a44;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-petrol);
 }
 
-/* FORM DERECHA */
+/* FORM editorial: tarjeta marfil, campos subrayados */
 .form-card {
-  background: #f8f6f1;
-  border: 1px solid #e5e0d6;
-  border-radius: 20px;
-  padding: 36px;
-  box-shadow: 0 4px 24px rgba(15, 42, 68, 0.07);
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-top: 2px solid var(--color-brass);
+  padding: 36px 32px;
 }
 
 .form-header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #ece8df;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .form-header h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #0f2a44;
-  margin: 0 0 6px;
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 500;
+  color: var(--color-petrol);
+  margin: 8px 0 6px;
 }
 
 .form-header p {
-  font-size: 13px;
-  color: #8a9bac;
+  font-size: 14px;
+  color: var(--color-muted);
   margin: 0;
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .row-two {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 18px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .field label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #3d5166;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brass-deep);
 }
 
-input, select, textarea {
-  width: 100%;
-  border: 1.5px solid #e0d9cc;
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 11px 14px;
+.field-underline input,
+.field-underline select,
+.field-underline textarea {
+  border-radius: 0;
+}
+
+.form-status {
+  margin: 0;
+  padding: 12px 14px;
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
-  color: #0f2a44;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-left: 2px solid var(--color-brass);
+  background: var(--color-ivory);
 }
 
-input::placeholder, textarea::placeholder {
-  color: #b5ae9f;
+.form-status.success {
+  border-left-color: #2e7d4f;
 }
 
-input:focus, select:focus, textarea:focus {
-  border-color: #f2c94c;
-  box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.18);
-}
-
-textarea {
-  resize: vertical;
-  border-radius: 10px;
+.form-status.error {
+  border-left-color: #a33b3b;
 }
 
 .btn-submit {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 13px;
-  background: #0f2a44;
-  color: #f2c94c;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'Poppins', sans-serif;
+  padding: 15px;
+  background: var(--color-petrol);
+  color: #fff;
+  border: 1px solid var(--color-petrol);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   cursor: pointer;
   margin-top: 4px;
-  letter-spacing: 0.03em;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.18s;
-  box-shadow: 0 4px 16px rgba(15, 42, 68, 0.22);
+  transition: background 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: var(--color-ink);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 .btn-submit svg {
-  stroke: #f2c94c;
+  stroke: var(--color-brass);
 }
 
-.btn-submit:hover {
-  background: #1a3d5c;
-  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.3);
-  transform: translateY(-1px);
-}
-
-.btn-submit:active {
-  transform: translateY(0);
-}
-
-/* ── BOTTOM SECTION ── */
+/* ── BOTTOM asimétrico ── */
 .bottom-section {
-  padding: 56px 0 64px;
-  background: #f5f2ec;
+  padding: 0 0 72px;
+  background: var(--color-ivory);
 }
 
 .bottom-container {
-  max-width: 1180px;
+  max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 48px;
+  padding: 0 32px;
   display: grid;
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: 7fr 5fr;
   gap: 24px;
   align-items: stretch;
 }
 
-/* MAPA */
 .map-wrap {
-  background: #ffffff;
-  border: 1px solid #e5e0d6;
-  border-radius: 20px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
   overflow: hidden;
-  box-shadow: 0 2px 16px rgba(15, 42, 68, 0.06);
 }
 
 .map-header {
-  padding: 18px 24px;
-  border-bottom: 1px solid #ece8df;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--color-line);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .map-header h4 {
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f2a44;
-  margin: 0;
+  font-size: clamp(26px, 2.6vw, 34px);
+  font-weight: 500;
+  color: var(--color-petrol);
+  margin: 8px 0 0;
 }
 
 .map-header span {
   font-size: 13px;
-  color: #8a9bac;
+  color: var(--color-muted);
 }
 
 .map-wrap iframe {
   width: 100%;
-  min-height: 320px;
+  min-height: 340px;
   border: 0;
   display: block;
+  filter: sepia(0.2) saturate(0.85);
 }
 
-/* NEWSLETTER */
 .newsletter {
-  background: #0f2a44;
-  border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(15, 42, 68, 0.2);
+  background: var(--color-petrol);
 }
 
 .newsletter-inner {
-  padding: 36px 28px;
-  color: white;
+  padding: 36px 30px;
+  color: var(--color-ivory);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.nl-kicker {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: #f2c94c;
-  margin-bottom: 14px;
-  display: block;
+.eyebrow-on-dark {
+  color: var(--color-brass);
 }
 
 .newsletter-inner h3 {
-  font-size: 26px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  margin: 0 0 12px;
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.05;
+  margin: 8px 0 0;
 }
 
 .newsletter-inner > p {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+  color: rgba(243, 238, 228, 0.75);
   line-height: 1.7;
-  margin: 0 0 24px;
-  flex: 1;
+  margin: 0 0 22px;
 }
 
 .nl-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .nl-form input {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.5px solid rgba(255, 255, 255, 0.14);
-  color: white;
-  border-radius: 10px;
+  background: transparent;
+  color: var(--color-ivory);
 }
 
 .nl-form input::placeholder {
-  color: rgba(255, 255, 255, 0.38);
-}
-
-.nl-form input:focus {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: #f2c94c;
-  box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.2);
+  color: rgba(243, 238, 228, 0.45);
 }
 
 .nl-form button {
-  padding: 12px;
-  background: #f2c94c;
-  color: #0f2a44;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'Poppins', sans-serif;
+  padding: 14px;
+  background: var(--color-brass);
+  color: #fff;
+  border: 1px solid var(--color-brass);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s, transform 0.18s;
-  letter-spacing: 0.02em;
 }
 
 .nl-form button:hover {
-  background: #f5d76e;
-  transform: translateY(-1px);
+  background: var(--color-brass-deep);
+}
+
+.nl-form + .form-status {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-ivory);
+  margin-bottom: 16px;
 }
 
 .benefits {
   list-style: none;
-  padding: 0;
-  margin: 0;
+  padding: 18px 0 0;
+  margin: auto 0 0;
+  border-top: 1px solid rgba(243, 238, 228, 0.25);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -595,10 +594,9 @@ textarea {
 
 .benefits li {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(243, 238, 228, 0.7);
 }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 980px) {
   .container {
     grid-template-columns: 1fr;
@@ -611,14 +609,17 @@ textarea {
     padding: 0 24px;
   }
 
-  .main-section { padding: 52px 0; }
-  .bottom-section { padding: 40px 0 52px; }
+  .main-section { padding: 48px 0; }
+  .bottom-section { padding-bottom: 52px; }
 }
 
-@media (max-width: 640px) {
-  .hero { padding: 64px 20px; }
-  .form-card { padding: 24px 20px; }
+@media (max-width: 768px) {
+  .hero { padding: 100px 20px 56px; }
+  .form-card { padding: 28px 20px; }
   .row-two { grid-template-columns: 1fr; }
   .newsletter-inner { padding: 28px 20px; }
+  .container,
+  .bottom-container { padding: 0 16px; }
+  .map-header { flex-direction: column; align-items: flex-start; }
 }
 </style>

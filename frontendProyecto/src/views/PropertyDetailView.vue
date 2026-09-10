@@ -338,7 +338,7 @@ onUnmounted(() => {
             <span>{{ typeLabel[property.property_type] ?? property.property_type }}</span>
             <span class="gold">{{ txLabel[property.transaction_type] ?? property.transaction_type }}</span>
           </div>
-          <h1>{{ property.title }}</h1>
+          <h1 class="serif-display">{{ property.title }}</h1>
           <p>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5.5-8 11-8 11s-8-5.5-8-11a8 8 0 1 1 16 0Z"/><path d="M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
             {{ property.address }}, {{ property.city }}
@@ -363,8 +363,8 @@ onUnmounted(() => {
       <div class="main-col">
         <div class="summary-card">
           <div>
-            <span class="eyebrow">Precio</span>
-            <strong class="price">${{ Number(property.price).toLocaleString('es-MX') }} <small>MXN</small></strong>
+            <span class="eyebrow-label">Precio</span>
+            <strong class="price serif-display">${{ Number(property.price).toLocaleString('es-MX') }} <small>MXN</small></strong>
           </div>
           <button
             v-if="auth.isLogged && auth.role === 'client'"
@@ -401,8 +401,8 @@ onUnmounted(() => {
         <div v-if="activeGallery !== 'general'" class="section-card gallery-card">
           <div class="section-head">
             <div>
-              <span class="eyebrow">Galeria</span>
-              <h2>{{ selectedLabel }}</h2>
+              <span class="eyebrow-label">Galería</span>
+              <h2 class="serif-display">{{ selectedLabel }}</h2>
             </div>
           </div>
           <div v-if="currentTab?.count" class="section-gallery">
@@ -416,8 +416,8 @@ onUnmounted(() => {
         <div class="section-card">
           <div class="section-head">
             <div>
-              <span class="eyebrow">Detalle</span>
-              <h2>Descripcion</h2>
+              <span class="eyebrow-label">Detalle</span>
+              <h2 class="serif-display">Descripción</h2>
             </div>
           </div>
           <p class="description">{{ property.description }}</p>
@@ -426,8 +426,8 @@ onUnmounted(() => {
         <div class="section-card">
           <div class="section-head">
             <div>
-              <span class="eyebrow">Mapa</span>
-              <h2>Ubicacion</h2>
+              <span class="eyebrow-label">Mapa</span>
+              <h2 class="serif-display">Ubicación</h2>
             </div>
             <a v-if="mapLink" :href="mapLink" target="_blank" rel="noreferrer" class="map-link">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></svg>
@@ -445,8 +445,9 @@ onUnmounted(() => {
 
       <aside class="side-col">
         <div class="contact-card">
-          <span class="eyebrow">Atencion</span>
-          <h2>Te interesa esta propiedad?</h2>
+          <span class="eyebrow-label">Atención personalizada</span>
+          <h2 class="serif-display">¿Te interesa esta propiedad?</h2>
+          <div class="card-rule" aria-hidden="true"></div>
           <p>Un asesor puede ayudarte a revisar disponibilidad, agenda y detalles de la visita.</p>
           <button
             v-if="contactStatus === 'idle'"
@@ -471,7 +472,7 @@ onUnmounted(() => {
           </button>
           <RouterLink to="/propiedades" class="secondary-link">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
-            Ver mas propiedades
+            Ver más propiedades
           </RouterLink>
         </div>
       </aside>
@@ -508,11 +509,10 @@ onUnmounted(() => {
 * { box-sizing: border-box; }
 
 .detail-page {
-  --line: rgba(7, 23, 45, .1);
   min-height: 100vh;
-  background: var(--color-cream);
-  color: var(--color-navy);
-  font-family: 'Poppins', sans-serif;
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--sans);
 }
 
 .state {
@@ -523,14 +523,13 @@ onUnmounted(() => {
   gap: 14px;
   padding: 80px 20px;
   color: var(--color-muted);
-  font-family: 'Poppins', sans-serif;
 }
 
 .spinner {
-  width: 42px;
-  height: 42px;
-  border: 3px solid rgba(7, 23, 45, .12);
-  border-top-color: var(--color-gold);
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--color-line);
+  border-top-color: var(--color-brass-deep);
   border-radius: 50%;
   animation: spin .8s linear infinite;
 }
@@ -549,14 +548,14 @@ svg {
   stroke-linejoin: round;
 }
 
-.hero { background: var(--color-navy); }
+.hero { background: var(--color-ink); }
 
 .hero-media {
   position: relative;
-  height: min(68vh, 620px);
-  min-height: 420px;
+  height: min(72vh, 640px);
+  min-height: 440px;
   overflow: hidden;
-  background: var(--color-navy);
+  background: var(--color-ink);
 }
 
 .hero-img {
@@ -572,8 +571,8 @@ svg {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(7, 23, 45, .78), rgba(7, 23, 45, .18) 55%, rgba(7, 23, 45, .38)),
-    linear-gradient(0deg, rgba(7, 23, 45, .78), transparent 58%);
+    linear-gradient(90deg, rgba(7,27,28,.82), rgba(7,27,28,.2) 55%, rgba(7,27,28,.4)),
+    linear-gradient(0deg, rgba(7,27,28,.88), transparent 60%);
   pointer-events: none;
 }
 
@@ -581,45 +580,45 @@ svg {
   position: absolute;
   left: max(22px, calc((100vw - var(--container-max)) / 2));
   right: max(22px, calc((100vw - var(--container-max)) / 2));
-  bottom: 42px;
-  max-width: 780px;
-  color: white;
+  bottom: 44px;
+  max-width: 800px;
+  color: #fff;
 }
 
 .badges {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .badges span {
-  min-height: 28px;
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .16);
-  border: 1px solid rgba(255, 255, 255, .24);
-  color: white;
+  min-height: 28px;
+  padding: 5px 13px;
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .26);
+  color: #fff;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .08em;
+  font-weight: 600;
+  letter-spacing: .18em;
   text-transform: uppercase;
   backdrop-filter: blur(6px);
 }
 
 .badges .gold {
-  background: var(--color-gold);
-  border-color: var(--color-gold);
-  color: var(--color-navy);
+  background: var(--color-brass);
+  border-color: var(--color-brass);
+  color: #fff;
 }
 
 .hero-copy h1 {
   margin: 0;
-  font-size: clamp(28px, 4vw, 52px);
-  line-height: 1.08;
-  max-width: 14ch;
+  font-size: clamp(38px, 4.6vw, 64px);
+  line-height: 1.02;
+  max-width: 16ch;
+  color: #fff;
 }
 
 .hero-copy p,
@@ -630,8 +629,8 @@ svg {
 }
 
 .hero-copy p {
-  margin: 12px 0 0;
-  color: rgba(255, 255, 255, .86);
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, .85);
   font-size: 15px;
 }
 
@@ -648,9 +647,9 @@ svg {
 .counter,
 .icon-btn,
 .nav-btn {
-  background: rgba(255, 255, 255, .14);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, .24);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .26);
   backdrop-filter: blur(8px);
 }
 
@@ -659,9 +658,9 @@ svg {
   display: inline-flex;
   align-items: center;
   padding: 0 13px;
-  border-radius: 999px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: .1em;
 }
 
 .icon-btn,
@@ -669,13 +668,10 @@ svg {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  transition: .2s ease;
+  transition: background .2s ease, color .2s ease;
 }
 
-.icon-btn {
-  width: 38px;
-  height: 38px;
-}
+.icon-btn { width: 38px; height: 38px; }
 
 .nav-btn {
   position: absolute;
@@ -688,8 +684,9 @@ svg {
 
 .nav-btn:hover,
 .icon-btn:hover {
-  background: rgba(214, 168, 72, .82);
-  color: var(--color-navy);
+  background: var(--color-brass);
+  border-color: var(--color-brass);
+  color: #fff;
 }
 
 .nav-prev { left: 24px; }
@@ -704,19 +701,18 @@ svg {
   padding: 12px 0;
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--color-gold) transparent;
+  scrollbar-color: var(--color-brass) transparent;
 }
 
 .thumb {
   flex: 0 0 118px;
   height: 72px;
   padding: 0;
-  border: 2px solid transparent;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .22);
   overflow: hidden;
   background: transparent;
-  opacity: .68;
-  transition: .2s ease;
+  opacity: .62;
+  transition: opacity .2s ease, border-color .2s ease;
 }
 
 .thumb img,
@@ -729,32 +725,33 @@ svg {
 .thumb.active,
 .thumb:hover {
   opacity: 1;
-  border-color: var(--color-gold);
+  border-color: var(--color-brass);
 }
 
 .content {
   width: min(100% - 32px, var(--container-max));
   margin: 0 auto;
-  padding: 34px 0 64px;
+  padding: 36px 0 72px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 24px;
+  gap: 28px;
   align-items: start;
 }
 
 .main-col,
 .side-col {
   display: grid;
-  gap: 18px;
+  gap: 20px;
+  min-width: 0;
 }
 
 .summary-card,
 .section-card,
 .contact-card {
-  background: var(--color-card);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: 0 10px 26px rgba(7, 23, 45, .08);
+  background: #fffdf8;
+  border: 1px solid var(--color-line);
+  border-radius: 2px;
+  box-shadow: var(--shadow-soft);
 }
 
 .summary-card {
@@ -762,30 +759,25 @@ svg {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px;
-}
-
-.eyebrow {
-  display: block;
-  color: var(--color-gold);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
+  padding: 22px 24px;
+  border-top: 2px solid var(--color-brass);
 }
 
 .price {
   display: block;
-  margin-top: 2px;
-  color: var(--color-navy);
-  font-size: clamp(28px, 3vw, 38px);
+  margin-top: 4px;
+  color: var(--color-petrol);
+  font-size: clamp(34px, 3.4vw, 46px);
   line-height: 1;
+  font-weight: 500;
 }
 
 .price small {
   color: var(--color-muted);
-  font-size: 15px;
+  font-family: var(--sans);
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: .18em;
 }
 
 .favorite-btn,
@@ -797,22 +789,24 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 42px;
-  border-radius: 8px;
-  font-weight: 700;
+  min-height: 44px;
+  font-weight: 600;
   text-decoration: none;
 }
 
 .favorite-btn {
-  padding: 0 16px;
-  background: #fff;
-  color: var(--color-muted);
-  border: 1px solid var(--line);
+  padding: 0 18px;
+  background: transparent;
+  color: var(--color-petrol);
+  border: 1px solid var(--color-line);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
 .favorite-btn.active {
   color: #b91c1c;
-  border-color: rgba(185, 28, 28, .28);
+  border-color: rgba(185, 28, 28, .3);
   background: #fff5f5;
 }
 
@@ -826,20 +820,18 @@ svg {
 
 .feature-card {
   min-height: 132px;
-  padding: 16px;
+  padding: 18px;
   text-align: left;
-  background: var(--color-card);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  color: var(--color-navy);
-  box-shadow: 0 10px 24px rgba(7, 23, 45, .06);
-  transition: .2s ease;
+  background: #fffdf8;
+  border: 1px solid var(--color-line);
+  border-radius: 2px;
+  color: var(--color-ink);
+  transition: border-color .2s ease, transform .2s ease;
 }
 
 .feature-card:hover,
 .feature-card.active {
-  border-color: var(--color-gold);
-  background: #fffaf0;
+  border-color: var(--color-brass-deep);
   transform: translateY(-1px);
 }
 
@@ -848,30 +840,33 @@ svg {
   height: 36px;
   display: grid;
   place-items: center;
-  border-radius: 9px;
-  background: #e8edf0;
-  color: var(--color-navy-2);
+  background: rgba(16, 45, 45, .07);
+  color: var(--color-petrol);
   margin-bottom: 12px;
 }
 
 .feature-card.active .feature-icon {
-  background: var(--color-gold);
+  background: var(--color-petrol);
+  color: #fff;
 }
 
 .feature-value {
   display: block;
-  color: var(--color-navy);
-  font-size: 26px;
-  font-weight: 800;
+  color: var(--color-petrol);
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 500;
   line-height: 1;
 }
 
 .feature-label {
   display: block;
   margin-top: 5px;
-  color: var(--color-navy);
-  font-size: 13px;
-  font-weight: 700;
+  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 
@@ -880,36 +875,35 @@ svg {
   margin-top: 5px;
   color: var(--color-muted);
   font-size: 11px;
-  font-weight: 600;
 }
 
 .section-card,
-.contact-card {
-  padding: 20px;
-}
+.contact-card { padding: 26px; }
 
 .section-head {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .section-head h2,
 .contact-card h2 {
-  margin: 3px 0 0;
-  color: var(--color-navy);
-  font-size: 22px;
-  line-height: 1.2;
+  margin: 6px 0 0;
+  color: var(--color-petrol);
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 500;
 }
 
 .description {
   margin: 0;
   color: #3d4b5d;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.9;
-  text-align: justify;
 }
 
 .section-gallery {
@@ -921,59 +915,69 @@ svg {
 .section-gallery button {
   aspect-ratio: 4 / 3;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--color-line);
   overflow: hidden;
   background: #fff;
 }
 
 .address-card {
   padding: 13px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-line);
+  background: var(--color-ivory);
   color: #344257;
   font-size: 14px;
 }
 
 .address-card svg,
-.map-link svg {
-  color: var(--color-gold);
-  flex: 0 0 auto;
-}
+.map-link svg { color: var(--color-brass-deep); flex: 0 0 auto; }
 
 .map-box {
   height: 280px;
   margin-top: 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid var(--color-line);
   overflow: hidden;
   background: #e8edf0;
   z-index: 1;
 }
 
 .map-link {
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--color-navy);
-  font-size: 13px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-petrol);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.empty-note {
-  margin: 0;
-  color: var(--color-muted);
-  font-size: 14px;
-}
+.empty-note { margin: 0; color: var(--color-muted); font-size: 14px; }
 
 .contact-card {
   position: sticky;
   top: 24px;
+  border-top: 2px solid var(--color-brass);
+}
+
+.card-rule {
+  margin-top: 16px;
+  border-top: 1px solid var(--color-line);
+  position: relative;
+}
+
+.card-rule::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 56px;
+  height: 2px;
+  background: var(--color-brass);
 }
 
 .contact-card p {
-  margin: 12px 0 20px;
+  margin: 16px 0 22px;
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1.7;
@@ -981,56 +985,42 @@ svg {
 
 .primary-link,
 .secondary-link,
-.back-link {
-  width: 100%;
-  padding: 0 14px;
-}
+.back-link { width: 100%; padding: 0 14px; }
 
 .primary-link {
-  background: var(--color-gold);
-  color: var(--color-navy);
+  background: var(--color-petrol);
+  border: 1px solid var(--color-petrol);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
 
 .contact-btn-action {
   cursor: pointer;
-  border: none;
   font-family: inherit;
-  font-size: inherit;
-  transition: background 0.2s, opacity 0.2s;
+  font-size: 12px;
+  transition: background .2s ease;
 }
-.contact-btn-action:hover:not(:disabled) {
-  background: #e0b03a;
-}
-.contact-btn-action:disabled {
-  cursor: default;
-}
-.contact-btn-action.success {
-  background: #22c55e;
-  color: #fff;
-}
-.contact-btn-action.error {
-  background: #dc2626;
-  color: #fff;
-}
-.spin-icon {
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+
+.contact-btn-action:hover:not(:disabled) { background: var(--color-ink); }
+.contact-btn-action:disabled { cursor: default; }
+.contact-btn-action.success { background: #15803d; border-color: #15803d; color: #fff; }
+.contact-btn-action.error { background: #dc2626; border-color: #dc2626; color: #fff; }
+.spin-icon { animation: spin 1s linear infinite; }
 
 .secondary-link,
 .back-link {
   margin-top: 10px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--color-navy);
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-petrol);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
-.back-link {
-  width: auto;
-  margin-top: 0;
-}
+.back-link { width: auto; margin-top: 0; }
 
 .lightbox {
   position: fixed;
@@ -1039,7 +1029,7 @@ svg {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(7, 23, 45, .94);
+  background: rgba(7, 27, 28, .94);
   backdrop-filter: blur(8px);
 }
 
@@ -1048,8 +1038,7 @@ svg {
   max-height: 92vh;
   display: grid;
   gap: 12px;
-  color: white;
-  font-family: 'Poppins', sans-serif;
+  color: #fff;
 }
 
 .lightbox-head {
@@ -1060,21 +1049,21 @@ svg {
 }
 
 .lightbox-head span,
-.lightbox-head strong {
-  font-size: 14px;
-}
+.lightbox-head strong { font-size: 14px; }
 
 .lightbox-head strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 18px;
 }
 
 .lightbox-image {
   position: relative;
   display: grid;
   place-items: center;
-  border-radius: 10px;
   overflow: hidden;
   background: rgba(0, 0, 0, .26);
 }
@@ -1086,52 +1075,26 @@ svg {
 }
 
 .image-fade-enter-active,
-.image-fade-leave-active {
-  transition: opacity .55s ease;
-}
+.image-fade-leave-active { transition: opacity .55s ease; }
 
 .modal-enter-active,
-.modal-leave-active {
-  transition: opacity .22s ease;
-}
+.modal-leave-active { transition: opacity .22s ease; }
 
 .image-fade-enter-from,
 .image-fade-leave-to,
 .modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
+.modal-leave-to { opacity: 0; }
 
 @media (max-width: 920px) {
-  .content {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-card {
-    position: static;
-  }
-
-  .hero-media {
-    height: 460px;
-    min-height: 360px;
-  }
+  .content { grid-template-columns: 1fr; }
+  .contact-card { position: static; }
+  .hero-media { height: 480px; min-height: 380px; }
 }
 
 @media (max-width: 560px) {
-  .hero-media {
-    height: 380px;
-    min-height: 340px;
-  }
-
-  .hero-copy {
-    bottom: 24px;
-  }
-
-  .hero-copy h1 {
-    max-width: none;
-    font-size: 26px;
-  }
-
+  .hero-media { height: 400px; min-height: 340px; }
+  .hero-copy { bottom: 24px; }
+  .hero-copy h1 { font-size: 34px; }
   .nav-prev { left: 10px; }
   .nav-next { right: 10px; }
   .hero-actions { top: 14px; right: 14px; }
@@ -1140,5 +1103,6 @@ svg {
   .thumb { flex-basis: 92px; height: 60px; }
   .section-head { align-items: flex-start; flex-direction: column; }
   .map-link { width: 100%; }
+  .section-card, .contact-card { padding: 20px; }
 }
 </style>

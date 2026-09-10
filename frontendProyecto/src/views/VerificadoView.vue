@@ -35,19 +35,50 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="state-wrap">
-    <article class="state-card">
-      <h1>{{ message || 'Verificando...' }}</h1>
-      <p v-if="auth.isLogged">Redirigiendo a tu panel...</p>
-      <RouterLink v-else to="/login" class="state-btn">Ir a login</RouterLink>
+  <section class="verify-wrap">
+    <article class="verify-card">
+      <p class="eyebrow-label">Jakeda · Verificación</p>
+      <h1 class="serif-display">{{ message || 'Verificando...' }}</h1>
+      <p v-if="auth.isLogged" class="sub">Redirigiendo a tu panel...</p>
+      <RouterLink v-else to="/login" class="btn-ink cta">Ir a login</RouterLink>
     </article>
   </section>
 </template>
 
 <style scoped>
-.state-wrap { min-height: 80vh; display: grid; place-items: center; padding: 22px; background: #f5f2ec; font-family: 'Poppins', sans-serif; }
-.state-card { width: min(94vw, 760px); background: #fff; border: 1px solid #e7dfd0; border-radius: 16px; padding: 28px; text-align: center; }
-.state-card h1 { margin: 0; color: #07182c; font-size: clamp(36px, 4vw, 50px); line-height: 1.05; }
-.state-card p { margin: 14px 0 0; color: #4f6074; font-size: 18px; }
-.state-btn { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; margin-top: 20px; padding: 0 20px; background: #D8A54D; color: #07182C; border-radius: 10px; font-weight: 700; text-decoration: none; }
+.verify-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--color-ivory);
+}
+.verify-card {
+  width: min(480px, 100%);
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-soft);
+  padding: 44px 40px;
+  text-align: center;
+}
+.verify-card h1 {
+  margin: 10px 0 0;
+  font-size: clamp(28px, 4vw, 38px);
+  color: var(--color-ink);
+}
+.sub {
+  margin: 14px 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+.cta {
+  display: inline-flex;
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px 22px;
+  text-decoration: none;
+}
+@media (max-width: 480px) {
+  .verify-card { padding: 32px 24px; }
+}
 </style>

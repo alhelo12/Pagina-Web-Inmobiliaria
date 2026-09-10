@@ -40,9 +40,10 @@ onMounted(async () => {
 <template>
   <main class="properties-page">
     <header class="properties-header reveal">
-      <p class="eyebrow">PROPIEDADES</p>
-      <h1>Encuentra tu hogar ideal</h1>
-      <p class="subtitle">Descubre nuestra selección de propiedades disponibles</p>
+      <p class="eyebrow-label">Catálogo — Jakeda</p>
+      <h1 class="serif-display">Propiedades singulares</h1>
+      <p class="subtitle">Una selección curada de casas, departamentos y terrenos</p>
+      <div class="title-rule" aria-hidden="true"><span></span></div>
     </header>
 
     <section class="properties-container">
@@ -68,8 +69,8 @@ onMounted(async () => {
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
-        <p class="empty-title">No hay propiedades disponibles</p>
-        <p class="empty-subtitle">Intenta ajustar los filtros para ver más resultados</p>
+        <p class="empty-title serif-display">Nada por aquí, todavía</p>
+        <p class="empty-subtitle">Ajusta los filtros para ver más resultados</p>
       </div>
 
       <div v-else class="grid reveal">
@@ -79,20 +80,20 @@ onMounted(async () => {
           :to="`/propiedades/${p.id}`"
           class="card-link"
         >
-<PropertyCard
-          :id="p.id"
-          :title="p.title"
-          :price="p.price"
-          :city="p.city"
-          :type="p.property_type"
-          :image="getPropertyImage(p)"
-          :transactionType="p.transaction_type"
-          :bedrooms="p.bedrooms"
-          :bathrooms="p.bathrooms"
-          :squareMeters="p.square_meters"
-          :images="p.images || []"
-          :showCta="true"
-        />
+          <PropertyCard
+            :id="p.id"
+            :title="p.title"
+            :price="p.price"
+            :city="p.city"
+            :type="p.property_type"
+            :image="getPropertyImage(p)"
+            :transactionType="p.transaction_type"
+            :bedrooms="p.bedrooms"
+            :bathrooms="p.bathrooms"
+            :squareMeters="p.square_meters"
+            :images="p.images || []"
+            :showCta="true"
+          />
         </RouterLink>
       </div>
     </section>
@@ -100,45 +101,56 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-
-
 .properties-page {
-  background: #f5f2ec;
+  background: var(--color-ivory);
+  color: var(--color-ink);
   min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--sans);
 }
 
 .properties-header {
-  padding: 50px 20px 40px;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 64px var(--container-pad) 10px;
   text-align: center;
 }
 
-.eyebrow {
-  color: #d8a54d;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
 .properties-header h1 {
-  font-size: 34px;
-  font-weight: 600;
-  color: #07182c;
-  margin: 0 0 12px;
+  margin: 10px 0 12px;
+  font-size: clamp(40px, 5.4vw, 68px);
+  color: var(--color-petrol);
 }
 
 .subtitle {
-  color: #666;
-  font-size: 15px;
   margin: 0;
+  color: var(--color-muted);
+  font-size: 15px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+}
+
+.title-rule {
+  display: flex;
+  justify-content: center;
+  margin: 26px auto 0;
+  border-top: 1px solid var(--color-line);
+  max-width: 720px;
+  position: relative;
+}
+
+.title-rule span {
+  position: absolute;
+  top: -1px;
+  width: 72px;
+  height: 2px;
+  background: var(--color-brass);
 }
 
 .properties-container {
-  max-width: 1180px;
+  max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 40px 70px;
+  padding: 18px var(--container-pad) 80px;
 }
 
 .state {
@@ -146,76 +158,70 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
-  color: #666;
+  padding: 70px 20px;
+  color: var(--color-muted);
   gap: 16px;
+  border-top: 1px solid var(--color-line);
+  margin-top: 26px;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top-color: #d8a54d;
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--color-line);
+  border-top-color: var(--color-brass-deep);
   border-radius: 50%;
   animation: spin .8s linear infinite;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.error-state {
-  color: #991b1b;
-}
-
-.error-state svg {
-  color: #991b1b;
-}
+.error-state { color: #991b1b; }
 
 .retry-btn {
-  padding: 10px 24px;
-  background: #d8a54d;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  padding: 13px 28px;
+  background: var(--color-petrol);
+  color: #fff;
+  border: 1px solid var(--color-petrol);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
   font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  transition: background .2s, transform .2s;
+  cursor: pointer;
+  transition: background .2s ease;
 }
 
-.retry-btn:hover {
-  background: #c4943f;
-  transform: translateY(-2px);
-}
+.retry-btn:hover { background: var(--color-ink); }
 
 .empty-state svg {
-  color: #d8a54d;
-  opacity: 0.6;
+  color: var(--color-brass-deep);
+  opacity: .7;
 }
 
 .empty-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #07182c;
+  font-size: 28px;
+  color: var(--color-petrol);
   margin: 0;
 }
 
 .empty-subtitle {
   font-size: 14px;
   margin: 0;
-  color: #888;
+  color: var(--color-muted);
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 28px;
-  margin-top: 10px;
+  margin-top: 34px;
 }
 
 .card-link {
   text-decoration: none;
   color: inherit;
   display: block;
+  min-width: 0;
 }
 
 .reveal {
@@ -223,14 +229,8 @@ onMounted(async () => {
 }
 
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 1024px) {
@@ -238,21 +238,8 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .properties-header {
-    padding: 40px 20px 30px;
-  }
-
-  .properties-header h1 {
-    font-size: 26px;
-  }
-
-  .properties-container {
-    padding: 0 20px 50px;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
+  .properties-header { padding: 48px 20px 8px; }
+  .properties-container { padding: 14px 20px 56px; }
+  .grid { grid-template-columns: 1fr; gap: 22px; }
 }
 </style>

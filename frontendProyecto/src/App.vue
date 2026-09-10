@@ -26,7 +26,14 @@ import ToastContainer from '@/components/shared/ToastContainer.vue'
 
 .content {
   flex: 1;
-  padding-top: 60px; /* altura real del navbar */
+  padding-top: 0;
+  background: var(--color-ivory);
+  min-height: 100dvh;
+}
+.content:has(.workspace-shell),
+.content:has(.auth-split),
+.content:has(.account-state-page) {
+  background: var(--color-ivory);
 }
 </style>
 

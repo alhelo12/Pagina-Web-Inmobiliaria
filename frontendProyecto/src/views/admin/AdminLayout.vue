@@ -13,15 +13,15 @@ import Sidebar from '@/components/admin/Sidebar.vue'
 
 <style scoped>
 .admin-layout {
-  --color-navy: #07172d;
-  --color-navy-2: #102e4f;
-  --color-gold: #d6a848;
-  --color-cream: #f5f2ec;
-  --color-card: #fffdf8;
-  --color-muted: #65717e;
-  --color-line: rgba(7, 23, 45, .1);
-  --shadow-soft: 0 18px 45px rgba(7, 23, 45, 0.12);
-  --shadow-strong: 0 24px 70px rgba(7, 23, 45, 0.22);
+  --color-navy: #102d2d;
+  --color-navy-2: #1a3f3f;
+  --color-gold: #c9a45c;
+  --color-cream: #f6f1e7;
+  --color-card: #ffffff;
+  --color-muted: #6f7a76;
+  --color-line: #e5dcc8;
+  --shadow-soft: none;
+  --shadow-strong: 0 20px 50px rgba(16, 45, 45, 0.18);
   min-height: calc(100vh - 60px);
   display: flex;
   background: var(--color-cream);
@@ -36,7 +36,43 @@ import Sidebar from '@/components/admin/Sidebar.vue'
   font-family: inherit;
 }
 
-.content { flex: 1; min-width: 0; padding: 28px; background: var(--color-cream); overflow-x: hidden; }
+/* JAKEDA private-panel: serif greeting headings */
+.admin-layout :deep(h1),
+.admin-layout :deep(h2) {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* JAKEDA private-panel: white cards, 1px line borders, no heavy shadows */
+.admin-layout :deep(.dash-header),
+.admin-layout :deep(.feed-card),
+.admin-layout :deep(.recent-card),
+.admin-layout :deep(.favorites-card),
+.admin-layout :deep(.relationship-panel),
+.admin-layout :deep(.panel),
+.admin-layout :deep(.chart-card),
+.admin-layout :deep(.metrics .card),
+.admin-layout :deep(.table-card),
+.admin-layout :deep(.table-container),
+.admin-layout :deep(.filters-bar) {
+  box-shadow: none !important;
+}
+.admin-layout :deep(.dash-header),
+.admin-layout :deep(.feed-card),
+.admin-layout :deep(.recent-card),
+.admin-layout :deep(.favorites-card),
+.admin-layout :deep(.relationship-panel),
+.admin-layout :deep(.panel),
+.admin-layout :deep(.chart-card),
+.admin-layout :deep(.table-card),
+.admin-layout :deep(.table-container),
+.admin-layout :deep(.filters-bar) {
+  border: 1px solid #e5dcc8 !important;
+  background: #ffffff !important;
+}
+
+.content { flex: 1; min-width: 0; padding: 32px; background: var(--color-cream); overflow-x: hidden; }
 @media (max-width: 900px) {
   .admin-layout { flex-direction: column; }
   .content { padding: 18px; }

@@ -39,58 +39,28 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="login-page">
+  <div class="auth">
 
-    <!-- ── Panel izquierdo navy ── -->
-    <aside class="side-panel">
-      <div class="side-content">
+    <!-- ── Panel fotográfico ── -->
+    <aside class="auth-photo">
+      <RouterLink to="/" class="brand">
+        <span class="brand-mark">J</span>
+        <span class="brand-name">JAKEDA</span>
+      </RouterLink>
 
-        <RouterLink to="/" class="brand">
-          <span class="brand-mark">J</span>
-          <span class="brand-name">JAKEDA</span>
-        </RouterLink>
-
-        <div class="side-copy">
-          <h2>Tu próxima propiedad<br/><span>te está esperando</span></h2>
-          <p>Únete a miles de personas que confían en Jakeda para comprar, vender o rentar propiedades con respaldo jurídico.</p>
-        </div>
-
-        <ul class="perks">
-          <li>
-            <div class="perk-icon">✓</div>
-            <div>
-              <strong>Asesoría personalizada</strong>
-              <span>Un experto contigo en cada paso</span>
-            </div>
-          </li>
-          <li>
-            <div class="perk-icon">✓</div>
-            <div>
-              <strong>Respaldo jurídico</strong>
-              <span>Tus transacciones protegidas</span>
-            </div>
-          </li>
-          <li>
-            <div class="perk-icon">✓</div>
-            <div>
-              <strong>Sin costos ocultos</strong>
-              <span>Transparencia en todo momento</span>
-            </div>
-          </li>
-        </ul>
-
-      </div>
+      <blockquote class="quote">
+        <p class="serif-display">“Tu próxima propiedad te está esperando.”</p>
+        <cite>Compra, vende o renta con respaldo jurídico</cite>
+      </blockquote>
     </aside>
 
-    <!-- ── Panel derecho: formulario ── -->
-    <div class="login-right">
-      <div class="login-card">
+    <!-- ── Panel marfil: formulario ── -->
+    <div class="auth-form">
+      <div class="auth-card">
 
-        <div class="card-header">
-          <div class="card-logo">J</div>
-          <h1>Iniciar sesión</h1>
-          <p class="subtitle">Acceso para administradores, asesores<br/>y clientes registrados</p>
-        </div>
+        <p class="eyebrow-label">Jakeda · Acceso</p>
+        <h1 class="serif-display">Bienvenido de vuelta</h1>
+        <p class="sub">Acceso para administradores, asesores<br />y clientes registrados</p>
 
         <!-- Error -->
         <div v-if="error" class="alert-error">
@@ -99,13 +69,13 @@ const submit = async () => {
           <button class="close-error" @click="error = ''">✕</button>
         </div>
 
-        <form @submit.prevent="submit" class="login-form">
+        <form @submit.prevent="submit" class="form">
 
-          <div class="field">
-            <label>Correo electrónico</label>
-            <div class="input-wrapper">
-              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <div class="field-underline">
+            <label class="flabel" for="login-email">Correo electrónico</label>
+            <div class="uwrap">
               <input
+                id="login-email"
                 v-model="email"
                 type="email"
                 placeholder="correo@ejemplo.com"
@@ -115,13 +85,14 @@ const submit = async () => {
             </div>
           </div>
 
-          <div class="field">
+          <div class="field-underline">
             <div class="label-row">
-              <label>Contraseña</label>
+              <label class="flabel" for="login-pass">Contraseña</label>
+              <RouterLink to="/recuperar-contrasena" class="forgot">¿Olvidaste tu contraseña?</RouterLink>
             </div>
-            <div class="input-wrapper">
-              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div class="uwrap">
               <input
+                id="login-pass"
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="••••••••••"
@@ -135,7 +106,7 @@ const submit = async () => {
             </div>
           </div>
 
-          <button class="login-btn" type="submit" :disabled="loading">
+          <button class="btn-ink cta" type="submit" :disabled="loading">
             <span v-if="!loading">Ingresar →</span>
             <span v-else class="loading-text">
               <svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -147,11 +118,8 @@ const submit = async () => {
 
         <div class="divider"><span>o</span></div>
 
-        <p class="register-text">¿Quieres vender o rentar una propiedad?</p>
-        <RouterLink to="/registro" class="register-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Crear cuenta y registrar propiedad
-        </RouterLink>
+        <p class="alt-text">¿Quieres vender o rentar una propiedad?</p>
+        <RouterLink to="/registro" class="btn-ink cta alt">Crear cuenta y registrar propiedad</RouterLink>
 
       </div>
     </div>
@@ -160,205 +128,91 @@ const submit = async () => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-* { box-sizing: border-box; }
-
-.login-page {
+.auth {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 0.6fr 1fr;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(to bottom, rgba(5, 15, 35, 0.65) 0%, rgba(7, 23, 45, 0.65) 60%, rgba(5, 15, 35, 0.65) 100%), url('@/assets/images/fondo2.jpg') center center / cover no-repeat fixed;
+  grid-template-columns: 1.05fr 1fr;
+  background: var(--color-ivory);
 }
 
-/* ── Panel izquierdo navy ── */
-.side-panel {
-  background: linear-gradient(to bottom, rgba(15, 42, 68, 0.65) 0%, rgba(15, 42, 68, 0.65) 100%);
+/* ── Panel fotográfico ── */
+.auth-photo {
   position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 56px;
-}
-
-.side-panel::before {
-  content: '';
-  position: absolute;
-  top: -120px;
-  right: -120px;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: rgba(242, 201, 76, 0.06);
-  pointer-events: none;
-}
-
-.side-panel::after {
-  content: '';
-  position: absolute;
-  bottom: -80px;
-  left: -80px;
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background: rgba(242, 201, 76, 0.04);
-  pointer-events: none;
-}
-
-.side-content {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 48px;
-  max-width: 380px;
-  width: 100%;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 36px 44px 48px;
+  background: url('@/assets/images/fondo2.jpg') center / cover no-repeat;
+  color: #fff;
+  overflow: hidden;
 }
+.auth-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(7, 27, 28, 0.85) 0%, rgba(7, 27, 28, 0.35) 55%, rgba(7, 27, 28, 0.45) 100%);
+}
+.auth-photo > * { position: relative; z-index: 1; }
 
-/* Brand */
 .brand {
   display: inline-flex;
   align-items: center;
   gap: 12px;
   text-decoration: none;
+  align-self: flex-start;
 }
-
 .brand-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #f2c94c, #e6b830);
-  color: #0f2a44;
-  font-weight: 800;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: var(--color-brass);
+  color: var(--color-ink);
+  font-family: var(--serif);
+  font-weight: 700;
   font-size: 20px;
-  display: grid;
-  place-items: center;
 }
-
 .brand-name {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #ffffff;
-}
-
-/* Copy */
-.side-copy h2 {
-  font-size: clamp(34px, 3.8vw, 42px);
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  margin: 0 0 16px;
-}
-
-.side-copy h2 span { color: #f2c94c; }
-
-.side-copy p {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.8;
-  margin: 0;
-}
-
-/* Perks */
-.perks {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.perks li {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.perk-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: rgba(242, 201, 76, 0.15);
-  border: 1px solid rgba(242, 201, 76, 0.3);
-  color: #f2c94c;
-  font-size: 13px;
+  font-size: 20px;
   font-weight: 700;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  margin-top: 2px;
+  letter-spacing: 0.12em;
+  color: #fff;
 }
 
-.perks li strong {
-  display: block;
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 2px;
+.quote { margin: 0; max-width: 420px; }
+.quote p {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 3.2vw, 40px);
+  color: #fff;
 }
-
-.perks li span {
+.quote cite {
+  font-style: normal;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.75);
 }
 
-/* ── Panel derecho ── */
-.login-right {
-  width: 100%;
-  min-height: 100vh;
+/* ── Panel marfil ── */
+.auth-form {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 40px;
-  background: linear-gradient(to bottom, rgba(5, 15, 35, 0.65) 0%, rgba(7, 23, 45, 0.65) 60%, rgba(5, 15, 35, 0.65) 100%);
-  overflow-y: auto;
+  padding: clamp(36px, 5vw, 72px) clamp(24px, 5vw, 72px);
+  background: var(--color-ivory);
 }
+.auth-card { width: min(420px, 100%); }
 
-.login-card {
-  background: white;
-  padding: 48px 44px;
-  width: 100%;
-  max-width: 440px;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+.auth-card h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(34px, 3.6vw, 46px);
+  color: var(--color-ink);
 }
-
-.card-logo {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #d4a34a, #f0c36f);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 22px;
-  color: #091d39;
-  margin: 0 auto 16px;
-  font-family: 'Georgia', 'Times New Roman', serif;
-}
-
-.card-header { margin-bottom: 32px; text-align: center; }
-
-.card-header h1 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 32px;
-  font-weight: 400;
-  color: #07172d;
-  margin: 0 0 8px;
-}
-
-.subtitle {
+.sub {
+  margin: 0 0 28px;
   font-size: 14px;
-  color: #65717e;
-  line-height: 1.6;
-  margin: 0;
+  line-height: 1.7;
+  color: var(--color-muted);
 }
 
 /* Error */
@@ -366,18 +220,15 @@ const submit = async () => {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: #fef2f2;
+  background: #fdf3f0;
   color: #b91c1c;
   padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid #fecaca;
+  border: 1px solid #f0d5cd;
   font-size: 13px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   line-height: 1.5;
 }
-
 .alert-error svg { flex-shrink: 0; margin-top: 1px; }
-
 .close-error {
   background: none;
   border: none;
@@ -391,99 +242,53 @@ const submit = async () => {
 }
 .close-error:hover { opacity: 1; }
 
-/* Formulario */
-.login-form { display: flex; flex-direction: column; }
-
-.field { margin-bottom: 20px; }
-
-.field label {
+/* Formulario underline */
+.form { display: flex; flex-direction: column; }
+.field-underline { margin-bottom: 24px; }
+.flabel {
   display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #07172d;
-  margin-bottom: 7px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  margin-bottom: 2px;
 }
-
 .label-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 7px;
+  align-items: baseline;
+  gap: 12px;
 }
-
-.label-row label { margin-bottom: 0; }
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
+.label-row .flabel { margin-bottom: 2px; }
+.forgot {
+  font-size: 12px;
+  color: var(--color-brass-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
 }
-
-.input-icon {
-  position: absolute;
-  left: 13px;
-  color: #65717e;
-  pointer-events: none;
-}
-
-.input-wrapper input {
-  width: 100%;
-  padding: 11px 14px 11px 40px;
-  border: 1.5px solid #dde2ec;
-  border-radius: 9px;
-  font-size: 14px;
-  font-family: 'Poppins', sans-serif;
-  color: #07172d;
-  background: #fafaf8;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  outline: none;
-}
-
-.input-wrapper input::placeholder { color: #a0adb8; }
-
-.input-wrapper input:focus {
-  border-color: #07172d;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(7, 23, 45, 0.08);
-}
-
+.uwrap { position: relative; display: flex; align-items: center; }
+.uwrap input { padding-right: 34px; }
+.uwrap input::placeholder { color: #a9a294; }
 .toggle-password {
   position: absolute;
-  right: 12px;
+  right: 2px;
   background: none;
   border: none;
   cursor: pointer;
-  color: #65717e;
-  padding: 4px;
+  color: var(--color-muted);
+  padding: 6px;
   display: flex;
   align-items: center;
 }
-.toggle-password:hover { color: #07172d; }
+.toggle-password:hover { color: var(--color-ink); }
 
-/* Botón principal */
-.login-btn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 13px;
-  background: #d4a34a;
-  color: white;
-  border: none;
-  border-radius: 9px;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-  letter-spacing: 0.3px;
-}
-
-.login-btn:hover:not(:disabled) {
-  background: #b8892e;
-  box-shadow: 0 4px 14px rgba(212, 163, 74, 0.35);
-}
-
-.login-btn:active:not(:disabled) { transform: translateY(1px); }
-.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+/* CTA petrol full-width */
+.cta { width: 100%; margin-top: 8px; padding: 16px 22px; }
+.cta:disabled { opacity: 0.6; cursor: not-allowed; }
+.cta.alt { text-decoration: none; background: transparent; color: var(--color-petrol); }
+.cta.alt:hover { background: var(--color-petrol); color: #fff; }
 
 .loading-text {
   display: flex;
@@ -491,9 +296,7 @@ const submit = async () => {
   justify-content: center;
   gap: 8px;
 }
-
 .spin { animation: spin 0.8s linear infinite; }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Divisor */
@@ -501,73 +304,28 @@ const submit = async () => {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 28px 0 20px;
-  color: #a0adb8;
+  margin: 28px 0 18px;
+  color: #a9a294;
   font-size: 13px;
 }
-
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #e5e9f0;
+  background: var(--color-line);
 }
-
-/* Botón registro */
-.register-text {
+.alt-text {
   font-size: 13.5px;
-  color: #65717e;
+  color: var(--color-muted);
   text-align: center;
   margin: 0 0 12px;
 }
 
-.register-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  background: #07172d;
-  color: white;
-  border: none;
-  border-radius: 9px;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-
-.register-btn:hover {
-  background: #051525;
-  box-shadow: 0 4px 14px rgba(7, 23, 45, 0.2);
-}
-
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .login-page { grid-template-columns: 1fr; }
-
-  .side-panel {
-    padding: 40px 32px;
-    min-height: auto;
-  }
-
-  .perks { display: none; }
-
-  .login-right { padding: 40px 24px; }
-}
-
-@media (max-width: 768px) {
-  .login-card { padding: 36px 28px; }
-}
-
-@media (max-width: 480px) {
-  .login-right { padding: 24px 16px; }
-  .login-card { padding: 28px 20px; }
-  .card-header h1 { font-size: 26px; }
-  .side-panel { padding: 32px 24px; }
+  .auth { grid-template-columns: 1fr; }
+  .auth-photo { min-height: 300px; padding: 28px 24px 32px; }
+  .quote p { font-size: clamp(24px, 6vw, 30px); }
 }
 </style>
