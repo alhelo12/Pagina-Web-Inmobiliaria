@@ -49,7 +49,8 @@ Tres roles con layouts y vistas independientes: `client/`, `advisor/`, `admin/`.
 
 ## Requisitos
 
-- **Python** 3.10+
+- **Python** 3.13+
+- **uv** (gestor de paquetes Python)
 - **PostgreSQL** 15+
 - **Node.js** 18+
 - **npm** 9+
@@ -65,13 +66,14 @@ Tres roles con layouts y vistas independientes: `client/`, `advisor/`, `admin/`.
 git clone <repo>
 cd backend
 
-# 2. Entorno virtual
-python -m venv venv
-venv\Scripts\activate   # Windows
-source venv/bin/activate # Linux/Mac
+# 2. Instalar uv (solo una vez por máquina)
+# Windows:
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+# Linux/Mac:
+# curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 3. Dependencias
-pip install -r requirements.txt
+# 3. Dependencias (crea .venv y sincroniza solo con `uv run`)
+uv sync
 
 # 4. Variables de entorno
 cp .env-example.txt .env
@@ -79,18 +81,21 @@ cp .env-example.txt .env
 
 # 5. Base de datos (usar migraciones, NO el dump SQL)
 psql -U postgres -c "CREATE DATABASE inmobiliaria_db"
-alembic upgrade head
+uv run alembic upgrade head
 
 # 6. (Opcional) Cargar datos de prueba desde dump SQL
 # psql -U postgres -d inmobiliaria_db -f docs/inmobiliaria_db.sql
 
 # 7. Crear usuario admin manualmente (requerido tras migración limpia)
-# python -c "from app.core.security import hash_password; print(hash_password('TU_PASSWORD_SEGURA'))"
+# uv run python -c "from app.core.security import hash_password; print(hash_password('TU_PASSWORD_SEGURA'))"
 # Insertar el hash resultante en la BD con rol admin
 
-# 8. Servidor
-uvicorn app.main:app --reload
+# 8. Servidor (`uv run` instala/sincroniza dependencias automáticamente)
+uv run uvicorn app.main:app --reload
 ```
+
+> `requirements.txt` se conserva solo como respaldo para `pip`. La fuente
+> de verdad es `pyproject.toml` + `uv.lock`.
 
 ### Frontend
 
@@ -132,9 +137,11 @@ npm run dev
 
 | Comando | Descripción |
 |---------|------------|
-| `uvicorn app.main:app --reload` | Iniciar backend (dev) |
-| `alembic upgrade head` | Aplicar migraciones |
-| `alembic revision --autogenerate -m "msg"` | Generar migración |
+| `uv run uvicorn app.main:app --reload` | Iniciar backend (dev) |
+| `uv run alembic upgrade head` | Aplicar migraciones |
+| `uv run alembic revision --autogenerate -m "msg"` | Generar migración |
+| `uv run pytest` | Correr tests backend |
+| `uv run ruff check .` | Lint backend |
 | `npm run dev` | Iniciar frontend (dev) |
 | `npm run build` | Build producción |
 | `npm run preview` | Vista previa build |

@@ -1,7 +1,11 @@
 # Python
 __pycache__/
 *.pyc
+.pytest_cache/
+.ruff_cache/
 backend/venv/
+backend/.venv/
+.venv/
 backend/.env
 frontendProyecto/.env
 

@@ -15,7 +15,7 @@ Guía para agentes de IA trabajando en este repo.
 
 ## Comandos
 
-- Backend: `cd backend && uvicorn app.main:app --reload`, migraciones `alembic upgrade head`.
+- Backend: `cd backend && uv run uvicorn app.main:app --reload`, migraciones `uv run alembic upgrade head`. Deps vía `uv sync` (`pyproject.toml` + `uv.lock`; `requirements.txt` solo respaldo). Python >=3.13.
 - Frontend: `cd frontendProyecto && npm run dev`, build `npm run build`.
 
 ## Convenciones
