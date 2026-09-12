@@ -299,7 +299,7 @@ onUnmounted(() => {
           <tbody>
             <tr v-for="p in filtered" :key="p.id">
               <td class="td-thumb">
-                <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
+                <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
               </td>
               <td class="td-title">{{ p.title }}</td>
               <td class="registered-at">{{ formatRegisteredAt(p.created_at) }}</td>
@@ -344,7 +344,7 @@ onUnmounted(() => {
       <div class="mobile-cards">
         <div v-for="p in filtered" :key="p.id" class="mobile-card">
           <div class="mc-header">
-            <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
+            <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
             <div class="mc-title-group">
               <strong class="mc-title">{{ p.title }}</strong>
               <small class="mc-date">{{ formatRegisteredAt(p.created_at) }}</small>
@@ -445,7 +445,7 @@ onUnmounted(() => {
 
 .table-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 16px; }
 .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.filters button { border: 1px solid var(--color-line); background: #fff; padding: 7px 12px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: background .2s ease, color .2s ease, border-color .2s ease; cursor: pointer; }
+.filters button { border: 1px solid var(--color-line); background: #fff; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 7px 14px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: background .2s ease, color .2s ease, border-color .2s ease; cursor: pointer; }
 .filters button.active, .filters button:hover { background: #102d2d; color: #f3ede0; border-color: #102d2d; }
 .table-wrap {
   width: 100%;
@@ -478,7 +478,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .aprobada { color: #166534; }
 .rechazada { color: #991b1b; }
 .actions { vertical-align: top; white-space: nowrap; }
-.actions button { display: inline-flex; align-items: center; gap: 4px; border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: filter .2s ease; cursor: pointer; margin-right: 6px; }
+.actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: none; border-radius: 7px; min-height: 44px; padding: 6px 12px; font-size: 12px; font-weight: 700; transition: filter .2s ease; cursor: pointer; margin-right: 6px; }
 .actions button:last-child { margin-right: 0; }
 .actions button:hover { filter: brightness(1.02); }
 .view { background: rgba(201, 164, 92, .16); color: #7a5c1e; }
@@ -558,10 +558,12 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
   border-bottom: 1px solid var(--color-line);
   background: #faf5e9;
 }
-.popover-header strong { color: #102d2d; font-size: 14px; font-family: Georgia, 'Times New Roman', serif; }
+.popover-header strong { color: #102d2d; font-size: 14px; font-family: var(--serif); }
 .popover-close {
-  width: 26px;
-  height: 26px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   border: none;
   background: rgba(16, 45, 45, 0.07);
@@ -577,7 +579,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 
 /* Pagination */
 .pagination { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--color-line); flex-wrap: wrap; }
-.pagination button { padding: 6px 11px; border-radius: 7px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--color-line); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
+.pagination button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 11px; border-radius: 7px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--color-line); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
 .pagination button:hover:not(:disabled) { border-color: var(--color-navy); color: var(--color-navy); }
 .pagination button.active { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
 .pagination button:disabled { opacity: .4; cursor: not-allowed; }
@@ -599,7 +601,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
 .mc-body span strong { color: var(--color-muted); font-weight: 600; }
 .mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.mc-actions button { border: none; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.mc-actions button { border: none; border-radius: 7px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
 
 @media (max-width: 900px) {
   .table-wrap table th:nth-child(3),

@@ -6,6 +6,7 @@
   --color-ivory-2: #ece6d8;
   --color-brass: #b9945f;
   --color-brass-deep: #97773f;
+  --color-brass-ink: #7a5c1e;
   --color-charcoal: #232a2a;
   --color-line: #ddd5c3;
   /* legacy aliases */
@@ -15,7 +16,7 @@
   --color-gold: #b9945f;
   --color-cream: #f3eee4;
   --color-card: #fffdf8;
-  --color-muted: #6b7268;
+  --color-muted: #5f665f;
   --shadow-soft: 0 18px 45px rgba(7, 27, 28, 0.12);
   --shadow-strong: 0 24px 70px rgba(7, 27, 28, 0.22);
   --container-max: 1280px;
@@ -65,8 +66,8 @@ body {
   font-size: 11px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-brass-deep);
+  font-weight: 700;
+  color: var(--color-brass-ink);
 }
 
 .btn-brass {
@@ -75,17 +76,17 @@ body {
   justify-content: center;
   gap: 10px;
   background: var(--color-brass);
-  color: #fff;
+  color: var(--color-ink);
   border: 1px solid var(--color-brass);
   padding: 14px 26px;
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
-.btn-brass:hover { background: var(--color-brass-deep); transform: translateY(-1px); }
+.btn-brass:hover { background: var(--color-petrol); border-color: var(--color-petrol); color: #fff; transform: translateY(-1px); }
 .btn-brass:active { transform: translateY(1px) scale(0.99); }
 
 .btn-ghost-light {
@@ -143,6 +144,17 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-brass);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 a {

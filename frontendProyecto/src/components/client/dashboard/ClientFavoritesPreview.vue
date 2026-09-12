@@ -45,6 +45,7 @@ const getPrice = (fav) => {
           <img
             :src="getPropertyImage(fav.favorited_property ?? fav.property ?? fav) || FALLBACK_PROPERTY_IMAGE"
             :alt="getTitle(fav)"
+            loading="lazy"
             @error="(e) => { e.target.src = FALLBACK_PROPERTY_IMAGE }"
           />
         </div>

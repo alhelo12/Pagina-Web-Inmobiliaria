@@ -112,7 +112,7 @@ onMounted(async () => {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 64px var(--container-pad) 10px;
-  text-align: center;
+  text-align: left;
 }
 
 .properties-header h1 {
@@ -132,8 +132,8 @@ onMounted(async () => {
 
 .title-rule {
   display: flex;
-  justify-content: center;
-  margin: 26px auto 0;
+  justify-content: flex-start;
+  margin: 26px 0 0;
   border-top: 1px solid var(--color-line);
   max-width: 720px;
   position: relative;
@@ -179,6 +179,10 @@ onMounted(async () => {
 .error-state { color: #991b1b; }
 
 .retry-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 13px 28px;
   background: var(--color-petrol);
   color: #fff;

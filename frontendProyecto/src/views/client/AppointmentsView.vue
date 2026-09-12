@@ -202,15 +202,15 @@ onMounted(async () => {
       <h3>Nueva Cita</h3>
       <div class="form-grid">
         <div class="form-group">
-          <label>Tipo de visita</label>
-          <select v-model="form.appointment_type">
+          <label for="appt-type">Tipo de visita</label>
+          <select id="appt-type" v-model="form.appointment_type">
             <option value="viewing">Visita</option>
             <option value="inspection">Inspección</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Propiedad</label>
-          <select v-model="form.property_id">
+          <label for="appt-property">Propiedad</label>
+          <select id="appt-property" v-model="form.property_id">
             <option value="">-- Seleccionar propiedad --</option>
             <option v-for="p in myProperties" :key="p.id" :value="p.id">
               {{ p.title }} ({{ p.city }})
@@ -218,16 +218,16 @@ onMounted(async () => {
           </select>
         </div>
         <div class="form-group">
-          <label>Fecha</label>
-          <input type="date" v-model="form.scheduled_date" :min="today" />
+          <label for="appt-date">Fecha</label>
+          <input id="appt-date" type="date" v-model="form.scheduled_date" :min="today" />
         </div>
         <div class="form-group">
-          <label>Hora</label>
-          <input type="time" v-model="form.scheduled_time" :min="today === form.scheduled_date ? minDateTime.slice(11, 16) : '08:00'" />
+          <label for="appt-time">Hora</label>
+          <input id="appt-time" type="time" v-model="form.scheduled_time" :min="today === form.scheduled_date ? minDateTime.slice(11, 16) : '08:00'" />
         </div>
         <div class="form-group form-group-full">
-          <label>Notas (opcional)</label>
-          <textarea v-model="form.notes" rows="3" placeholder="Detalles adicionales para el asesor..." maxlength="500"></textarea>
+          <label for="appt-notes">Notas (opcional)</label>
+          <textarea id="appt-notes" v-model="form.notes" rows="3" placeholder="Detalles adicionales para el asesor..." maxlength="500"></textarea>
         </div>
       </div>
       <div v-if="error" class="error-message">{{ error }}</div>
@@ -303,6 +303,10 @@ onMounted(async () => {
 }
 
 .btn-add {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 22px;
   background: var(--color-petrol);
   color: #fff;
@@ -322,6 +326,10 @@ onMounted(async () => {
 }
 
 .btn-cancel {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 10px 18px;
   background: transparent;
   color: var(--color-petrol);
@@ -381,6 +389,7 @@ onMounted(async () => {
 .form-group select,
 .form-group input,
 .form-group textarea {
+  min-height: 44px;
   padding: 10px 14px;
   border: 1px solid var(--color-line);
   border-radius: 8px;
@@ -407,6 +416,10 @@ onMounted(async () => {
 }
 
 .btn-save {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 24px;
   background: var(--color-petrol);
   color: #fff;
@@ -509,7 +522,8 @@ onMounted(async () => {
 }
 
 .appointment-card.pending {
-  border-left: 3px solid var(--color-brass);
+  border-color: var(--color-brass);
+  background: #faf5e9;
 }
 
 .appointment-header {
@@ -601,6 +615,10 @@ onMounted(async () => {
   background: var(--color-petrol);
   color: #fff;
   border: 1px solid var(--color-petrol);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 8px 16px;
   border-radius: 8px;
   font-weight: 600;
@@ -620,7 +638,7 @@ onMounted(async () => {
 .verify-card h2 { font-size: 24px; font-family: var(--serif); font-weight: 500; color: var(--color-petrol); margin: 0 0 12px; }
 .verify-card p { color: var(--color-muted); font-size: 14px; margin: 0 0 8px; }
 .verify-hint { font-size: 13px; color: var(--color-muted); margin-bottom: 24px !important; }
-.verify-btn { padding: 12px 28px; border: 1px solid var(--color-petrol); border-radius: 8px; background: var(--color-petrol); color: #fff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; cursor: pointer; }
+.verify-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 12px 28px; border: 1px solid var(--color-petrol); border-radius: 8px; background: var(--color-petrol); color: #fff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; cursor: pointer; }
 .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .verify-sent { margin-top: 12px !important; color: #065f46 !important; font-weight: 600; }
 

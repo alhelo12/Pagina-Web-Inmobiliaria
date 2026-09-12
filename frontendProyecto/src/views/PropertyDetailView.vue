@@ -4,6 +4,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import L from 'leaflet'
 import { propertiesApi } from '@/api/properties'
 import apiClient from '@/api/axios'
+import { appointmentsApi } from '@/api/appointments'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { useAuthStore } from '@/stores/authStore'
 import { FALLBACK_PROPERTY_IMAGE, normalizeImageUrl } from '@/utils/propertyImages'
@@ -20,9 +21,35 @@ const activeImg = ref(0)
 const activeGallery = ref('general')
 const toggling = ref(false)
 const lightboxOpen = ref(false)
+const lightboxPanel = ref(null)
+let lastFocusedEl = null
+const autoplayPaused = ref(false)
 const mapEl = ref(null)
 const contactStatus = ref('idle')
 const contactMessage = ref('')
+const bookingDate = ref('')
+const bookingTime = ref('')
+const bookingStatus = ref('idle')
+const bookingMessage = ref('')
+const bookingConfirmed = ref('')
+const bookingId = ref(null)
+const cancelStatus = ref('idle')
+const cancelMessage = ref('')
+const BOOKING_HOURS = ['09:00', '10:00', '11:00', '12:00', '13:00', '15:00', '16:00', '17:00', '18:00']
+const advisorName = computed(() => property.value?.advisor?.user?.full_name?.trim() || '')
+const advisorAgency = computed(() => property.value?.advisor?.agency_name?.trim() || '')
+const advisorDisplay = computed(() => {
+  const name = advisorName.value || 'Tu asesor JAKEDA'
+  return advisorAgency.value ? `${name} · ${advisorAgency.value}` : name
+})
+const isPastHour = (hour) => {
+  if (bookingDate.value !== todayMin) return false
+  const now = new Date()
+  const [hh, mm] = hour.split(':').map(Number)
+  return hh * 60 + mm <= now.getHours() * 60 + now.getMinutes()
+}
+const todayMin = new Date().toISOString().slice(0, 10)
+const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
 let autoplayTimer = null
 let mapInstance = null
@@ -69,7 +96,7 @@ const galleryTabs = computed(() => {
       label: 'Fachada',
       count: generalImages.value.length,
       images: generalImages.value,
-      value: property.value?.square_meters ? `${property.value.square_meters} m2` : 'Fotos'
+      value: generalImages.value.length
     }
   ]
 
@@ -133,11 +160,17 @@ const resetAutoplay = () => {
   window.clearInterval(autoplayTimer)
   autoplayTimer = null
 
+  if (reducedMotion() || autoplayPaused.value) return
   if (generalImages.value.length > 1 && !lightboxOpen.value) {
     autoplayTimer = window.setInterval(() => {
       activeImg.value = (activeImg.value + 1) % generalImages.value.length
     }, 5000)
   }
+}
+
+const toggleAutoplay = () => {
+  autoplayPaused.value = !autoplayPaused.value
+  resetAutoplay()
 }
 
 const goTo = (index) => {
@@ -162,14 +195,36 @@ const selectGallery = (key) => {
 }
 
 const openLightbox = (index = activeImg.value) => {
+  lastFocusedEl = document.activeElement
   activeImg.value = index
   lightboxOpen.value = true
   resetAutoplay()
+  nextTick(() => {
+    lightboxPanel.value?.querySelector('button')?.focus()
+  })
 }
 
 const closeLightbox = () => {
   lightboxOpen.value = false
   resetAutoplay()
+  nextTick(() => {
+    lastFocusedEl?.focus?.()
+  })
+}
+
+const trapLightbox = (e) => {
+  if (!lightboxOpen.value || e.key !== 'Tab' || !lightboxPanel.value) return
+  const focusables = lightboxPanel.value.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')
+  if (!focusables.length) return
+  const first = focusables[0]
+  const last = focusables[focusables.length - 1]
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault()
+    last.focus()
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault()
+    first.focus()
+  }
 }
 
 const handleContactAdvisor = async () => {
@@ -201,7 +256,7 @@ const handleContactAdvisor = async () => {
     contactStatus.value = 'success'
     contactMessage.value = 'Conversacion iniciada correctamente'
     setTimeout(() => {
-      router.push('/client/mensajes')
+      router.push(auth.role === 'advisor' ? '/advisor/mensajes' : '/cliente/mensajes')
     }, 800)
   } catch (err) {
     contactStatus.value = 'error'
@@ -210,6 +265,67 @@ const handleContactAdvisor = async () => {
       contactStatus.value = 'idle'
       contactMessage.value = ''
     }, 3000)
+  }
+}
+
+const bookingSubmit = async () => {
+  if (bookingStatus.value === 'sending') return
+  bookingMessage.value = ''
+  bookingConfirmed.value = ''
+  if (!auth.isLogged) {
+    bookingStatus.value = 'error'
+    bookingMessage.value = 'Inicia sesión para agendar una visita'
+    return
+  }
+  if (!bookingDate.value) {
+    bookingStatus.value = 'error'
+    bookingMessage.value = 'Selecciona una fecha para la visita'
+    return
+  }
+  const advisorId = property.value?.advisor_id
+  if (!advisorId) {
+    bookingStatus.value = 'error'
+    bookingMessage.value = 'Esta propiedad no tiene asesor asignado'
+    return
+  }
+  bookingStatus.value = 'sending'
+  cancelStatus.value = 'idle'
+  cancelMessage.value = ''
+  bookingId.value = null
+  try {
+    const { data } = await appointmentsApi.create({
+      client_id: auth.userId,
+      property_id: property.value.id,
+      advisor_id: advisorId,
+      scheduled_date: `${bookingDate.value}T${bookingTime.value || '10:00'}:00`,
+      appointment_type: 'viewing'
+    })
+    bookingId.value = data?.id ?? data?.appointment?.id ?? null
+    bookingStatus.value = 'success'
+    const [y, m, d] = bookingDate.value.split('-').map(Number)
+    const datePart = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(y, m - 1, d))
+    bookingConfirmed.value = bookingTime.value
+      ? `${datePart} a las ${bookingTime.value}`
+      : datePart
+  } catch (err) {
+    bookingStatus.value = 'error'
+    bookingMessage.value = err.response?.data?.detail || 'No se pudo agendar la visita'
+  }
+}
+
+const cancelBooking = async () => {
+  if (!bookingId.value || cancelStatus.value === 'sending') return
+  cancelStatus.value = 'sending'
+  cancelMessage.value = ''
+  try {
+    await appointmentsApi.delete(bookingId.value)
+    cancelStatus.value = 'success'
+    bookingStatus.value = 'idle'
+    bookingConfirmed.value = ''
+    bookingId.value = null
+  } catch (err) {
+    cancelStatus.value = 'error'
+    cancelMessage.value = err.response?.data?.detail || 'No se pudo cancelar la visita'
   }
 }
 
@@ -239,7 +355,7 @@ const initMap = async () => {
     scrollWheelZoom: false,
     doubleClickZoom: false,
     boxZoom: false,
-    keyboard: false,
+    keyboard: true,
     zoomControl: true
   }).setView([lat, lng], 16)
 
@@ -267,10 +383,16 @@ watch(images, () => {
   resetAutoplay()
 })
 
+watch(bookingDate, () => {
+  if (bookingTime.value && isPastHour(bookingTime.value)) bookingTime.value = ''
+})
+
 watch(lightboxOpen, resetAutoplay)
 
 onMounted(async () => {
   window.addEventListener('keydown', onKey)
+  window.addEventListener('keydown', trapLightbox)
+  autoplayPaused.value = reducedMotion()
   try {
     const { data } = await propertiesApi.getById(route.params.id)
     property.value = data
@@ -285,6 +407,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener('keydown', trapLightbox)
   window.clearInterval(autoplayTimer)
   destroyMap()
 })
@@ -321,6 +444,17 @@ onUnmounted(() => {
 
         <div class="hero-actions">
           <span class="counter">{{ activeImg + 1 }} / {{ generalImages.length }}</span>
+          <button
+            v-if="generalImages.length > 1"
+            class="icon-btn"
+            type="button"
+            :aria-pressed="String(!autoplayPaused)"
+            :aria-label="autoplayPaused ? 'Reanudar presentación' : 'Pausar presentación'"
+            @click="toggleAutoplay"
+          >
+            <svg v-if="autoplayPaused" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+          </button>
           <button class="icon-btn" type="button" aria-label="Ver foto en grande" @click="openLightbox()">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
           </button>
@@ -352,9 +486,10 @@ onUnmounted(() => {
           :key="img.id ?? index"
           :class="['thumb', { active: activeGallery === 'general' && activeImg === index }]"
           type="button"
+          :aria-selected="activeGallery === 'general' && activeImg === index"
           @click="selectGallery('general'); goTo(index)"
         >
-          <img :src="img.image_url" :alt="`Foto general ${index + 1}`" />
+          <img :src="img.image_url" :alt="`Foto general ${index + 1}`" loading="lazy" />
         </button>
       </div>
     </section>
@@ -384,6 +519,7 @@ onUnmounted(() => {
             :key="tab.key"
             :class="['feature-card', { active: activeGallery === tab.key }]"
             type="button"
+            :aria-selected="activeGallery === tab.key"
             @click="selectGallery(tab.key)"
           >
             <span class="feature-icon">
@@ -438,7 +574,8 @@ onUnmounted(() => {
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5.5-8 11-8 11s-8-5.5-8-11a8 8 0 1 1 16 0Z"/><path d="M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
             <span>{{ property.address }}, {{ property.city }}</span>
           </div>
-          <div v-if="hasCoords" ref="mapEl" class="map-box"></div>
+          <div v-if="hasCoords" ref="mapEl" class="map-box" tabindex="0" aria-label="Mapa de ubicación de la propiedad"></div>
+          <p v-if="hasCoords" class="map-alt">Dirección: {{ property.address }}, {{ property.city }}</p>
           <p v-else class="empty-note">Esta propiedad no tiene coordenadas registradas.</p>
         </div>
       </div>
@@ -470,6 +607,39 @@ onUnmounted(() => {
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
             <span>{{ contactMessage || 'Error. Reintentar' }}</span>
           </button>
+          <div class="booking-block">
+            <h3>Agendar visita</h3>
+            <p class="booking-advisor">Te atiende {{ advisorDisplay }}</p>
+            <form @submit.prevent="bookingSubmit" class="booking-form">
+              <label for="booking-date">Fecha</label>
+              <input id="booking-date" v-model="bookingDate" type="date" :min="todayMin" />
+              <label for="booking-time">Hora (opcional)</label>
+              <select id="booking-time" v-model="bookingTime">
+                <option value="">Selecciona hora</option>
+                <option v-for="hour in BOOKING_HOURS" :key="hour" :value="hour" :disabled="isPastHour(hour)">{{ hour }}</option>
+              </select>
+              <button class="secondary-link booking-btn" type="submit" :disabled="bookingStatus === 'sending'">
+                {{ bookingStatus === 'sending' ? 'Agendando...' : 'Agendar visita' }}
+              </button>
+              <p class="booking-sla">El asesor confirma tu visita. Te avisamos por notificación.</p>
+            </form>
+            <p v-if="bookingStatus === 'success'" class="booking-success" role="status">
+              Visita agendada para el {{ bookingConfirmed }}.
+              <RouterLink to="/cliente/citas">Ver mis citas</RouterLink>
+            </p>
+            <p v-if="bookingStatus === 'error'" class="booking-error" role="alert">{{ bookingMessage }}</p>
+            <button
+              v-if="bookingStatus === 'success' && bookingId"
+              class="secondary-link booking-cancel-btn"
+              type="button"
+              :disabled="cancelStatus === 'sending'"
+              @click="cancelBooking"
+            >
+              {{ cancelStatus === 'sending' ? 'Cancelando...' : 'Cancelar visita' }}
+            </button>
+            <p v-if="cancelStatus === 'success'" class="booking-cancelled" role="status">Visita cancelada.</p>
+            <p v-if="cancelStatus === 'error'" class="booking-error" role="alert">{{ cancelMessage }}</p>
+          </div>
           <RouterLink to="/propiedades" class="secondary-link">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
             Ver más propiedades
@@ -480,8 +650,8 @@ onUnmounted(() => {
 
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="lightboxOpen" class="lightbox" @click.self="closeLightbox">
-          <div class="lightbox-panel">
+        <div v-if="lightboxOpen" class="lightbox" role="dialog" aria-modal="true" aria-label="Vista ampliada de fotos" @click.self="closeLightbox">
+          <div ref="lightboxPanel" class="lightbox-panel">
             <header class="lightbox-head">
               <span>{{ activeImg + 1 }} / {{ images.length }}</span>
               <strong>{{ images[activeImg]?.label || selectedLabel }}</strong>
@@ -595,22 +765,32 @@ svg {
 .badges span {
   display: inline-flex;
   align-items: center;
+  gap: 7px;
   min-height: 28px;
-  padding: 5px 13px;
-  background: rgba(255, 255, 255, .12);
-  border: 1px solid rgba(255, 255, 255, .26);
-  color: #fff;
+  padding: 6px 12px 6px 10px;
+  background: rgba(7, 27, 28, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 0;
+  border-radius: 999px;
+  color: #f3eee4;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .18em;
   text-transform: uppercase;
-  backdrop-filter: blur(6px);
 }
 
-.badges .gold {
+.badges span::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: var(--color-brass);
-  border-color: var(--color-brass);
-  color: #fff;
+  flex: 0 0 auto;
+}
+
+.badges .gold::before {
+  background: #f3eee4;
 }
 
 .hero-copy h1 {
@@ -671,7 +851,7 @@ svg {
   transition: background .2s ease, color .2s ease;
 }
 
-.icon-btn { width: 38px; height: 38px; }
+.icon-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
 
 .nav-btn {
   position: absolute;
@@ -754,6 +934,11 @@ svg {
   box-shadow: var(--shadow-soft);
 }
 
+.summary-card,
+.section-card {
+  border-radius: 12px;
+}
+
 .summary-card {
   display: flex;
   align-items: center;
@@ -792,6 +977,7 @@ svg {
   min-height: 44px;
   font-weight: 600;
   text-decoration: none;
+  border-radius: 0;
 }
 
 .favorite-btn {
@@ -824,7 +1010,7 @@ svg {
   text-align: left;
   background: #fffdf8;
   border: 1px solid var(--color-line);
-  border-radius: 2px;
+  border-radius: 12px;
   color: var(--color-ink);
   transition: border-color .2s ease, transform .2s ease;
 }
@@ -941,7 +1127,10 @@ svg {
 }
 
 .map-link {
-  min-height: 38px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 14px;
   border: 1px solid var(--color-line);
   background: transparent;
@@ -1021,6 +1210,22 @@ svg {
 }
 
 .back-link { width: auto; margin-top: 0; }
+
+.map-alt { margin: 8px 0 0; color: var(--color-muted); font-size: 13px; }
+
+.booking-block { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--color-line); }
+.booking-block h3 { margin: 0 0 10px; color: var(--color-petrol); font-size: 18px; font-weight: 600; }
+.booking-form { display: grid; gap: 8px; }
+.booking-form label { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--color-petrol); }
+.booking-form input, .booking-form select { min-height: 44px; padding: 0 12px; border: 1px solid var(--color-line); background: #fff; color: var(--color-ink); font-size: 14px; }
+.booking-btn { margin-top: 6px; cursor: pointer; font-family: inherit; }
+.booking-advisor { margin: 0 0 10px; color: var(--color-petrol); font-size: 13px; font-weight: 600; }
+.booking-sla { margin: 8px 0 0; color: var(--color-muted); font-size: 12px; line-height: 1.6; }
+.booking-cancel-btn { margin-top: 8px; cursor: pointer; font-family: inherit; }
+.booking-cancel-btn:disabled { opacity: .6; cursor: not-allowed; }
+.booking-cancelled { margin: 10px 0 0; color: var(--color-muted); font-size: 14px; }
+.booking-success { margin: 10px 0 0; color: #166534; font-size: 14px; }
+.booking-error { margin: 10px 0 0; color: #991b1b; font-size: 14px; }
 
 .lightbox {
   position: fixed;

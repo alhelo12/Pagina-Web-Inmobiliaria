@@ -84,7 +84,7 @@ onMounted(async () => {
 }
 
 h2 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--serif);
   color: #07172d;
   font-size: clamp(32px, 4vw, 44px);
 }

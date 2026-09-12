@@ -352,6 +352,10 @@ onMounted(() => {
 }
 
 .appointment-actions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 10px 18px;
   border-radius: 8px;
   font-size: 12px;

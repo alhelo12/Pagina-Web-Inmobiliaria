@@ -393,7 +393,6 @@ onMounted(() => {
 .notification-card.unread {
   background: #faf5e9;
   border-color: var(--color-brass);
-  border-left: 3px solid var(--color-brass);
 }
 
 .type-icon {

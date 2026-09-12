@@ -4,13 +4,14 @@ description: Plataforma inmobiliaria mexicana con acompañamiento integral, del 
 colors:
   brass: "#b9945f"
   brass-deep: "#97773f"
+  brass-ink: "#7a5c1e"
   petrol: "#102d2d"
   ink: "#071b1c"
   ivory: "#f3eee4"
   ivory-deep: "#ece6d8"
   card: "#fffdf8"
   line: "#ddd5c3"
-  muted: "#6b7268"
+  muted: "#5f665f"
   charcoal: "#232a2a"
   error: "#991b1b"
 typography:
@@ -48,7 +49,7 @@ spacing:
 components:
   button-brass:
     backgroundColor: "{colors.brass}"
-    textColor: "#ffffff"
+    textColor: "{colors.ink}"
     rounded: "{rounded.sharp}"
     padding: "14px 26px"
   button-brass-hover:
@@ -98,7 +99,8 @@ El sistema vive en dos mundos con una sola identidad: tinta de selva profunda pa
 Un acento cálido sobre un mundo tinta-marfil; la paleta nunca cambia de temperatura a mitad de página.
 
 ### Primary
-- **Oro Tranquilo** (#b9945f): El único acento. CTAs primarios, estados activos, reglas de énfasis, numerales destacados y detalles de marca. Su rareza es el punto.
+- **Oro Tranquilo** (#b9945f): El único acento. Fondos de CTA primario (siempre con texto tinta), estados activos, reglas de énfasis y detalles de marca. Su rareza es el punto.
+- **Tinta Latón** (#7a5c1e): La voz legible del acento —eyebrows, etiquetas y texto pequeño en latón sobre marfil que sí pasa AA (5.38:1).
 
 ### Neutral
 - **Tinta de Selva** (#102d2d): Superficies de autoridad —navegación sólida, sidebars de workspace, botones de acción principal, overlays fotográficos.
@@ -107,7 +109,7 @@ Un acento cálido sobre un mundo tinta-marfil; la paleta nunca cambia de tempera
 - **Marfil Hondo** (#ece6d8): Superficie secundaria —fondos de métricas, filas alternas, pozos de imagen.
 - **Tarjeta** (#fffdf8): Superficie elevada en claro, apenas más luminosa que el fondo.
 - **Línea** (#ddd5c3): Divisores, bordes de tarjeta y reglas editoriales; siempre fina (1px).
-- **Gris Salvia** (#6b7268): Texto secundario y descripciones.
+- **Gris Salvia** (#5f665f): Texto secundario y descripciones; calibrado para pasar AA sobre marfil (5.11:1).
 - **Carbón** (#232a2a): Texto de apoyo en contextos densos.
 - **Rojo Tierra** (#991b1b): Solo errores y acciones destructivas confirmadas.
 
@@ -154,7 +156,7 @@ Lenguaje de forma dual y disciplinado: lo decisivo es recto, lo contenedor es su
 
 ### Buttons
 - **Shape:** Recto (0px); el filo es la firma del sistema.
-- **Primary:** Oro Tranquilo con texto blanco, padding 14px 26px, etiquetas en mayúsculas 12px con tracking amplio.
+- **Primary:** Oro Tranquilo con texto tinta (5.20:1), padding 14px 26px, etiquetas en mayúsculas 12px con tracking amplio; el hover invierte a sólido tinta con texto marfil.
 - **Hover / Focus:** Fondo a latón profundo con elevación de 1px; `:active` con presión física (translateY + escala 0.99); foco visible con anillo latón de 2px.
 - **Secondary / Ghost / Tertiary (if applicable):** Fantasma claro (borde marfil translúcido sobre fotografía) y sólido tinta (botón principal en superficies claras).
 
@@ -188,6 +190,8 @@ Fila de métricas dividida por reglas finas (no tarjetas separadas): numeral gra
 - **Do** usar reglas de 1px en línea (#ddd5c3) para dividir en lugar de encajonar.
 - **Do** expresar estados como texto en mayúsculas con punto de 6px.
 - **Do** mantener una sola columna bajo 768px con acciones táctiles de ≥44px.
+- **Do** congelar animaciones y transiciones bajo `prefers-reduced-motion`, conservando el cambio de estado.
+- **Do** asociar cada campo con su etiqueta (`for`/`id` o `aria-label`) y nombrar cada botón de icono en español.
 
 ### Don't:
 - **Don't** usar degradados morados/azules, brillos neón ni ninguna estética AI genérica.

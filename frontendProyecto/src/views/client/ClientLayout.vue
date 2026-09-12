@@ -18,7 +18,7 @@ import Sidebar from '@/components/client/Sidebar.vue'
   --color-gold: #c9a45c;
   --color-cream: #f6f1e7;
   --color-card: #ffffff;
-  --color-muted: #6f7a76;
+  --color-muted: #5f665f;
   --color-line: #e5dcc8;
   --shadow-soft: none;
   --shadow-strong: 0 20px 50px rgba(16, 45, 45, 0.18);
@@ -39,7 +39,7 @@ import Sidebar from '@/components/client/Sidebar.vue'
 /* JAKEDA private-panel: serif greeting headings */
 .client-layout :deep(h1),
 .client-layout :deep(h2) {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--serif);
   font-weight: 700;
   letter-spacing: 0;
 }

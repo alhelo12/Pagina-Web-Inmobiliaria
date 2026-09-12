@@ -184,25 +184,25 @@ const changePassword = async () => {
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
           <div class="card-content">
-            <h3>Información Personal</h3>
+            <h2>Información Personal</h2>
             <p>Actualiza tu información de contacto</p>
           </div>
 
           <div class="form-fields">
             <div class="field">
-              <label>Nombre completo</label>
-              <input v-model="form.full_name" type="text" placeholder="Tu nombre completo" />
+              <label for="profile-full-name">Nombre completo</label>
+              <input id="profile-full-name" v-model="form.full_name" type="text" placeholder="Tu nombre completo" />
             </div>
 
             <div class="field">
-              <label>Email</label>
-              <input v-model="form.email" type="email" disabled class="disabled" />
+              <label for="profile-email">Email</label>
+              <input id="profile-email" v-model="form.email" type="email" disabled class="disabled" />
               <span class="hint">El email no se puede cambiar</span>
             </div>
 
             <div class="field">
-              <label>Teléfono</label>
-              <input v-model="form.phone" type="tel" placeholder="Tu número de teléfono" />
+              <label for="profile-phone">Teléfono</label>
+              <input id="profile-phone" v-model="form.phone" type="tel" placeholder="Tu número de teléfono" />
             </div>
 
             <div v-if="error" class="field-error">{{ error }}</div>
@@ -223,25 +223,25 @@ const changePassword = async () => {
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
           <div class="card-content">
-            <h3>Seguridad</h3>
+            <h2>Seguridad</h2>
             <p>Cambia tu contraseña cuando lo necesites</p>
           </div>
 
           <div class="form-fields">
             <div class="field">
-              <label>Contraseña actual</label>
-              <input v-model="passwordForm.current_password" type="password" placeholder="Tu contraseña actual" />
+              <label for="profile-current-password">Contraseña actual</label>
+              <input id="profile-current-password" v-model="passwordForm.current_password" type="password" placeholder="Tu contraseña actual" />
             </div>
 
             <div class="field">
-              <label>Nueva contraseña</label>
-              <input v-model="passwordForm.new_password" type="password" placeholder="Mínimo 8 caracteres" />
+              <label for="profile-new-password">Nueva contraseña</label>
+              <input id="profile-new-password" v-model="passwordForm.new_password" type="password" placeholder="Mínimo 8 caracteres" />
               <span class="hint">La contraseña debe tener al menos 8 caracteres</span>
             </div>
 
             <div class="field">
-              <label>Confirmar nueva contraseña</label>
-              <input v-model="passwordForm.confirm_password" type="password" placeholder="Repite la nueva contraseña" />
+              <label for="profile-confirm-password">Confirmar nueva contraseña</label>
+              <input id="profile-confirm-password" v-model="passwordForm.confirm_password" type="password" placeholder="Repite la nueva contraseña" />
             </div>
 
             <div v-if="passwordError" class="field-error">{{ passwordError }}</div>
@@ -287,7 +287,7 @@ const changePassword = async () => {
   color: #102d2d;
   font-size: 30px;
   font-weight: 700;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--serif);
 }
 
 .state {
@@ -347,12 +347,12 @@ const changePassword = async () => {
   border-bottom: 1px solid #ece5d3;
 }
 
-.card-content h3 {
+.card-content h2 {
   margin: 0 0 6px;
   color: #102d2d;
   font-size: 20px;
   font-weight: 700;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--serif);
 }
 
 .card-content p {
@@ -449,7 +449,7 @@ const changePassword = async () => {
 @media (max-width: 480px) {
   .profile-page { padding: 16px; }
   .card { padding: 16px; }
-  .card-content h3 { font-size: 16px; }
+  .card-content h2 { font-size: 16px; }
   .field input { padding: 10px 12px; font-size: 13px; }
   .btn-save { width: 100%; }
 }

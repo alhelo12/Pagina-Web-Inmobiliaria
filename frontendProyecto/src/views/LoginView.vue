@@ -1,9 +1,10 @@
 ﻿<script setup>
 import { ref } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
+import { useRouter, useRoute, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const route = useRoute()
 const auth   = useAuthStore()
 
 const email        = ref('')
@@ -13,7 +14,7 @@ const error        = ref('')
 const showPassword = ref(false)
 
 const roleRedirect = {
-  admin:   '/admin/propiedades',
+  admin:   '/admin/dashboard',
   advisor: '/advisor/panel',
   client:  '/'
 }
@@ -23,7 +24,12 @@ const submit = async () => {
   loading.value = true
   try {
     await auth.login(email.value, password.value)
-    router.push(roleRedirect[auth.role] ?? '/')
+    const redirect = route.query.redirect
+    if (typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')) {
+      router.push(redirect)
+    } else {
+      router.push(roleRedirect[auth.role] ?? '/')
+    }
   } catch (err) {
     if (err.response) {
       error.value = err.response.data?.detail ?? 'Credenciales incorrectas'
@@ -66,7 +72,7 @@ const submit = async () => {
         <div v-if="error" class="alert-error">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span>{{ error }}</span>
-          <button class="close-error" @click="error = ''">✕</button>
+          <button class="close-error" aria-label="Cerrar error" @click="error = ''">✕</button>
         </div>
 
         <form @submit.prevent="submit" class="form">
@@ -99,7 +105,7 @@ const submit = async () => {
                 autocomplete="current-password"
                 required
               />
-              <button type="button" class="toggle-password" @click="showPassword = !showPassword">
+              <button type="button" class="toggle-password" :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" @click="showPassword = !showPassword">
                 <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
               </button>
@@ -119,7 +125,7 @@ const submit = async () => {
         <div class="divider"><span>o</span></div>
 
         <p class="alt-text">¿Quieres vender o rentar una propiedad?</p>
-        <RouterLink to="/registro" class="btn-ink cta alt">Crear cuenta y registrar propiedad</RouterLink>
+        <RouterLink to="/registro" class="btn-ink cta alt">Crear cuenta</RouterLink>
 
       </div>
     </div>
@@ -239,6 +245,13 @@ const submit = async () => {
   margin-left: auto;
   flex-shrink: 0;
   opacity: 0.6;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .close-error:hover { opacity: 1; }
 
@@ -281,6 +294,11 @@ const submit = async () => {
   padding: 6px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
 }
 .toggle-password:hover { color: var(--color-ink); }
 

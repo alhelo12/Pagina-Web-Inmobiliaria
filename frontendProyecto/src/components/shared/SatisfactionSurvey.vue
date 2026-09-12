@@ -12,15 +12,20 @@
       </div>
 
       <div class="rating-section">
-        <label>¿Cómo calificarías tu experiencia?</label>
-        <div class="stars">
+        <label id="rating-label">¿Cómo calificarías tu experiencia?</label>
+        <div class="stars" role="radiogroup" aria-labelledby="rating-label">
           <button
             v-for="star in 5"
             :key="star"
             type="button"
             class="star-btn"
+            role="radio"
+            :aria-checked="star === rating"
+            :aria-label="`${star} de 5`"
             :class="{ active: star <= rating }"
             @click="rating = star"
+            @keydown.left.prevent="rating = star > 1 ? star - 1 : 5"
+            @keydown.right.prevent="rating = star < 5 ? star + 1 : 1"
           >
             {{ star <= rating ? '★' : '☆' }}
           </button>
@@ -99,7 +104,8 @@ async function submitSurvey() {
 
 <style scoped>
 .survey-container {
-  background: white;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -113,17 +119,18 @@ async function submitSurvey() {
 .survey-header h3 {
   margin: 0 0 8px;
   font-size: 1.5rem;
-  color: #1e293b;
+  color: var(--color-ink);
 }
 
 .survey-subtitle {
   margin: 0;
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 
 .property-info {
-  background: #f1f5f9;
+  background: var(--color-ivory);
+  border: 1px solid var(--color-line);
   padding: 12px 16px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -131,12 +138,12 @@ async function submitSurvey() {
 
 .property-label {
   font-weight: 600;
-  color: #475569;
+  color: var(--color-muted);
   margin-right: 8px;
 }
 
 .property-name {
-  color: #1e293b;
+  color: var(--color-ink);
 }
 
 .rating-section {
@@ -148,7 +155,7 @@ async function submitSurvey() {
   display: block;
   font-weight: 600;
   margin-bottom: 12px;
-  color: #334155;
+  color: var(--color-petrol);
 }
 
 .stars {
@@ -162,8 +169,13 @@ async function submitSurvey() {
   background: none;
   border: none;
   font-size: 2.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: #cbd5e1;
+  color: var(--color-line);
   transition: color 0.2s, transform 0.2s;
 }
 
@@ -172,12 +184,12 @@ async function submitSurvey() {
 }
 
 .star-btn.active {
-  color: #f59e0b;
+  color: var(--color-brass);
 }
 
 .rating-text {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .notes-section {
@@ -188,23 +200,24 @@ async function submitSurvey() {
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #334155;
+  color: var(--color-petrol);
 }
 
 .notes-section textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-line);
   border-radius: 8px;
   font-size: 1rem;
   resize: vertical;
   font-family: inherit;
+  background: var(--color-card);
 }
 
 .notes-section textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-petrol);
+  box-shadow: 0 0 0 3px rgba(16, 45, 45, 0.12);
 }
 
 .survey-actions {
@@ -214,23 +227,25 @@ async function submitSurvey() {
 }
 
 .btn-skip {
+  min-height: 44px;
   padding: 10px 20px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: var(--color-ivory);
+  border: 1px solid var(--color-line);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--color-muted);
   transition: background 0.2s;
 }
 
 .btn-skip:hover {
-  background: #e2e8f0;
+  background: var(--color-line);
 }
 
 .btn-submit {
+  min-height: 44px;
   padding: 10px 24px;
-  background: #3b82f6;
+  background: var(--color-petrol);
   color: white;
   border: none;
   border-radius: 8px;
@@ -241,17 +256,17 @@ async function submitSurvey() {
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-ink);
 }
 
 .btn-submit:disabled {
-  background: #94a3b8;
+  background: var(--color-muted);
   cursor: not-allowed;
 }
 
 .no-survey {
   text-align: center;
   padding: 40px;
-  color: #94a3b8;
+  color: var(--color-muted);
 }
 </style>

@@ -7,7 +7,7 @@
 
     <div class="actions">
       <div v-if="showSearch" class="search-box">
-        <input :value="search" @input="$emit('update:search', $event.target.value)" type="search" :placeholder="searchPlaceholder" />
+        <input :value="search" @input="$emit('update:search', $event.target.value)" type="search" :placeholder="searchPlaceholder" :aria-label="searchPlaceholder" />
       </div>
       <button v-if="showExport" class="ghost" @click="$emit('export')">Exportar</button>
       <button v-if="showAdd" class="primary" @click="$emit('add')">{{ addLabel }}</button>
@@ -56,7 +56,7 @@ const avatarInitial = computed(() => {
 .search-box { flex: 1 1 240px; min-width: min(240px, 100%); }
 .search-box input { width: 100%; max-width: 100%; border: 1px solid var(--color-line); border-radius: 8px; padding: 10px 12px; background: #fff; color: var(--color-petrol); }
 .search-box input:focus { outline: none; border-color: var(--color-petrol); box-shadow: none; }
-button { border-radius: 8px; padding: 10px 14px; font-weight: 700; border: 1px solid transparent; transition: background .2s ease; white-space: nowrap; }
+button { border-radius: 8px; padding: 10px 14px; font-weight: 700; border: 1px solid transparent; transition: background .2s ease; white-space: nowrap; min-height: 44px; }
 .ghost { background: transparent; color: var(--color-petrol); border-color: var(--color-line); }
 .primary { background: var(--color-petrol); color: #fff; }
 button:hover { filter: brightness(1.05); box-shadow: none; transform: none; }

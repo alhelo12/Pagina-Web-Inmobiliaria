@@ -128,7 +128,6 @@ const reset = () => {
 
 .filter-input:focus,
 .filter-select:focus {
-  outline: none;
   border-bottom-color: var(--color-petrol);
 }
 

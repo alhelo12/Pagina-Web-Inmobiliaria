@@ -170,7 +170,6 @@ function formatDate(dateStr) {
 .survey-alert {
   background: #faf5e9;
   border: 1px solid var(--color-brass);
-  border-left: 3px solid var(--color-brass);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
@@ -208,14 +207,13 @@ function formatDate(dateStr) {
 .followup-card {
   background: #fff;
   border: 1px solid var(--color-line);
-  border-left: 3px solid var(--color-line);
   border-radius: 12px;
   padding: 16px;
   box-shadow: none;
 }
 
 .followup-card.completed {
-  border-left-color: #166534;
+  border-color: #166534;
 }
 
 .followup-card.pending {

@@ -65,23 +65,24 @@ const handleLogout = async () => {
   height: 100vh;
   width: 280px;
   flex: 0 0 280px;
-  background: #102d2d;
-  color: #f3ede0;
+  background: var(--color-petrol);
+  color: var(--color-ivory);
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 28px;
-  border-right: 1px solid #0b2222;
+  border-right: 1px solid var(--color-ink);
   overflow-y: auto;
   overflow-x: hidden;
 }
-.brand { display: flex; align-items: center; gap: 12px; color: #f3ede0; text-decoration: none; }
-.logo-dot { width: 12px; height: 12px; border-radius: 999px; background: #c9a45c; box-shadow: 0 0 0 6px rgba(201, 164, 92, 0.18); }
-.brand strong { letter-spacing: .18em; font-weight: 700; font-family: Georgia, 'Times New Roman', serif; }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--color-ivory); text-decoration: none; }
+.logo-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--color-brass); box-shadow: 0 0 0 6px rgba(185, 148, 95, 0.18); }
+.brand strong { letter-spacing: .18em; font-weight: 700; font-family: var(--serif); }
 nav { display: grid; gap: 6px; }
 .nav-item {
-  color: rgba(243, 237, 224, 0.72);
+  color: rgba(243, 238, 228, 0.72);
   padding: 11px 14px;
+  min-height: 44px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
@@ -93,19 +94,19 @@ nav { display: grid; gap: 6px; }
   position: relative;
 }
 .nav-item svg { flex-shrink: 0; }
-.nav-item:hover { background: rgba(201, 164, 92, 0.14); color: #f3ede0; }
+.nav-item:hover { background: rgba(185, 148, 95, 0.14); color: var(--color-ivory); }
 .nav-item.router-link-active {
-  background: #c9a45c;
-  color: #102d2d;
+  background: var(--color-brass);
+  color: var(--color-petrol);
   font-weight: 700;
   box-shadow: none;
 }
 .nav-item.router-link-active svg { stroke: currentColor; }
 .badge {
   margin-left: auto;
-  background: #0b2222;
-  color: #f3ede0;
-  border: 1px solid rgba(243, 237, 224, 0.35);
+  background: var(--color-ink);
+  color: var(--color-ivory);
+  border: 1px solid rgba(243, 238, 228, 0.35);
   font-size: 11px;
   font-weight: 800;
   min-width: 20px;
@@ -117,9 +118,9 @@ nav { display: grid; gap: 6px; }
   padding: 0 6px;
 }
 .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
-.sidebar-card { padding: 18px; border-radius: 10px; background: rgba(243, 237, 224, 0.05); border: 1px solid rgba(201, 164, 92, 0.3); }
-.sidebar-card small { color: #c9a45c; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
-.sidebar-card p { margin-top: 8px; color: rgba(243, 237, 224, 0.65); line-height: 1.6; font-size: 13px; }
+.sidebar-card { padding: 18px; border-radius: 10px; background: rgba(243, 238, 228, 0.05); border: 1px solid rgba(185, 148, 95, 0.3); }
+.sidebar-card small { color: var(--color-brass); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+.sidebar-card p { margin-top: 8px; color: rgba(243, 238, 228, 0.65); line-height: 1.6; font-size: 13px; }
 .logout-btn {
   display: flex;
   align-items: center;
@@ -127,7 +128,7 @@ nav { display: grid; gap: 6px; }
   padding: 11px 14px;
   border-radius: 8px;
   background: transparent;
-  color: rgba(243, 237, 224, 0.7);
+  color: rgba(243, 238, 228, 0.7);
   font-weight: 600;
   font-size: 14px;
   border: none;
@@ -136,7 +137,7 @@ nav { display: grid; gap: 6px; }
   width: 100%;
   text-align: left;
 }
-.logout-btn:hover { background: rgba(201, 164, 92, 0.12); color: #f3ede0; }
+.logout-btn:hover { background: rgba(185, 148, 95, 0.12); color: var(--color-ivory); }
 @media (max-width: 900px) {
   .sidebar { position: static; width: 100%; height: auto; flex: none; padding: 18px; }
   nav { grid-template-columns: 1fr; }

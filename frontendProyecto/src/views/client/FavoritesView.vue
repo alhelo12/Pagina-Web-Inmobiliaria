@@ -52,7 +52,7 @@ onMounted(() => favStore.fetchFavorites())
           class="fav-card"
         >
           <div class="media">
-            <img :src="imageOf(fav)" :alt="propertyOf(fav)?.title" />
+            <img :src="imageOf(fav)" :alt="propertyOf(fav)?.title" loading="lazy" />
             <span>Guardada</span>
           </div>
           <div class="body">

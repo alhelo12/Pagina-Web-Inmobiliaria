@@ -221,7 +221,7 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
         :class="{ active: currentSection === 'available' }"
         @click="changeSection('available')"
       >
-        Disponibles para Tomar ({{ availableProperties.length }})
+        Disponibles para asignarme ({{ availableProperties.length }})
       </button>
     </div>
 
@@ -255,7 +255,7 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
             <tbody>
               <tr v-for="p in filtered" :key="p.id">
                 <td class="td-thumb">
-                  <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
+                  <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
                 </td>
                 <td class="td-title">{{ p.title }}</td>
                 <td>
@@ -304,7 +304,7 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
         <div class="mobile-cards">
           <div v-for="p in filtered" :key="p.id" class="mobile-card">
             <div class="mc-header">
-              <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
+              <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
               <div class="mc-title-group">
                 <strong class="mc-title">{{ p.title }}</strong>
                 <span class="mc-owner">{{ ownerName(p) }}</span>
@@ -349,7 +349,7 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
               <span>{{ p.city || 'Sin ciudad' }}</span>
             </div>
             <div class="prop-price">${{ Number(p.price || 0).toLocaleString('es-MX') }}</div>
-            <button class="take-btn" @click="handleTake(p)">Tomar</button>
+            <button class="take-btn" @click="handleTake(p)">Asignarme</button>
           </div>
         </div>
         <p v-else class="empty">No hay propiedades disponibles para tomar.</p>
@@ -379,6 +379,7 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 
 .section-tabs { display: flex; gap: 10px; }
 .section-tabs button {
+  min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
   padding: 12px 20px; border: 1px solid var(--color-line); border-radius: 10px;
   background: #fff; color: var(--color-muted); font-weight: 600;
   cursor: pointer; transition: background .2s ease, color .2s ease;
@@ -387,7 +388,7 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 
 .table-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 16px; }
 .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.filters button { border: 1px solid var(--color-line); background: #fff; padding: 7px 12px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: background .2s ease, color .2s ease, border-color .2s ease; cursor: pointer; }
+.filters button { border: 1px solid var(--color-line); background: #fff; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 7px 14px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: background .2s ease, color .2s ease, border-color .2s ease; cursor: pointer; }
 .filters button.active, .filters button:hover { background: #102d2d; color: #f3ede0; border-color: #102d2d; }
 .table-wrap {
   width: 100%;
@@ -423,7 +424,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .rechazada { color: #991b1b; }
 .vendida { color: #1a3f3f; }
 .actions { vertical-align: top; white-space: nowrap; }
-.actions button { display: inline-flex; align-items: center; gap: 4px; border: none; border-radius: 7px; padding: 6px 9px; font-size: 12px; font-weight: 700; transition: filter .2s ease; cursor: pointer; margin-right: 6px; }
+.actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: none; border-radius: 7px; min-height: 44px; padding: 6px 12px; font-size: 12px; font-weight: 700; transition: filter .2s ease; cursor: pointer; margin-right: 6px; }
 .actions button:last-child { margin-right: 0; }
 .actions button:hover { filter: brightness(1.02); }
 .view { background: rgba(201, 164, 92, .16); color: #7a5c1e; }
@@ -445,7 +446,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .prop-info strong { display: block; color: #102d2d; font-size: 14px; }
 .prop-info span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
 .prop-price { color: #102d2d; font-weight: 700; font-size: 14px; }
-.take-btn { padding: 8px 16px; border-radius: 8px; background: var(--color-gold); color: #102d2d; font-weight: 700; border: none; cursor: pointer; transition: filter .2s ease; }
+.take-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: 8px; background: var(--color-gold); color: #102d2d; font-weight: 700; border: none; cursor: pointer; transition: filter .2s ease; }
 .take-btn:hover { filter: brightness(1.05); }
 
 .clients-list { display: flex; flex-direction: column; gap: 10px; }
@@ -458,7 +459,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .property-count { display: inline-block; padding: 6px 12px; border-radius: 20px; background: #f7efe0; color: var(--color-navy-2); font-size: 12px; font-weight: 700; }
 
 .pagination { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--color-line); flex-wrap: wrap; }
-.pagination button { padding: 6px 11px; border-radius: 999px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--color-line); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
+.pagination button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 11px; border-radius: 999px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--color-line); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
 .pagination button:hover:not(:disabled) { border-color: var(--color-navy); color: var(--color-navy); }
 .pagination button.active { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
 .pagination button:disabled { opacity: .4; cursor: not-allowed; }
@@ -467,7 +468,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(16, 45, 45, .55); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
 .modal { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; padding: 30px; width: 100%; max-width: 460px; box-shadow: var(--shadow-strong); }
-.modal h2 { font-family: Georgia, 'Times New Roman', serif; color: #102d2d; font-size: 24px; margin-bottom: 14px; }
+.modal h2 { font-family: var(--serif); color: #102d2d; font-size: 24px; margin-bottom: 14px; }
 .modal-desc { color: var(--color-muted); line-height: 1.6; margin-bottom: 24px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .btn-cancel { padding: 0 18px; min-height: 44px; background: #eee7dc; border-radius: 8px; color: #40566e; font-weight: 900; cursor: pointer; border: none; }
@@ -488,7 +489,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
 .mc-body span strong { color: var(--color-muted); font-weight: 600; }
 .mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.mc-actions button { border: none; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.mc-actions button { border: none; border-radius: 7px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
 
 @media (max-width: 900px) {
   .table-wrap table th:nth-child(4),

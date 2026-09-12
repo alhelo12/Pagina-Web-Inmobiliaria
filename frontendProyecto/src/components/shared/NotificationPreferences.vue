@@ -49,7 +49,7 @@ onMounted(async () => {
     <div class="preferences-panel">
       <div class="panel-header">
         <h3>Preferencias de notificación</h3>
-        <button class="close-btn" @click="$emit('close')">
+        <button class="close-btn" aria-label="Cerrar" @click="$emit('close')">
           <AppIcon name="x" :size="18" />
         </button>
       </div>
@@ -77,6 +77,7 @@ onMounted(async () => {
             <input
               type="checkbox"
               :checked="getPref(type)"
+              :aria-label="`Notificaciones de ${meta.label}`"
               @change="toggle(type)"
             />
             <span class="slider"></span>
@@ -91,7 +92,7 @@ onMounted(async () => {
 .preferences-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(7, 23, 45, 0.4);
+  background: rgba(7, 27, 28, 0.4);
   backdrop-filter: blur(4px);
   z-index: 5000;
   display: grid;
@@ -107,7 +108,7 @@ onMounted(async () => {
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 48px rgba(7, 23, 45, 0.24);
+  box-shadow: 0 24px 48px rgba(7, 27, 28, 0.24);
 }
 
 .panel-header {
@@ -115,12 +116,12 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e7ebf3;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .panel-header h3 {
   margin: 0;
-  color: #07172d;
+  color: var(--color-ink);
   font-size: 16px;
   font-weight: 700;
 }
@@ -128,15 +129,19 @@ onMounted(async () => {
 .close-btn {
   background: transparent;
   border: none;
-  color: #9ca3af;
+  color: var(--color-muted);
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
   transition: color 0.2s ease;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
 }
 
 .close-btn:hover {
-  color: #07172d;
+  color: var(--color-ink);
 }
 
 .loading {
@@ -181,13 +186,13 @@ onMounted(async () => {
 
 .pref-info strong {
   display: block;
-  color: #07172d;
+  color: var(--color-ink);
   font-size: 13px;
   font-weight: 600;
 }
 
 .pref-info small {
-  color: #9ca3af;
+  color: var(--color-muted);
   font-size: 11px;
 }
 
@@ -208,7 +213,7 @@ onMounted(async () => {
 .slider {
   position: absolute;
   inset: 0;
-  background: #d1d5db;
+  background: var(--color-line);
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.3s ease;

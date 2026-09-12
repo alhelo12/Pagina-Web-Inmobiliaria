@@ -36,24 +36,22 @@ const resendEmail = async () => {
 }
 
 const steps = [
-  'Informacion',
+  'Información',
   'Fotos',
-  'Ubicacion',
-  'Caracteristicas',
+  'Ubicación',
+  'Características',
   'Apartados'
 ]
 
 const MEXICO_CITIES = [
-  'Acapulco', 'Aguascalientes', 'Almoloya de Alquisellas', 'Alvaro Obregon',
+  'Acapulco', 'Aguascalientes', 'Almoloya de Alquisiras', 'Alvaro Obregon',
   'Amecameca', 'Apizaco', 'Ario de Rosales',
-  'Baja California', 'Baja California Sur',
   'Benito Juarez', 'Cabo San Lucas', 'Cadereyta de Montes', 'Calvillo',
   'Campeche', 'Cancun', 'Celaya', 'Chapala', 'Chihuahua', 'Chilpancingo',
   'Chiapa de Corzo', 'Ciudad Acuna', 'Ciudad del Carmen', 'Ciudad Juarez',
   'Ciudad Lopez Mateos', 'Ciudad Madero', 'Ciudad Nezahualcoyotl', 'Ciudad Obregon',
   'Ciudad Satelite', 'Ciudad Valles', 'Coatepec', 'Colima', 'Comitan de Dominguez',
   'Cordoba', 'Cosoleacaque', 'Cuauhtemoc', 'Cuernavaca', 'Culiacan',
-  'Distrito Federal',
   'Ecatepec de Morelos', 'El Marques', 'Empalme', 'Ensenada', 'Erongaricuaro',
   'Fresnillo', 'Gomez Palacio', 'Guadalajara', 'Guanajuato', 'Guaymas',
   'Hermosillo', 'Huejutla de Reyes', 'Huixtla', 'Irapuato', 'Istapa',
@@ -67,7 +65,7 @@ const MEXICO_CITIES = [
   'Oaxaca de Juarez', 'Ocosingo', 'Orizaba',
   'Palenque', 'Patzcuaro', 'Piedras Negras', 'Poza Rica de Hidalgo',
   'Puebla', 'Puerto Escondido', 'Puerto Vallarta',
-  'Queretaro', 'Queretaro City',
+  'Queretaro',
   'Reynosa', 'Rosarito',
   'Salamanca', 'San Andres Cholula', 'San Cristobal de las Casas',
   'San Juan del Rio', 'San Luis Potosi', 'San Miguel de Allende',
@@ -75,7 +73,7 @@ const MEXICO_CITIES = [
   'Santiago Ixcuintla', 'Santiago Papasquiaro', 'Santo Tomas Ajoloapan',
   'Tampico', 'Tapachula', 'Taxco de Alarcon', 'Tecate', 'Tecamac',
   'Texcoco de Mora', 'Tijuana', 'Tlaxcala', 'Toluca', 'Tonala', 'Torreon',
-  'Tuxtla Gutierrez',
+  'Tuxtla Gutiérrez',
   'Uruapan', 'Uriu',
   'Valladolid', 'Veracruz', 'Villahermosa', 'Xalapa', 'Zamora', 'Zihuatanejo',
 ].filter((v, i, a) => a.indexOf(v) === i).sort()
@@ -92,17 +90,44 @@ const selectCity = (city) => {
   form.value.city = city
   citySearch.value = ''
   showCityDropdown.value = false
+  cityError.value = ''
 }
 
 const onCityInput = () => {
   showCityDropdown.value = true
+  cityError.value = ''
 }
 
 const onCityBlur = () => {
   setTimeout(() => { showCityDropdown.value = false }, 200)
-  if (form.value.city && !MEXICO_CITIES.includes(form.value.city)) {
-    form.value.city = MEXICO_CITIES.find((c) => c.toLowerCase() === form.value.city.toLowerCase()) || ''
+  const typed = citySearch.value.trim()
+  if (typed) {
+    const exact = MEXICO_CITIES.find((c) => c.toLowerCase() === typed.toLowerCase())
+    if (exact) {
+      form.value.city = exact
+      citySearch.value = ''
+      cityError.value = ''
+    } else {
+      form.value.city = typed
+      cityError.value = 'Selecciona una ciudad de la lista'
+    }
+    return
   }
+  if (form.value.city && !MEXICO_CITIES.includes(form.value.city)) {
+    const exact = MEXICO_CITIES.find((c) => c.toLowerCase() === form.value.city.toLowerCase())
+    if (exact) {
+      form.value.city = exact
+      cityError.value = ''
+    } else {
+      cityError.value = 'Selecciona una ciudad de la lista'
+    }
+  } else {
+    cityError.value = ''
+  }
+}
+
+const focusField = (id) => {
+  document.getElementById(id)?.focus()
 }
 
 const form = ref({
@@ -112,7 +137,7 @@ const form = ref({
   property_type: '',
   transaction_type: 'sale',
   address: '',
-  city: 'Tuxtla Gutierrez',
+  city: 'Tuxtla Gutiérrez',
   bedrooms: '',
   bathrooms: '',
   square_meters: '',
@@ -126,6 +151,8 @@ const initialLoading = ref(false)
 const success = ref(false)
 const warning = ref('')
 const error = ref('')
+const fieldErrors = ref([])
+const cityError = ref('')
 
 const generalFiles = ref([])
 const generalPreviews = ref([])
@@ -147,6 +174,7 @@ const markDirty = () => { isDirty.value = true }
 const formWatcher = watch(form.value, () => { isDirty.value = true }, { deep: true })
 
 const returnPath = computed(() => (route.path.startsWith('/admin') ? '/admin/propiedades' : '/propiedades'))
+const spaceLabel = computed(() => (route.path.includes('/admin') ? 'Panel Admin' : route.path.includes('/advisor') ? 'Panel Asesor' : 'Mi Espacio'))
 const bedroomsCount = computed(() => Math.max(0, Number(form.value.bedrooms) || 0))
 const bathroomsCount = computed(() => Math.max(0, Number(form.value.bathrooms) || 0))
 const progress = computed(() => `${((currentStep.value + 1) / steps.length) * 100}%`)
@@ -361,7 +389,7 @@ const moveMarker = () => {
 
 const STREET_PREFIXES = /^(calle|av|avenida|blvd|boulevard|privada|cerrada|andador|prolongacion|pasaje|circuito|periferico|carretera|camino)\b\.?\s*/i
 const sanitizeAddress = (addr) => addr.replace(STREET_PREFIXES, '').replace(/#/g, ' ').replace(/\s+/g, ' ').trim()
-const fixCity = (city) => (city || '').replace(/\s+/g, ' ').trim().replace(/guitierre?z/gi, 'Gutierrez').replace(/tuxtla\s*guit/i, 'Tuxtla Guit') || 'Tuxtla Gutierrez'
+const fixCity = (city) => (city || '').replace(/\s+/g, ' ').trim().replace(/guitierre?z/gi, 'Gutiérrez').replace(/tuxtla\s*guti/i, 'Tuxtla Guti') || 'Tuxtla Gutiérrez'
 
 const searchAddress = async () => {
   const rawAddr = form.value.address?.trim()
@@ -379,13 +407,11 @@ const searchAddress = async () => {
     const parts = [addr, city, 'Chiapas', 'Mexico'].filter(Boolean)
     const q = parts.join(', ')
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(q)}`
-    console.log('[searchAddress] URL:', url)
     const res = await fetch(url, {
       headers: { 'Accept-Language': 'es' }
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    console.log('[searchAddress] Resultados:', data.length)
     if (data.length) {
       form.value.latitude = parseFloat(data[0].lat).toFixed(6)
       form.value.longitude = parseFloat(data[0].lon).toFixed(6)
@@ -415,48 +441,64 @@ const hasValue = (value) => String(value ?? '').trim() !== ''
 
 const validateStep = () => {
   error.value = ''
+  fieldErrors.value = []
 
   if (currentStep.value === 0) {
     if (!hasValue(form.value.title) || form.value.title.trim().length < 10) {
       error.value = 'El titulo debe tener al menos 10 caracteres'
+      fieldErrors.value = [{ id: 'prop-title', label: 'Titulo' }]
       return false
     }
     if (!hasValue(form.value.price) || Number(form.value.price) <= 0) {
       error.value = 'Ingresa un precio valido'
+      fieldErrors.value = [{ id: 'prop-price', label: 'Precio' }]
       return false
     }
     if (!form.value.property_type) {
       error.value = 'Selecciona el tipo de propiedad'
+      fieldErrors.value = [{ id: 'prop-type', label: 'Tipo de propiedad' }]
       return false
     }
   }
 
   if (currentStep.value === 1 && !isEdit.value && !generalFiles.value.length) {
     error.value = 'Agrega al menos una foto general de la propiedad'
+    fieldErrors.value = [{ id: 'general-photos', label: 'Fotos de fachada' }]
     return false
   }
 
   if (currentStep.value === 2) {
     if (!hasValue(form.value.city) || form.value.city.trim().length < 2) {
       error.value = 'Ingresa la ciudad'
+      fieldErrors.value = [{ id: 'prop-city-search', label: 'Ciudad' }]
+      return false
+    }
+    if (!MEXICO_CITIES.includes(form.value.city)) {
+      error.value = 'Selecciona una ciudad de la lista'
+      cityError.value = 'Selecciona una ciudad de la lista'
+      fieldErrors.value = [{ id: 'prop-city-search', label: 'Ciudad' }]
       return false
     }
     if (!hasValue(form.value.address) || form.value.address.trim().length < 10) {
       error.value = 'Ingresa una direccion mas completa'
+      fieldErrors.value = [{ id: 'prop-address', label: 'Direccion' }]
       return false
     }
     if (hasValue(form.value.latitude) && (Number(form.value.latitude) < -90 || Number(form.value.latitude) > 90)) {
       error.value = 'La latitud debe estar entre -90 y 90'
+      fieldErrors.value = [{ id: 'prop-lat', label: 'Latitud' }]
       return false
     }
     if (hasValue(form.value.longitude) && (Number(form.value.longitude) < -180 || Number(form.value.longitude) > 180)) {
       error.value = 'La longitud debe estar entre -180 y 180'
+      fieldErrors.value = [{ id: 'prop-lng', label: 'Longitud' }]
       return false
     }
   }
 
   if (currentStep.value === 3 && !hasValue(form.value.description)) {
     error.value = 'Agrega una descripcion de la propiedad'
+    fieldErrors.value = [{ id: 'prop-description', label: 'Descripcion' }]
     return false
   }
 
@@ -489,6 +531,7 @@ const nextStep = () => {
 
 const prevStep = () => {
   error.value = ''
+  fieldErrors.value = []
   currentStep.value = Math.max(currentStep.value - 1, 0)
 }
 
@@ -660,7 +703,7 @@ onUnmounted(() => { destroyMap(); formWatcher() })
     <div class="container">
       <header class="page-header">
         <div>
-          <span class="kicker eyebrow-label">Panel Admin</span>
+          <span class="kicker eyebrow-label">{{ spaceLabel }}</span>
           <h1 class="serif-display">{{ isEdit ? 'Editar propiedad' : 'Nueva propiedad' }}</h1>
           <p class="subtitle">{{ isEdit ? 'Actualiza la informacion principal de la propiedad.' : 'Completa la publicacion paso a paso.' }}</p>
         </div>
@@ -715,12 +758,19 @@ onUnmounted(() => { destroyMap(); formWatcher() })
         </div>
 
         <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: progress }"></div>
+          <div class="progress-fill" :style="{ transform: `scaleX(${(currentStep + 1) / steps.length})` }"></div>
         </div>
 
-        <div v-if="error" class="alert alert-error">
+        <div v-if="error" id="form-errors" class="alert alert-error" role="alert" tabindex="-1">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
-          {{ error }}
+          <div>
+            <span>{{ error }}</span>
+            <ul v-if="fieldErrors.length" class="error-links">
+              <li v-for="f in fieldErrors" :key="f.id">
+                <a :href="`#${f.id}`" @click.prevent="focusField(f.id)">Ir a {{ f.label }}</a>
+              </li>
+            </ul>
+          </div>
         </div>
         <div v-if="warning" class="alert alert-warning">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"/></svg>
@@ -735,23 +785,23 @@ onUnmounted(() => { destroyMap(); formWatcher() })
               <span class="panel-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="18" rx="2"/><path d="M9 4a3 3 0 0 1 6 0M9 9h6M9 13h6M9 17h4"/></svg>
               </span>
-              <div><h2 class="serif-display">Informacion general</h2><p>Datos basicos de la propiedad</p></div>
+              <div><h2 class="serif-display">Información general</h2><p>Datos basicos de la propiedad</p></div>
             </div>
             <div class="fields-grid">
               <div class="field">
-                <label>Titulo <span class="req">*</span></label>
-                <input v-model="form.title" type="text" placeholder="Casa en Fraccionamiento Las Palmas" @blur="formatTitle" />
+                <label for="prop-title">Titulo <span class="req">*</span></label>
+                <input id="prop-title" v-model="form.title" type="text" placeholder="Casa en Fraccionamiento Las Palmas" aria-describedby="form-errors" @blur="formatTitle" />
               </div>
               <div class="field">
-                <label>Precio (MXN) <span class="req">*</span></label>
+                <label for="prop-price">Precio (MXN) <span class="req">*</span></label>
                 <div class="input-prefix">
                   <span>$</span>
-                  <input v-model="form.price" type="number" min="0" placeholder="1500000" />
+                  <input id="prop-price" v-model="form.price" type="number" min="0" placeholder="1500000" aria-describedby="form-errors" />
                 </div>
               </div>
               <div class="field">
-                <label>Tipo de propiedad <span class="req">*</span></label>
-                <select v-model="form.property_type">
+                <label for="prop-type">Tipo de propiedad <span class="req">*</span></label>
+                <select id="prop-type" v-model="form.property_type" aria-describedby="form-errors">
                   <option value="" disabled>Selecciona un tipo</option>
                   <option value="house">Casa</option>
                   <option value="apartment">Departamento</option>
@@ -784,9 +834,11 @@ onUnmounted(() => { destroyMap(); formWatcher() })
             <div class="photo-uploader">
               <label :class="['upload-zone', { disabled: generalPreviews.length >= MAX_GENERAL_FILES || loading }]">
                 <input
+                  id="general-photos"
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   :disabled="generalPreviews.length >= MAX_GENERAL_FILES || loading"
+                  aria-describedby="form-errors"
                   @change="onGeneralFilesChange"
                 />
                 <div class="upload-content">
@@ -845,12 +897,12 @@ onUnmounted(() => { destroyMap(); formWatcher() })
               <span class="panel-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5.5-8 11-8 11s-8-5.5-8-11a8 8 0 1 1 16 0Z"/><path d="M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
               </span>
-              <div><h2 class="serif-display">Ubicacion</h2><p>Donde se encuentra la propiedad</p></div>
+              <div><h2 class="serif-display">Ubicación</h2><p>Donde se encuentra la propiedad</p></div>
             </div>
             <div class="location-layout">
               <div class="location-fields">
                 <div class="field">
-                  <label>Ciudad <span class="req">*</span></label>
+                  <label for="prop-city-search">Ciudad <span class="req">*</span></label>
                   <div class="city-select-wrapper">
                     <div class="city-display" @click="showCityDropdown = !showCityDropdown">
                       <span>{{ form.city || 'Selecciona una ciudad' }}</span>
@@ -861,9 +913,13 @@ onUnmounted(() => { destroyMap(); formWatcher() })
                     </div>
                     <div v-if="showCityDropdown" class="city-dropdown">
                       <input
+                        id="prop-city-search"
                         v-model="citySearch"
                         type="text"
                         placeholder="Buscar ciudad..."
+                        aria-label="Buscar ciudad"
+                        aria-describedby="form-errors city-error"
+                        :aria-invalid="String(Boolean(cityError))"
                         class="city-search-input"
                         @click.stop
                       />
@@ -878,18 +934,19 @@ onUnmounted(() => { destroyMap(); formWatcher() })
                         <div v-if="!filteredCities.length" class="city-no-results">Sin resultados</div>
                       </div>
                     </div>
+                    <p v-if="cityError" id="city-error" class="field-error" role="alert">{{ cityError }}</p>
                   </div>
                 </div>
                 <div class="field">
-                  <label>Direccion <span class="req">*</span></label>
+                  <label for="prop-address">Direccion <span class="req">*</span></label>
                   <div class="input-row">
-                    <input v-model="form.address" type="text" placeholder="Calle Reforma 123, Col. Centro" @keyup.enter="searchAddress" />
+                    <input id="prop-address" v-model="form.address" type="text" placeholder="Calle Reforma 123, Col. Centro" aria-describedby="form-errors" @keyup.enter="searchAddress" />
                     <button type="button" class="btn-search-map" :disabled="loading" @click="searchAddress">Buscar en mapa</button>
                   </div>
                 </div>
                 <div class="grid-2">
-                  <div class="field"><label>Latitud</label><input v-model="form.latitude" type="number" step="any" placeholder="16.7521" /></div>
-                  <div class="field"><label>Longitud</label><input v-model="form.longitude" type="number" step="any" placeholder="-93.1147" /></div>
+                  <div class="field"><label for="prop-lat">Latitud</label><input id="prop-lat" v-model="form.latitude" type="number" step="any" placeholder="16.7521" aria-describedby="form-errors" /></div>
+                  <div class="field"><label for="prop-lng">Longitud</label><input id="prop-lng" v-model="form.longitude" type="number" step="any" placeholder="-93.1147" aria-describedby="form-errors" /></div>
                 </div>
               </div>
               <div ref="mapContainer" class="map-container"></div>
@@ -902,34 +959,34 @@ onUnmounted(() => { destroyMap(); formWatcher() })
               <span class="panel-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-7h6v7"/></svg>
               </span>
-              <div><h2 class="serif-display">Caracteristicas</h2><p>Detalles fisicos de la propiedad</p></div>
+              <div><h2 class="serif-display">Características</h2><p>Detalles fisicos de la propiedad</p></div>
             </div>
             <div class="features-cards">
               <div class="feature-card">
                 <span class="feature-emoji">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6M4 21v-8h16v8M2 13h20M7 11V8h4v3M13 11V8h4v3"/></svg>
                 </span>
-                <label>Recamaras</label>
-                <input v-model="form.bedrooms" type="number" min="0" placeholder="0" />
+                <label for="prop-bedrooms">Recámaras</label>
+                <input id="prop-bedrooms" v-model="form.bedrooms" type="number" min="0" placeholder="0" />
               </div>
               <div class="feature-card">
                 <span class="feature-emoji">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12V5a3 3 0 0 1 6 0M5 12h16v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h2ZM8 20v2M16 20v2"/></svg>
                 </span>
-                <label>baños</label>
-                <input v-model="form.bathrooms" type="number" min="0" placeholder="0" />
+                <label for="prop-bathrooms">Baños</label>
+                <input id="prop-bathrooms" v-model="form.bathrooms" type="number" min="0" placeholder="0" />
               </div>
               <div class="feature-card">
                 <span class="feature-emoji">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M7 21V7h10v14M7 7l5-4 5 4M10 11h4M10 15h4"/></svg>
                 </span>
-                <label>Superficie m2</label>
-                <input v-model="form.square_meters" type="number" min="0" placeholder="0" />
+                <label for="prop-sqm">Superficie m2</label>
+                <input id="prop-sqm" v-model="form.square_meters" type="number" min="0" placeholder="0" />
               </div>
             </div>
             <div class="field">
-              <label>Descripcion de la propiedad</label>
-              <textarea v-model="form.description" rows="5" placeholder="Amenidades, estado del inmueble, orientacion, entorno y plusvalia..." />
+              <label for="prop-description">Descripcion de la propiedad</label>
+              <textarea id="prop-description" v-model="form.description" rows="5" placeholder="Amenidades, estado del inmueble, orientacion, entorno y plusvalia..." aria-describedby="form-errors" />
             </div>
           </div>
 
@@ -944,36 +1001,36 @@ onUnmounted(() => { destroyMap(); formWatcher() })
 
             <div v-if="bedroomsCount" class="section-block">
               <div class="section-block-header">
-                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6M4 21v-8h16v8M2 13h20M7 11V8h4v3M13 11V8h4v3"/></svg> Recamaras</span>
+                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6M4 21v-8h16v8M2 13h20M7 11V8h4v3M13 11V8h4v3"/></svg> Recámaras</span>
                 <span class="count-badge">{{ bedroomsCount }} foto(s)</span>
               </div>
               <div class="slot-grid">
                 <label v-for="index in bedroomsCount" :key="`bed-${index}`" class="photo-slot">
-                  <img v-if="bedroomPhotos[index - 1]?.preview" :src="bedroomPhotos[index - 1].preview" :alt="`Recamara ${index}`" />
+                  <img v-if="bedroomPhotos[index - 1]?.preview" :src="bedroomPhotos[index - 1].preview" :alt="`Recámara ${index}`" />
                   <div v-else class="slot-empty">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                    <small>Recamara {{ index }}</small>
+                    <small>Recámara {{ index }}</small>
                   </div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bedroomPhotos, index - 1)" />
-                  <button v-if="bedroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBedroomPhoto(index - 1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  <button v-if="bedroomPhotos[index - 1]?.preview" type="button" class="slot-remove" aria-label="Quitar foto" @click.prevent="removeBedroomPhoto(index - 1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
                 </label>
               </div>
             </div>
 
             <div v-if="bathroomsCount" class="section-block">
               <div class="section-block-header">
-                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12V5a3 3 0 0 1 6 0M5 12h16v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h2ZM8 20v2M16 20v2"/></svg> baños</span>
+                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12V5a3 3 0 0 1 6 0M5 12h16v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h2ZM8 20v2M16 20v2"/></svg> Baños</span>
                 <span class="count-badge">{{ bathroomsCount }} foto(s)</span>
               </div>
               <div class="slot-grid">
                 <label v-for="index in bathroomsCount" :key="`bath-${index}`" class="photo-slot">
-                  <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`Bano ${index}`" />
+                  <img v-if="bathroomPhotos[index - 1]?.preview" :src="bathroomPhotos[index - 1].preview" :alt="`Baño ${index}`" />
                   <div v-else class="slot-empty">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                    <small>Bano {{ index }}</small>
+                    <small>Baño {{ index }}</small>
                   </div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" @change="onSinglePhotoChange($event, bathroomPhotos, index - 1)" />
-                  <button v-if="bathroomPhotos[index - 1]?.preview" type="button" class="slot-remove" @click.prevent="removeBathroomPhoto(index - 1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  <button v-if="bathroomPhotos[index - 1]?.preview" type="button" class="slot-remove" aria-label="Quitar foto" @click.prevent="removeBathroomPhoto(index - 1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
                 </label>
               </div>
             </div>
@@ -987,8 +1044,8 @@ onUnmounted(() => { destroyMap(); formWatcher() })
                 </button>
               </div>
               <div v-for="(extra, index) in extras" :key="index" class="extra-row">
-                <div class="field"><label>Nombre del espacio</label><input v-model="extra.label" type="text" placeholder="Cocina, patio, sala..." /></div>
-                <div class="field"><label>Fotos</label><input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onExtraFilesChange($event, index)" /></div>
+                <div class="field"><label :for="`extra-name-${index}`">Nombre del espacio</label><input :id="`extra-name-${index}`" v-model="extra.label" type="text" placeholder="Cocina, patio, sala..." /></div>
+                <div class="field"><label :for="`extra-photo-${index}`">Fotos</label><input :id="`extra-photo-${index}`" type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onExtraFilesChange($event, index)" /></div>
                 <button type="button" class="remove-btn" @click="removeExtra(index)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg> Quitar</button>
                 <div v-if="extra.previews.length" class="preview-grid extra-preview">
                   <div v-for="(src, imgIndex) in extra.previews" :key="imgIndex" class="preview-item">
@@ -1084,12 +1141,15 @@ h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 500; color: var(--navy); ma
 
 /* PROGRESS: thin rule */
 .progress-bar { height: 2px; background: var(--line); border-radius: 0; overflow: hidden; margin-bottom: 24px; }
-.progress-fill { height: 100%; background: var(--navy); transition: width 0.3s ease; }
+.progress-fill { height: 100%; width: 100%; background: var(--navy); transform-origin: left; transition: transform 0.3s ease; }
 
 /* ALERTS */
 .alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 16px; }
 .alert svg { width: 16px; height: 16px; }
 .alert-error { background: var(--error-bg); color: var(--error); border: 1px solid #fecaca; }
+.error-links { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
+.error-links a { color: var(--error); font-weight: 600; }
+.field-error { margin: 6px 0 0; color: var(--error); font-size: 12px; font-weight: 500; }
 .alert-warning { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; }
 
 /* STEP PANEL: flat cards */
@@ -1109,18 +1169,18 @@ h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 500; color: var(--navy); ma
 input[type="text"], input[type="number"], select, textarea {
   width: 100%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 8px;
   background: #fff; color: var(--navy); font-size: 14px; font-family: "Poppins", sans-serif;
-  transition: border-color 0.2s; outline: none;
+  transition: border-color 0.2s;
 }
-input:focus, select:focus, textarea:focus { border-color: var(--navy); background: #fff; box-shadow: none; }
+input:focus, select:focus, textarea:focus { border-color: var(--navy); background: #fff; }
 input::placeholder, textarea::placeholder { color: #a8a094; }
 
 .input-prefix { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden; transition: border-color 0.2s; }
-.input-prefix:focus-within { border-color: var(--navy); box-shadow: none; }
+.input-prefix:focus-within { border-color: var(--navy); }
 .input-prefix span { padding: 11px 12px; font-size: 14px; font-weight: 600; color: var(--muted); background: transparent; border-right: 1px solid var(--line); }
-.input-prefix input { border: none; border-radius: 0; background: transparent; box-shadow: none !important; }
+.input-prefix input { border: none; border-radius: 0; background: transparent; }
 
 .toggle-group { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.toggle-btn { flex: 1; padding: 11px; border: none; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; }
+.toggle-btn { flex: 1; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 11px; border: none; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; }
 .toggle-btn:first-child { border-right: 1px solid var(--line); }
 .toggle-btn.active { background: var(--navy); color: #fff; }
 
@@ -1157,7 +1217,7 @@ input::placeholder, textarea::placeholder { color: #a8a094; }
 .photo-meta strong { color: var(--navy); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .photo-meta span { color: var(--muted); font-size: 12px; }
 .photo-actions { display: flex; gap: 6px; }
-.photo-actions button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--navy); transition: border-color 0.2s; }
+.photo-actions button { width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--navy); transition: border-color 0.2s; padding: 0; }
 .photo-actions button:hover:not(:disabled) { border-color: var(--gold); background: #faf5e9; }
 .photo-actions button:disabled { opacity: 0.35; cursor: not-allowed; }
 .photo-actions .danger { color: var(--error); border-color: #fecaca; background: transparent; }
@@ -1173,7 +1233,7 @@ input::placeholder, textarea::placeholder { color: #a8a094; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .input-row { display: flex; gap: 8px; }
 .input-row input { flex: 1; }
-.btn-search-map { padding: 11px 16px; border: 1px solid var(--navy); border-radius: 8px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.btn-search-map { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 11px 16px; border: 1px solid var(--navy); border-radius: 8px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
 .btn-search-map:hover { background: var(--navy-mid); }
 .btn-search-map:disabled { opacity: 0.5; cursor: not-allowed; }
 .map-container { min-height: 220px; border: 1px solid var(--line); border-radius: 12px; }
@@ -1183,9 +1243,9 @@ input::placeholder, textarea::placeholder { color: #a8a094; }
 .city-arrow { color: var(--muted); }
 .city-arrow svg { width: 16px; height: 16px; }
 .city-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: none; z-index: 50; overflow-y: auto; }
-.city-search-input { width: 100%; padding: 10px 14px; border: none; border-bottom: 1px solid var(--line); background: transparent; font-size: 13px; font-family: "Poppins", sans-serif; outline: none; }
+.city-search-input { width: 100%; padding: 10px 14px; border: none; border-bottom: 1px solid var(--line); background: transparent; font-size: 13px; font-family: "Poppins", sans-serif; }
 .city-list { max-height: 240px; overflow-y: auto; }
-.city-option { padding: 10px 14px; font-size: 13px; color: var(--navy); cursor: pointer; transition: background 0.15s; }
+.city-option { min-height: 44px; display: flex; align-items: center; padding: 10px 14px; font-size: 13px; color: var(--navy); cursor: pointer; transition: background 0.15s; }
 .city-option:hover { background: #faf5e9; }
 .city-option.active { background: #faf5e9; color: var(--navy); font-weight: 600; }
 .city-no-results { padding: 10px 14px; font-size: 12px; color: var(--muted); text-align: center; }
@@ -1204,7 +1264,7 @@ input::placeholder, textarea::placeholder { color: #a8a094; }
 .section-block-header > span:first-child { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .section-block-header svg { width: 17px; height: 17px; color: var(--gold); }
 .count-badge { font-size: 11px; font-weight: 600; color: var(--muted); background: transparent; border: 1px solid var(--line); padding: 3px 10px; border-radius: 999px; }
-.add-extra-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy); color: #fff; border: 1px solid var(--navy); border-radius: 8px; padding: 8px 14px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; }
+.add-extra-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; background: var(--navy); color: #fff; border: 1px solid var(--navy); border-radius: 8px; padding: 8px 14px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; }
 .add-extra-btn svg { width: 13px; height: 13px; }
 .add-extra-btn:hover { background: var(--navy-mid); }
 .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding: 16px; }
@@ -1215,13 +1275,13 @@ input::placeholder, textarea::placeholder { color: #a8a094; }
 .slot-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 4px; color: var(--muted); }
 .slot-empty svg { width: 24px; height: 24px; color: var(--gold); }
 .slot-empty small { font-size: 11px; font-weight: 600; }
-.slot-remove { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; display: grid; place-items: center; border: 1px solid var(--color-line); border-radius: 50%; background: var(--navy); color: #fff; cursor: pointer; transition: background 0.2s; }
+.slot-remove { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: grid; place-items: center; border: 1px solid var(--color-line); border-radius: 50%; background: var(--navy); color: #fff; cursor: pointer; transition: background 0.2s; padding: 9px; }
 .slot-remove:hover { background: var(--error); }
 .slot-remove svg { width: 13px; height: 13px; }
 .extra-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; padding: 16px; border-bottom: 1px solid var(--line); }
 .extra-row:last-child { border-bottom: none; }
 .extra-preview { grid-column: 1/-1; }
-.remove-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border: 1px solid #fecaca; border-radius: 8px; background: transparent; color: var(--error); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.remove-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 14px; border: 1px solid #fecaca; border-radius: 8px; background: transparent; color: var(--error); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
 .remove-btn svg { width: 13px; height: 13px; }
 .remove-btn:hover { background: #fee2e2; }
 
@@ -1234,7 +1294,7 @@ input::placeholder, textarea::placeholder { color: #a8a094; }
 .btn-back svg { width: 16px; height: 16px; }
 .btn-back:hover { border-color: var(--gold); background: transparent; }
 .btn-back:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-next { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 28px; border: 1px solid var(--navy); border-radius: 8px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; box-shadow: none; }
+.btn-next { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 28px; border: 1px solid var(--navy); border-radius: 0; background: var(--navy); color: #fff; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; font-family: "Poppins", sans-serif; cursor: pointer; transition: background 0.2s; box-shadow: none; }
 .btn-next svg { width: 16px; height: 16px; }
 .btn-next:hover { background: var(--navy-mid); }
 .btn-next:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }

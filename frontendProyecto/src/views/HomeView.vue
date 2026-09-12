@@ -36,10 +36,7 @@ const cityOptions = computed(() =>
   [...new Set(approvedProperties.value.map((p) => p.city).filter(Boolean))]
 )
 
-const heroProperty = computed(() => approvedProperties.value[0] ?? null)
-const heroImage = computed(() =>
-  heroProperty.value ? getPropertyImage(heroProperty.value) : homeFallbackImage
-)
+const heroImage = computed(() => homeFallbackImage)
 
 const onHeroImageError = (event) => {
   if (event?.target) event.target.src = homeFallbackImage
@@ -115,9 +112,12 @@ onMounted(async () => {
         </div>
         <div class="search-shell">
           <div class="search-bar">
-            <input v-model="filters.city" type="text" placeholder="Ciudad" class="search-input search-input-city" />
+            <input v-model="filters.city" type="text" placeholder="Ciudad" aria-label="Ciudad" class="search-input search-input-city" list="home-city-options" />
+            <datalist id="home-city-options">
+              <option v-for="city in cityOptions" :key="city" :value="city" />
+            </datalist>
             <span class="search-divider"></span>
-            <select v-model="filters.property_type" class="search-select">
+            <select v-model="filters.property_type" aria-label="Tipo de propiedad" class="search-select">
               <option value="">Tipo</option>
               <option value="house">Casa</option>
               <option value="apartment">Departamento</option>
@@ -125,19 +125,19 @@ onMounted(async () => {
               <option value="commercial">Local comercial</option>
             </select>
             <span class="search-divider"></span>
-            <select v-model="filters.transaction_type" class="search-select">
+            <select v-model="filters.transaction_type" aria-label="Tipo de operación" class="search-select">
               <option value="">Operación</option>
               <option value="sale">Venta</option>
               <option value="rent">Renta</option>
             </select>
             <span class="search-divider"></span>
-            <input v-model="filters.max_price" type="number" placeholder="Precio max" class="search-input" />
+            <input v-model="filters.max_price" type="number" placeholder="Precio max" aria-label="Precio máximo" class="search-input" />
             <div class="search-actions">
               <button class="search-btn" @click="goToProperties">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 Buscar
               </button>
-              <button class="search-reset" @click="resetFilters" title="Limpiar filtros">
+              <button class="search-reset" aria-label="Limpiar filtros" @click="resetFilters" title="Limpiar filtros">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
@@ -153,6 +153,7 @@ onMounted(async () => {
         type="button"
         class="cat-item"
         :class="{ active: selectedCategory === c.key }"
+        :aria-pressed="selectedCategory === c.key"
         @click="selectCategory(c.key)"
       >
         <span class="cat-label">{{ c.label }}</span>
@@ -162,25 +163,32 @@ onMounted(async () => {
 
     <section class="about reveal">
       <div class="about-img-wrap">
-        <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Habitacion elegante" />
+        <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Habitacion elegante" loading="lazy" />
       </div>
       <div class="about-content">
-        <p class="eyebrow-label">Nosotros</p>
         <h2 class="serif-display">Espacios que se sienten como hogar</h2>
         <hr class="rule" />
         <p class="about-copy">
           Curaduría de propiedades con carácter: luz, proporción y ubicación. Te acompañamos con trato cercano y criterio patrimonial.
         </p>
-        <article class="rating-card">
-          <strong class="rating-value serif-display">4.9 / 5</strong>
-          <p>La calificación de familias e inversionistas que ya encontraron su lugar.</p>
-        </article>
-        <article class="contact-card">
-          <div>
-            <small>Habla con un asesor por teléfono o correo</small>
-            <strong>+52 961 123 4567</strong>
-          </div>
-          <RouterLink class="btn-ink" to="/contacto">Llamar</RouterLink>
+        <article class="review-card">
+          <p class="eyebrow-label">Cómo se publica</p>
+          <h3 class="serif-display">Nada se publica sin revisión</h3>
+          <ol class="review-steps">
+            <li>
+              <strong>Publicas</strong>
+              <span>Subes fotos, precio y ubicación de la propiedad.</span>
+            </li>
+            <li>
+              <strong>Un asesor revisa</strong>
+              <span>Verifica que los datos y las fotos correspondan.</span>
+            </li>
+            <li>
+              <strong>Se publica aprobada</strong>
+              <span>Solo entonces aparece en el catálogo.</span>
+            </li>
+          </ol>
+          <p class="review-note">Nada aparece en el catálogo sin pasar por esta revisión.</p>
         </article>
       </div>
     </section>
@@ -188,7 +196,6 @@ onMounted(async () => {
     <section class="featured reveal">
       <div class="section-head">
         <div>
-          <p class="eyebrow-label">Selección editorial</p>
           <h3 class="serif-display">Propiedades destacadas</h3>
         </div>
         <RouterLink to="/propiedades" class="link-all">Ver todas las propiedades →</RouterLink>
@@ -219,7 +226,6 @@ onMounted(async () => {
 
     <section class="bottom-banner reveal">
       <div class="banner-copy">
-        <p class="eyebrow-label eyebrow-on-dark">Nuestros servicios</p>
         <h2 class="serif-display">El confort y el carácter, en un mismo lugar</h2>
         <hr class="rule rule-light" />
         <p>
@@ -229,7 +235,7 @@ onMounted(async () => {
       </div>
       <div class="banner-cards">
         <article class="mini-card" v-for="p in highlightedProperties.slice(0, 2)" :key="`mini-${p.id}`">
-          <img :src="getPropertyImage(p)" :alt="p.title" />
+          <img :src="getPropertyImage(p)" :alt="p.title" loading="lazy" />
           <div>
             <strong>{{ p.title }}</strong>
             <small>{{ p.city }} · ${{ Number(p.price).toLocaleString('es-MX') }}</small>
@@ -340,7 +346,6 @@ onMounted(async () => {
   font-size: 14px;
   height: 44px;
   padding: 0 6px;
-  outline: none;
   min-width: 0;
 }
 
@@ -376,9 +381,11 @@ onMounted(async () => {
 .search-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-height: 44px;
   gap: 8px;
   background: var(--color-brass);
-  color: #fff;
+  color: var(--color-ink);
   border: 1px solid var(--color-brass);
   padding: 12px 22px;
   font-size: 12px;
@@ -397,8 +404,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   background: transparent;
   color: var(--color-ivory);
   border: 1px solid rgba(243, 238, 228, 0.5);
@@ -508,37 +517,49 @@ onMounted(async () => {
   max-width: 52ch;
 }
 
-.rating-card,
-.contact-card {
+.review-card {
   margin-top: 22px;
   padding: 20px 0;
   border-top: 1px solid var(--color-line);
 }
 
-.rating-value {
-  font-size: clamp(38px, 4vw, 54px);
-  color: var(--color-petrol);
-}
-
-.rating-card p,
-.contact-card small {
+.review-card h3 {
   margin: 8px 0 0;
-  color: var(--color-muted);
-  line-height: 1.6;
-}
-
-.contact-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.contact-card strong {
-  display: block;
-  margin-top: 6px;
-  font-size: 20px;
+  font-size: clamp(26px, 3vw, 36px);
   color: var(--color-petrol);
+}
+
+.review-steps {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.review-steps li {
+  display: grid;
+  gap: 2px;
+  padding-left: 14px;
+  border-left: 2px solid var(--color-brass);
+}
+
+.review-steps strong {
+  font-size: 14px;
+  color: var(--color-petrol);
+}
+
+.review-steps span {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+.review-note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-muted);
 }
 
 /* ── Destacadas asimétricas ── */
@@ -770,11 +791,6 @@ onMounted(async () => {
   }
 
   .section-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .contact-card {
     flex-direction: column;
     align-items: flex-start;
   }

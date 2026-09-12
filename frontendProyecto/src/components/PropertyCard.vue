@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { enumLabel } from '@/utils/enums'
@@ -39,6 +40,7 @@ const props = defineProps({
 })
 
 const auth = useAuthStore()
+const router = useRouter()
 const favStore = useFavoritesStore()
 const isFav = computed(() => favStore.isFavorite(props.id))
 
@@ -56,7 +58,11 @@ const extrasLabels = computed(() => {
 const toggle = async (e) => {
   e.preventDefault()
   e.stopPropagation()
-  if (!auth.isLogged || auth.role !== 'client') return
+  if (!auth.isLogged) {
+    router.push('/login?redirect=' + `/propiedades/${props.id}`)
+    return
+  }
+  if (auth.role !== 'client') return
   await favStore.toggleFavorite(props.id)
 }
 
@@ -80,7 +86,7 @@ const handleImageError = (event) => {
         :title="auth.isLogged ? (isFav ? 'Quitar de favoritos' : 'Guardar favorito') : 'Inicia sesion para guardar favoritos'"
         @click="toggle"
       >
-        <svg v-if="isFav" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#d64545" stroke="#d64545" stroke-width="2">
+        <svg v-if="isFav" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#991b1b" stroke="#991b1b" stroke-width="2">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
         <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -157,34 +163,48 @@ const handleImageError = (event) => {
 }
 
 .type-pill {
-  padding: 7px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: none;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: .14em;
   text-transform: uppercase;
+  text-shadow: 0 1px 6px rgba(255, 253, 248, .9), 0 0 2px rgba(255, 253, 248, .9);
+}
+
+.type-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
 }
 
 .type-gold {
   left: 16px;
   top: 16px;
-  background: var(--color-brass);
-  color: #fff;
+  color: var(--color-brass-ink);
 }
 
 .type-blue {
   left: 16px;
-  top: 50px;
-  background: rgba(7, 27, 28, .72);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, .28);
-  backdrop-filter: blur(6px);
+  top: 36px;
+  color: var(--color-petrol);
+  backdrop-filter: none;
 }
 
 .fav-btn {
   right: 14px;
   top: 14px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   background: rgba(255, 255, 255, .94);
   border: none;
@@ -194,7 +214,7 @@ const handleImageError = (event) => {
   justify-content: center;
   transition: transform .25s ease, background .2s ease;
   z-index: 2;
-  color: #8a8a8a;
+  color: var(--color-muted);
 }
 
 .fav-btn:hover { transform: scale(1.1); background: #fff; }

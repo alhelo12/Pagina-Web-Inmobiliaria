@@ -82,12 +82,15 @@
         <p>{{ selectedFollowup?.client?.full_name }} - {{ getTypeLabel(selectedFollowup?.followup_type) }}</p>
 
         <div v-if="selectedFollowup?.followup_type === 'satisfaction_survey'" class="rating-section">
-          <label>Calificación del cliente:</label>
-          <div class="stars">
+          <label id="rating-label">Calificación del cliente:</label>
+          <div class="stars" role="radiogroup" aria-labelledby="rating-label">
             <button
               v-for="star in 5"
               :key="star"
               type="button"
+              role="radio"
+              :aria-checked="star <= modalRating"
+              :aria-label="`${star} de 5`"
               class="star-btn"
               :class="{ active: star <= modalRating }"
               @click="modalRating = star"
@@ -97,7 +100,7 @@
           </div>
         </div>
 
-        <textarea v-model="modalNotes" placeholder="Notas del seguimiento..." rows="3"></textarea>
+        <textarea v-model="modalNotes" placeholder="Notas del seguimiento..." aria-label="Notas del seguimiento" rows="3"></textarea>
 
         <div class="modal-actions">
           <button class="btn-cancel" @click="closeModals">Cancelar</button>
@@ -111,7 +114,7 @@
         <h3>Omitir Seguimiento</h3>
         <p>{{ selectedFollowup?.client?.full_name }} - {{ getTypeLabel(selectedFollowup?.followup_type) }}</p>
 
-        <textarea v-model="skipReason" placeholder="Razón para omitir..." rows="3" required></textarea>
+        <textarea v-model="skipReason" placeholder="Razón para omitir..." aria-label="Razón para omitir" rows="3" required></textarea>
 
         <div class="modal-actions">
           <button class="btn-cancel" @click="closeModals">Cancelar</button>
@@ -345,15 +348,14 @@ function formatDate(dateStr) {
 .followup-card {
   background: #fff;
   border: 1px solid var(--color-line);
-  border-left: 3px solid var(--color-line);
   border-radius: 12px;
   padding: 16px;
   box-shadow: none;
 }
 
 .followup-card.overdue {
-  border-left-color: #991b1b;
-  background: #fff;
+  border-color: #991b1b;
+  background: #fdf3f0;
 }
 
 .followup-header {
@@ -384,6 +386,7 @@ function formatDate(dateStr) {
 }
 
 .btn-complete, .btn-skip, .btn-confirm, .btn-cancel {
+  min-height: 44px;
   padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;

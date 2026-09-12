@@ -171,6 +171,7 @@ onMounted(async () => {
                   :src="getPropertyImage(property) || propertyFallback"
                   :alt="property.title"
                   class="review-thumb"
+                  loading="lazy"
                   @error="(e) => { e.target.src = propertyFallback }"
                 />
               </div>
@@ -198,7 +199,7 @@ onMounted(async () => {
 /* JAKEDA: metrics as hairline-divided grid, large serif numerals */
 .dashboard :deep(.metrics) { background: #ece5d3; border: 1px solid var(--color-line); border-radius: 12px; padding: 0; gap: 1px; overflow: hidden; }
 .dashboard :deep(.metrics .card) { border: none; border-radius: 0; box-shadow: none; background: #fff; }
-.dashboard :deep(.metrics .card strong) { font-family: Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 700; color: #102d2d; }
+.dashboard :deep(.metrics .card strong) { font-family: var(--serif); font-size: 34px; font-weight: 700; color: #102d2d; }
 .dashboard :deep(.metrics .card.highlight) { background: #faf5e9; }
 
 /* JAKEDA: thin-rule rows inside shared cards */
@@ -227,7 +228,7 @@ onMounted(async () => {
 .review-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 18px; }
 .review-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
 .review-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.review-head h3 { margin: 0; color: #102d2d; font-size: 20px; font-family: Georgia, 'Times New Roman', serif; }
+.review-head h3 { margin: 0; color: #102d2d; font-size: 20px; font-family: var(--serif); }
 .review-head button { min-height: 38px; padding: 0 14px; border-radius: 8px; background: #102d2d; color: #f3ede0; font-weight: 700; border: none; cursor: pointer; transition: background .2s ease; }
 .review-head button:hover { background: #1a3f3f; }
 .review-list { display: grid; gap: 0; }

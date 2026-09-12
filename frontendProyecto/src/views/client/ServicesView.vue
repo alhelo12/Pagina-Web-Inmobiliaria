@@ -212,7 +212,8 @@ const services = [
   border: none;
   width: fit-content;
   margin-top: 16px;
-  padding: 0;
+  padding: 5px 0;
+  min-height: 44px;
   background: transparent;
   color: var(--color-petrol);
   font-weight: 600;
@@ -291,6 +292,7 @@ const services = [
   justify-self: start;
   border: 1px solid var(--color-brass);
   padding: 14px 26px;
+  min-height: 44px;
   background: var(--color-brass);
   color: #fff;
   font-size: 12px;

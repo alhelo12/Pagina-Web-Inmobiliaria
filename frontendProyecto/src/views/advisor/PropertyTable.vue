@@ -42,7 +42,7 @@ const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3
       <tbody>
         <tr v-for="p in items" :key="p.id">
           <td class="td-thumb">
-            <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
+            <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" loading="lazy" @error="(e) => { e.target.src = propertyFallback }" />
           </td>
           <td class="title">{{ p.title }}</td>
           <td>
@@ -82,7 +82,7 @@ const propertyFallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3
   <div class="mobile-cards">
     <div v-for="p in items" :key="p.id" class="card">
       <div class="card-thumb">
-        <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
+        <img :src="getPropertyImage(p) || propertyFallback" :alt="p.title" loading="lazy" @error="(e) => { e.target.src = propertyFallback }" />
       </div>
       <h3>{{ p.title }}</h3>
       <p><strong>Registrado por:</strong> {{ ownerName(p) }}</p>
@@ -130,11 +130,12 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 .owner-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
 .registered-at { color: var(--color-navy-2); font-weight: 600; white-space: nowrap; }
 
-.badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: capitalize; }
-.pending  { background: #fff3cd; color: #856404; }
-.approved { background: #d4edda; color: #155724; }
-.rejected { background: #f8d7da; color: #721c24; }
-.sold     { background: #d1ecf1; color: #0c5460; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 0; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex-shrink: 0; }
+.badge.pending  { color: var(--color-brass-ink); }
+.badge.approved { color: #166534; }
+.badge.rejected { color: #991b1b; }
+.badge.sold     { color: var(--color-petrol); }
 
 .card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .actions { vertical-align: top; white-space: nowrap; }
@@ -145,9 +146,11 @@ tr:hover { background: rgba(214, 168, 72, .05); }
 }
 .actions button { margin-right: 6px; }
 .actions button:last-child { margin-right: 0; }
-.approve { background: #2ecc71; color: white; }
-.reject  { background: #e74c3c; color: white; }
-.sold    { background: #3498db; color: white; }
+button.approve { background: #166534; color: white; }
+button.reject  { background: #991b1b; color: white; }
+button.sold    { background: var(--color-petrol); color: white; }
+button.sold::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+button.approve::before, button.reject::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
 button:hover { opacity: .88; transform: translateY(-1px); }
 .no-actions  { color: #999; font-style: italic; font-size: 13px; }
 

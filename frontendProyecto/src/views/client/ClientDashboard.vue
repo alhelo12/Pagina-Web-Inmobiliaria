@@ -208,10 +208,10 @@ onMounted(async () => {
 .dashboard :deep(.feed-item.unread) { background: #faf5e9; }
 .dashboard :deep(.feed-head h3),
 .dashboard :deep(.recent-head h3),
-.dashboard :deep(.card-head h3) { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; }
+.dashboard :deep(.card-head h3) { font-family: var(--serif); font-weight: 700; }
 
 /* JAKEDA: large serif numerals */
-.dashboard :deep(.stat-value) { font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 700; color: #102d2d; }
+.dashboard :deep(.stat-value) { font-family: var(--serif); font-size: 28px; font-weight: 700; color: #102d2d; }
 
 /* JAKEDA: status as text, not pills */
 .dashboard :deep(.recent-badge) { background: transparent !important; padding: 0; border-radius: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }

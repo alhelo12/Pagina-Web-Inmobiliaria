@@ -18,6 +18,7 @@
             :src="getImage(item)"
             :alt="item.title"
             class="recent-thumb"
+            loading="lazy"
             @error="(e) => { e.target.src = FALLBACK_PROPERTY_IMAGE }"
           />
         </div>
@@ -74,11 +75,12 @@ const getImage = (p) => {
 .recent-info { flex: 1; min-width: 0; }
 .recent-info strong { display: block; color: var(--color-navy); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .recent-info span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
-.recent-badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; flex-shrink: 0; }
-.recent-badge.pending { background: #fff3cd; color: #856404; }
-.recent-badge.approved { background: #d4edda; color: #155724; }
-.recent-badge.rejected { background: #f8d7da; color: #721c24; }
-.recent-badge.sold { background: #d1ecf1; color: #0c5460; }
+.recent-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; flex-shrink: 0; }
+.recent-badge::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex-shrink: 0; }
+.recent-badge.pending { color: var(--color-brass-ink); }
+.recent-badge.approved { color: #166534; }
+.recent-badge.rejected { color: #991b1b; }
+.recent-badge.sold { color: var(--color-petrol); }
 .recent-price { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; font-size: 13px; flex-shrink: 0; }
 .empty { margin: 0; color: var(--color-muted); }
 @media (max-width: 560px) {

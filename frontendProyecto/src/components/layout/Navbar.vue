@@ -52,7 +52,7 @@ const logout = () => {
 
 onMounted(() => {
   onScroll()
-  window.addEventListener('scroll', onScroll)
+  window.addEventListener('scroll', onScroll, { passive: true })
   document.addEventListener('click', onOutsideClick)
 })
 
@@ -72,7 +72,8 @@ onUnmounted(() => {
       <button
         class="hamburger"
         type="button"
-        aria-label="Abrir menu"
+        :aria-expanded="mobileOpen"
+        :aria-label="mobileOpen ? 'Cerrar menú' : 'Abrir menú'"
         @click="mobileOpen = !mobileOpen"
       >
         <span></span>
@@ -99,7 +100,7 @@ onUnmounted(() => {
             <transition name="dropdown">
               <div v-if="dropdownOpen" class="dropdown">
                 <button type="button" @click="goDashboard">Dashboard</button>
-                <button v-if="auth.role === 'client'" type="button" @click="() => { router.push('/favoritos'); closeAll() }">Mis favoritos</button>
+                <button v-if="auth.role === 'client'" type="button" @click="() => { router.push('/cliente/favoritos'); closeAll() }">Mis favoritos</button>
                 <button type="button" @click="logout">Cerrar sesión</button>
               </div>
             </transition>
@@ -168,7 +169,7 @@ onUnmounted(() => {
   gap: 4px;
 }
 .logo-text small {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.34em;
   font-weight: 500;
   opacity: 0.8;
@@ -197,10 +198,12 @@ onUnmounted(() => {
   position: absolute;
   left: 0;
   bottom: -6px;
-  width: 0;
+  width: 100%;
   height: 1px;
   background: var(--color-brass);
-  transition: width 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 
 .menu a:hover,
@@ -212,7 +215,7 @@ onUnmounted(() => {
 
 .menu a:hover::after,
 .menu a.router-link-active::after {
-  width: 100%;
+  transform: scaleX(1);
 }
 
 .btn-login,
@@ -220,6 +223,10 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 0;
   padding: 11px 22px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
   background: transparent;
   font-size: 11px;
@@ -235,6 +242,7 @@ onUnmounted(() => {
   border-color: var(--color-petrol);
   color: var(--color-petrol);
 }
+.navbar.scrolled :deep(.bell-btn) { color: var(--color-petrol); }
 
 .btn-login::after {
   display: none;
@@ -272,10 +280,10 @@ onUnmounted(() => {
   top: calc(100% + 10px);
   right: 0;
   min-width: 180px;
-  background: #ffffff;
-  border-radius: 14px;
+  background: var(--color-card);
+  border-radius: 12px;
   box-shadow: 0 20px 35px rgba(15, 23, 42, 0.16);
-  border: 1px solid #e7ebf3;
+  border: 1px solid var(--color-line);
   padding: 8px;
   display: grid;
   gap: 6px;
@@ -286,8 +294,11 @@ onUnmounted(() => {
   background: transparent;
   border-radius: 10px;
   padding: 10px 12px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
   text-align: left;
-  color: #1e293b;
+  color: var(--color-ink);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   cursor: pointer;
@@ -295,8 +306,8 @@ onUnmounted(() => {
 }
 
 .dropdown button:hover {
-  background: #f2f6ff;
-  color: #1d4ed8;
+  background: rgba(185,148,95,.14);
+  color: var(--color-ink);
 }
 
 .dropdown-enter-active,
@@ -315,8 +326,15 @@ onUnmounted(() => {
   border: none;
   background: transparent;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 4px;
   cursor: pointer;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
 }
 
 .hamburger span {
@@ -341,7 +359,7 @@ onUnmounted(() => {
     top: 100%;
     left: 0;
     right: 0;
-    background: #07182c;
+    background: var(--color-ink);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
     padding: 14px 18px 18px;
@@ -358,6 +376,7 @@ onUnmounted(() => {
     opacity: 1;
     pointer-events: auto;
   }
+  .navbar.scrolled .menu.open :deep(.bell-btn) { color: rgba(255, 255, 255, 0.92); }
 
   .menu a::after {
     bottom: -3px;

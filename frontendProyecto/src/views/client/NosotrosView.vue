@@ -65,7 +65,7 @@ const animateCounters = () => {
 
     <section class="split reveal">
       <div class="media-card">
-        <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80" alt="Equipo inmobiliario" />
+        <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80" alt="Equipo inmobiliario" loading="lazy" />
         <div class="floating-badge">
           <strong class="serif-display">25+</strong>
           <span>Años de experiencia combinada</span>

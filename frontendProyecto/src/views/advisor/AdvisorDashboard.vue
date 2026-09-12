@@ -30,7 +30,7 @@ const cardConfig = [
   { key: 'approved', label: 'Aprobadas', sublabel: 'Visibles al público', highlight: false, iconStyle: { background: '#e2f0e5', color: '#166534' } },
   { key: 'pending', label: 'Pendientes', sublabel: 'En revisión', highlight: false, iconStyle: { background: '#f4e8cd', color: '#7a5c1e' } },
   { key: 'sold', label: 'Vendidas', sublabel: 'Cerradas', highlight: true, iconStyle: { background: '#102d2d', color: '#c9a45c' } },
-  { key: 'availableToTake', label: 'Disponibles', sublabel: 'Para tomar', highlight: false, iconStyle: { background: '#f6f1e7', color: '#1a3f3f' } },
+  { key: 'availableToTake', label: 'Disponibles', sublabel: 'Para asignarme', highlight: false, iconStyle: { background: '#f6f1e7', color: '#1a3f3f' } },
   { key: 'clientsCount', label: 'Clientes', sublabel: 'Propietarios únicos', highlight: false, iconStyle: { background: '#ece7db', color: '#5c665f' } }
 ]
 
@@ -142,7 +142,7 @@ onMounted(async () => {
         <article class="available-card">
           <div class="available-head">
             <p>Nuevas</p>
-            <h3>Disponibles para tomar</h3>
+            <h3>Disponibles para asignarme</h3>
           </div>
 
           <div v-if="availableProperties?.length" class="available-list">
@@ -152,6 +152,7 @@ onMounted(async () => {
                   :src="(p.images?.find(i => i.is_main) ?? p.images?.[0])?.image_url ?? ''"
                   :alt="p.title"
                   class="available-thumb"
+                  loading="lazy"
                   @error="(e) => { e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZGlzcGxheTpibG9jazsiIGNsYXNzPSJhIiBmaWxsPSIjZWRlY2VkIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgc3R5bGU9ImZpbGw6I2VkZWNlZCIgc3BhY2Y9Im5vbmUiLz48cGF0aCBkPSJNMjIgMzZoMjBjLTEuMSAwLTIgLjktMiAyIDAgMS4xLjkgMiAyIDIgMCAxLjEtLjkgMi0yIDJoLTIwYzEuMSAwIDItLjkgMi0yIDAtMS4xLS45LTItMi0yeiIgZmlsbD0iI2RkYzJkNSIvPjwvc3ZnPg==' }"
                 />
               </div>
@@ -160,7 +161,7 @@ onMounted(async () => {
                 <span>{{ p.city || 'Sin ciudad' }}</span>
               </div>
               <small>${{ Number(p.price || 0).toLocaleString('es-MX') }}</small>
-              <button class="take-btn" @click="handleTakeProperty(p)">Tomar</button>
+              <button class="take-btn" @click="handleTakeProperty(p)">Asignarme</button>
             </div>
           </div>
           <p v-else class="empty">No hay propiedades disponibles.</p>
@@ -179,7 +180,7 @@ onMounted(async () => {
 /* JAKEDA: metrics as hairline-divided grid, large serif numerals */
 .dashboard :deep(.metrics) { background: #ece5d3; border: 1px solid var(--color-line); border-radius: 12px; padding: 0; gap: 1px; overflow: hidden; }
 .dashboard :deep(.metrics .card) { border: none; border-radius: 0; box-shadow: none; background: #fff; }
-.dashboard :deep(.metrics .card strong) { font-family: Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 700; color: #102d2d; }
+.dashboard :deep(.metrics .card strong) { font-family: var(--serif); font-size: 34px; font-weight: 700; color: #102d2d; }
 .dashboard :deep(.metrics .card.highlight) { background: #faf5e9; }
 
 /* JAKEDA: thin-rule rows inside shared cards */
@@ -215,7 +216,7 @@ onMounted(async () => {
 .available-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 18px; }
 .available-head { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
 .available-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.available-head h3 { margin: 0; color: #102d2d; font-size: 20px; min-width: 0; font-family: Georgia, 'Times New Roman', serif; }
+.available-head h3 { margin: 0; color: #102d2d; font-size: 20px; min-width: 0; font-family: var(--serif); }
 .available-list { display: grid; gap: 0; }
 .available-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 12px 4px; border-radius: 0; border: none; border-bottom: 1px solid #ece5d3; background: transparent; }
 .available-row:last-child { border-bottom: none; }

@@ -125,22 +125,22 @@ const submitNewsletter = () => {
             </div>
             <form @submit.prevent="submitForm">
               <div class="field field-underline">
-                <label>Nombre completo</label>
-                <input v-model="form.name" type="text" placeholder="Tu nombre" required />
+                <label for="contact-name">Nombre completo</label>
+                <input id="contact-name" v-model="form.name" type="text" placeholder="Tu nombre" required />
               </div>
               <div class="row-two">
                 <div class="field field-underline">
-                  <label>Correo electronico</label>
-                  <input v-model="form.email" type="email" placeholder="correo@ejemplo.com" required />
+                  <label for="contact-email">Correo electronico</label>
+                  <input id="contact-email" v-model="form.email" type="email" placeholder="correo@ejemplo.com" required />
                 </div>
                 <div class="field field-underline">
-                  <label>Telefono</label>
-                  <input v-model="form.phone" type="tel" placeholder="+52 33 1234 5678" required />
+                  <label for="contact-phone">Telefono</label>
+                  <input id="contact-phone" v-model="form.phone" type="tel" placeholder="+52 33 1234 5678" required />
                 </div>
               </div>
               <div class="field field-underline">
-                <label>Servicio de interes</label>
-                <select v-model="form.service" required>
+                <label for="contact-service">Servicio de interes</label>
+                <select id="contact-service" v-model="form.service" required>
                   <option disabled value="">Selecciona un servicio</option>
                   <option>Compra de propiedad</option>
                   <option>Venta de propiedad</option>
@@ -149,8 +149,8 @@ const submitNewsletter = () => {
                 </select>
               </div>
               <div class="field field-underline">
-                <label>Mensaje</label>
-                <textarea v-model="form.message" rows="4" placeholder="Cuentanos sobre lo que buscas..." required></textarea>
+                <label for="contact-message">Mensaje</label>
+                <textarea id="contact-message" v-model="form.message" rows="4" placeholder="Cuentanos sobre lo que buscas..." required></textarea>
               </div>
               <p v-if="submitStatus !== 'idle'" class="form-status" :class="submitStatus">{{ submitMessage }}</p>
               <button type="submit" class="btn-submit" :disabled="submitting">
@@ -191,7 +191,7 @@ const submitNewsletter = () => {
             <hr class="rule rule-light" />
             <p>Novedades del mercado inmobiliario directamente en tu correo cada semana.</p>
             <form @submit.prevent="submitNewsletter" class="nl-form field-underline">
-              <input v-model="newsletter.email" type="email" placeholder="tu@correo.com" required />
+              <input v-model="newsletter.email" type="email" placeholder="tu@correo.com" required aria-label="Correo electrónico para boletín" />
               <button type="submit">Suscribirme</button>
             </form>
             <p v-if="newsletterStatus !== 'idle'" class="form-status success">{{ newsletterMessage }}</p>
@@ -423,11 +423,11 @@ form {
 }
 
 .form-status.success {
-  border-left-color: #2e7d4f;
+  border-left-color: #166534;
 }
 
 .form-status.error {
-  border-left-color: #a33b3b;
+  border-left-color: #991b1b;
 }
 
 .btn-submit {

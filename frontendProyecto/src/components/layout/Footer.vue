@@ -84,7 +84,7 @@ a {
 }
 
 a:hover {
-  color: #f2c46d;
+  color: var(--color-brass);
   transform: translateX(3px);
 }
 
