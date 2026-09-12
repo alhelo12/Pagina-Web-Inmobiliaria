@@ -47,7 +47,12 @@ from app.schemas.propertySchema import (
     NearbySearchParams,
     PropertyStats,
     PropertyOwnerResponse,
-    PropertyAdvisorResponse
+    PropertyAdvisorResponse,
+    PublicPropertyOwner,
+    PublicPropertyAdvisorUser,
+    PublicPropertyAdvisor,
+    PublicPropertyResponse,
+    PublicPropertyListResponse
 )
 
 from app.schemas.advisorSchema import (
@@ -59,7 +64,13 @@ from app.schemas.advisorSchema import (
     AdvisorListResponse,
     AdvisorUserResponse,
     AdvisorStats,
-    AdvisorRanking
+    AdvisorRanking,
+    PublicAdvisorUser,
+    AdvisorPublicResponse,
+    AdvisorPublicListResponse,
+    AdvisorWithStatsItem,
+    AdvisorWithStatsListResponse,
+    AdvisorRankingListResponse
 )
 
 from app.schemas.appointmentSchema import (
@@ -191,6 +202,11 @@ __all__ = [
     'PropertyStats',
     'PropertyOwnerResponse',
     'PropertyAdvisorResponse',
+    'PublicPropertyOwner',
+    'PublicPropertyAdvisorUser',
+    'PublicPropertyAdvisor',
+    'PublicPropertyResponse',
+    'PublicPropertyListResponse',
     
     # Advisor schemas
     'AdvisorBase',
@@ -202,6 +218,12 @@ __all__ = [
     'AdvisorUserResponse',
     'AdvisorStats',
     'AdvisorRanking',
+    'PublicAdvisorUser',
+    'AdvisorPublicResponse',
+    'AdvisorPublicListResponse',
+    'AdvisorWithStatsItem',
+    'AdvisorWithStatsListResponse',
+    'AdvisorRankingListResponse',
     
     # Appointment schemas
     'AppointmentTypeEnum',

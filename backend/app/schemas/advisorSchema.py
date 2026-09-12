@@ -147,6 +147,57 @@ class AdvisorListResponse(BaseModel):
 
 
 # ==========================================
+# SCHEMAS PÚBLICOS (sin datos de contacto)
+# ==========================================
+
+class PublicAdvisorUser(BaseModel):
+    """Usuario asesor sin email/teléfono"""
+    id: int
+    full_name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdvisorPublicResponse(AdvisorResponse):
+    """Asesor para respuestas anónimas: sin email/teléfono del usuario"""
+    user: Optional[PublicAdvisorUser] = None
+    total_properties: int = Field(default=0, description="Total de propiedades gestionadas")
+    active_properties: int = Field(default=0, description="Propiedades activas (approved)")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdvisorPublicListResponse(BaseModel):
+    """Lista paginada de asesores sin datos de contacto"""
+    total: int = Field(..., description="Total de asesores")
+    page: int = Field(..., ge=1, description="Página actual")
+    per_page: int = Field(..., ge=1, le=100, description="Asesores por página")
+    advisors: list[AdvisorPublicResponse] = Field(..., description="Lista de asesores")
+
+
+class AdvisorWithStatsItem(BaseModel):
+    """Asesor + estadísticas básicas (sin credenciales)"""
+    advisor: AdvisorPublicResponse
+    active_properties: int
+    rating: float
+
+
+class AdvisorWithStatsListResponse(BaseModel):
+    """Respuesta de /advisors/with-stats/list"""
+    advisors: list[AdvisorWithStatsItem]
+    total: int
+    skip: int
+    limit: int
+
+
+class AdvisorRankingListResponse(BaseModel):
+    """Respuesta de /advisors/rankings/top"""
+    top_advisors: list[AdvisorPublicResponse]
+    limit: int
+    order_by: str
+
+
+# ==========================================
 # SCHEMAS DE ESTADÍSTICAS
 # ==========================================
 

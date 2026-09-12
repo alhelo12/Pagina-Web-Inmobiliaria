@@ -4,7 +4,6 @@ Controller: Properties
 
 from pathlib import Path
 from uuid import uuid4
-import mimetypes
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Request
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -12,16 +11,49 @@ from typing import Optional
 from app.dbConfig.databaseSession import get_db
 from app.core.config import settings
 from app.services import propertyService
-from app.core.dependencies import get_current_user, require_advisor_or_admin, verify_user_owns_resource
+from app.core.dependencies import (
+    get_current_user,
+    get_current_user_optional,
+    require_advisor_or_admin,
+    verify_user_owns_resource,
+)
 from app.core.activityLogger import log_activity
 from app.core.rateLimiter import RATE_LIMITS, limiter
 from app.schemas import (
     PropertyCreate, PropertyUpdate, PropertyResponse,
-    PropertyListResponse, PropertySearchFilters
+    PropertyListResponse, PropertySearchFilters,
+    PublicPropertyResponse, PublicPropertyListResponse
 )
 from app.models import User, Property, Advisor
 
 router = APIRouter(prefix="/properties", tags=["Properties"])
+
+# Firmas binarias aceptadas (JPEG, PNG, WebP)
+_IMAGE_HEADER_LEN = 16
+
+
+def _is_valid_image_header(header: bytes) -> bool:
+    """Valida magic bytes reales del archivo subido, no la extensión."""
+    if header.startswith(b"\xff\xd8\xff"):
+        return True
+    if header.startswith(b"\x89PNG\r\n\x1a\n"):
+        return True
+    if header.startswith(b"RIFF") and header[8:12] == b"WEBP":
+        return True
+    return False
+
+
+def _property_list_response(current_user: Optional[User], properties, total: int, skip: int, limit: int):
+    """Sin autenticación omite email/teléfono (owner y advisor)."""
+    payload = {
+        "total": total,
+        "page": (skip // limit) + 1,
+        "per_page": limit,
+        "properties": properties,
+    }
+    if current_user:
+        return PropertyListResponse(**payload)
+    return PublicPropertyListResponse(**payload)
 
 
 def get_or_create_advisor(db: Session, user: User) -> int:
@@ -39,7 +71,7 @@ def get_or_create_advisor(db: Session, user: User) -> int:
 
 
 # ── LISTAR PROPIEDADES (público) ─────────────────────────────────────────────
-@router.get("", response_model=PropertyListResponse)
+@router.get("", response_model=PropertyListResponse | PublicPropertyListResponse)
 def get_properties(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
@@ -49,6 +81,7 @@ def get_properties(
     transaction_type: Optional[str] = Query(None),
     max_price: Optional[float] = Query(None),
     user_id: Optional[int] = Query(None, description="Filtrar por usuario que publico"),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     # Público solo ve propiedades aprobadas; ignorar status explícito no-approved
@@ -64,20 +97,16 @@ def get_properties(
     total = propertyService.count_properties(db, status=effective_status, user_id=user_id)
 
     # Construir la respuesta paginada que exige PropertyListResponse
-    return PropertyListResponse(
-        total=total,
-        page=(skip // limit) + 1,
-        per_page=limit,
-        properties=properties
-    )
+    return _property_list_response(current_user, properties, total, skip, limit)
 
 
 # ── BUSCAR PROPIEDADES AVANZADO ──────────────────────────────────────────────
-@router.post("/search", response_model=PropertyListResponse)
+@router.post("/search", response_model=PropertyListResponse | PublicPropertyListResponse)
 def search_properties(
     filters: PropertySearchFilters,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     # Público solo ve propiedades aprobadas
@@ -87,12 +116,7 @@ def search_properties(
         filters.status = "approved"
     
     properties, total = propertyService.search_properties(db, filters, skip=skip, limit=limit)
-    return PropertyListResponse(
-        total=total,
-        page=(skip // limit) + 1,
-        per_page=limit,
-        properties=properties
-    )
+    return _property_list_response(current_user, properties, total, skip, limit)
 
 
 # ── PROPIEDADES PENDIENTES (asesor/admin) ────────────────────────────────────
@@ -234,9 +258,10 @@ def get_available_properties(
 
 
 # ── DETALLE DE PROPIEDAD (público) ───────────────────────────────────────────
-@router.get("/{property_id}", response_model=PropertyResponse)
+@router.get("/{property_id}", response_model=PropertyResponse | PublicPropertyResponse)
 def get_property(
     property_id: int,
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     prop = propertyService.get_property_by_id(db, property_id)
@@ -247,7 +272,9 @@ def get_property(
     if prop.status != "approved":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Propiedad no encontrada")
-    return prop
+    if current_user:
+        return PropertyResponse.model_validate(prop)
+    return PublicPropertyResponse.model_validate(prop)
 
 
 # ── CREAR PROPIEDAD (cliente autenticado) ────────────────────────────────────
@@ -411,19 +438,14 @@ async def upload_property_image(
             detail=f"Formato no permitido. Usa: {', '.join(settings.ALLOWED_IMAGE_EXTENSIONS)}"
         )
 
-    # Validar MIME type (firma del archivo)
-    allowed_mimes = {"image/jpeg", "image/png", "image/webp"}
-    mime = mimetypes.guess_type(image.filename or "")[0]
-    if mime not in allowed_mimes:
-        # Intentar detectar por contenido si no hay MIME confiable
-        await image.read(512)
-        await image.seek(0)
-        detected_mime = mimetypes.guess_type("test" + ext)[0]
-        if detected_mime not in allowed_mimes:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Tipo de archivo no permitido. Solo JPEG, PNG y WebP"
-            )
+    # Validar magic bytes reales (JPEG/PNG/WebP), no la extensión ni el nombre
+    header = await image.read(_IMAGE_HEADER_LEN)
+    await image.seek(0)
+    if not _is_valid_image_header(header):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tipo de archivo no permitido. Solo JPEG, PNG y WebP"
+        )
 
     # Streaming upload con límite de tamaño (evita cargar todo en memoria)
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024

@@ -16,9 +16,17 @@ from app.schemas import (
     AdvisorResponse,
     AdvisorDetailResponse,
     AdvisorListResponse,
-    AdvisorStats
+    AdvisorStats,
+    AdvisorPublicResponse,
+    AdvisorPublicListResponse,
+    AdvisorWithStatsListResponse,
+    AdvisorRankingListResponse
 )
-from app.core.dependencies import require_admin, require_advisor_or_admin
+from app.core.dependencies import (
+    get_current_user_optional,
+    require_admin,
+    require_advisor_or_admin,
+)
 from app.models import User
 
 router = APIRouter(
@@ -31,11 +39,12 @@ router = APIRouter(
 # LISTAR ASESORES
 # ==========================================
 
-@router.get("", response_model=AdvisorListResponse)
+@router.get("", response_model=AdvisorListResponse | AdvisorPublicListResponse)
 def get_advisors(
     page: int = Query(1, ge=1, description="Número de página"),
     per_page: int = Query(20, ge=1, le=100, description="Resultados por página"),
     min_rating: Optional[float] = Query(None, ge=0.0, le=5.0, description="Rating mínimo"),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -50,17 +59,22 @@ def get_advisors(
     - Lista de asesores
     - Total de asesores
     - Paginación
+    
+    Nota: sin autenticación se omiten email y teléfono.
     """
     skip = (page - 1) * per_page
     advisors = advisorService.get_advisors(db, skip, per_page, min_rating)
     total = advisorService.count_advisors(db)
-    
-    return {
+    payload = {
         "advisors": advisors,
         "total": total,
         "page": page,
         "per_page": per_page
     }
+
+    if current_user:
+        return AdvisorListResponse(**payload)
+    return AdvisorPublicListResponse(**payload)
 
 
 @router.get("/available", response_model=list[AdvisorResponse])
@@ -85,9 +99,10 @@ def get_available_advisors(db: Session = Depends(get_db)):
 # OBTENER ASESOR POR ID
 # ==========================================
 
-@router.get("/{advisor_id}", response_model=AdvisorDetailResponse)
+@router.get("/{advisor_id}", response_model=AdvisorDetailResponse | AdvisorPublicResponse)
 def get_advisor(
     advisor_id: int,
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -98,7 +113,7 @@ def get_advisor(
     
     Retorna:
     - Asesor con todos sus datos
-    - Información del usuario asociado
+    - Información del usuario asociado (email/teléfono solo autenticado)
     
     Errores:
     - 404: Asesor no encontrado
@@ -111,12 +126,15 @@ def get_advisor(
             detail="Asesor no encontrado"
         )
     
-    return advisor
+    if current_user:
+        return AdvisorDetailResponse.model_validate(advisor)
+    return AdvisorPublicResponse.model_validate(advisor)
 
 
-@router.get("/user/{user_id}", response_model=AdvisorDetailResponse)
+@router.get("/user/{user_id}", response_model=AdvisorDetailResponse | AdvisorPublicResponse)
 def get_advisor_by_user(
     user_id: int,
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -126,7 +144,7 @@ def get_advisor_by_user(
     - **user_id**: ID del usuario
     
     Retorna:
-    - Asesor asociado al usuario
+    - Asesor asociado al usuario (email/teléfono solo autenticado)
     
     Errores:
     - 404: Asesor no encontrado
@@ -139,7 +157,9 @@ def get_advisor_by_user(
             detail="El usuario no tiene perfil de asesor"
         )
     
-    return advisor
+    if current_user:
+        return AdvisorDetailResponse.model_validate(advisor)
+    return AdvisorPublicResponse.model_validate(advisor)
 
 
 # ==========================================
@@ -206,19 +226,19 @@ def update_advisor(
     - 404: Asesor no encontrado
     - 403: No autorizado
     """
+    # Verificar autorización ANTES de escribir: solo el mismo asesor o admin
+    if current_user.is_advisor() and (not current_user.advisor or current_user.advisor.id != advisor_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes actualizar el perfil de otro asesor"
+        )
+
     advisor = advisorService.update_advisor(db, advisor_id, advisor_data)
     
     if not advisor:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Asesor no encontrado"
-        )
-    
-    # Verificar autorización: solo el mismo asesor o admin
-    if current_user.is_advisor() and (not current_user.advisor or current_user.advisor.id != advisor_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No puedes actualizar el perfil de otro asesor"
         )
     
     return advisor
@@ -299,7 +319,7 @@ def get_advisor_stats(
     return stats
 
 
-@router.get("/with-stats/list")
+@router.get("/with-stats/list", response_model=AdvisorWithStatsListResponse)
 def get_advisors_with_stats(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
@@ -333,7 +353,7 @@ def get_advisors_with_stats(
 # RANKINGS
 # ==========================================
 
-@router.get("/rankings/top")
+@router.get("/rankings/top", response_model=AdvisorRankingListResponse)
 def get_top_advisors(
     limit: int = Query(10, ge=1, le=50, description="Número de asesores a retornar"),
     order_by: str = Query(

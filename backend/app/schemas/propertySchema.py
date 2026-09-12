@@ -255,6 +255,40 @@ class PropertyResponse(PropertyBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PublicPropertyOwner(BaseModel):
+    """Dueño de propiedad sin datos de contacto (para respuestas públicas)"""
+    id: int
+    full_name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublicPropertyAdvisorUser(BaseModel):
+    """Usuario asesor sin datos de contacto (para respuestas públicas)"""
+    id: int
+    full_name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublicPropertyAdvisor(BaseModel):
+    """Asesor sin datos de contacto (para respuestas públicas)"""
+    id: int
+    agency_name: Optional[str] = None
+    rating: Optional[float] = None
+    user: Optional[PublicPropertyAdvisorUser] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublicPropertyResponse(PropertyResponse):
+    """Propiedad para endpoints públicos: sin email/teléfono de owner ni advisor"""
+    owner: Optional[PublicPropertyOwner] = None
+    advisor: Optional[PublicPropertyAdvisor] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PropertyDetailResponse(PropertyResponse):
     """
     Schema de respuesta detallada con owner y advisor
@@ -284,6 +318,14 @@ class PropertyListResponse(BaseModel):
     page: int = Field(..., ge=1, description="Página actual")
     per_page: int = Field(..., ge=1, le=100, description="Propiedades por página")
     properties: List[PropertyResponse] = Field(..., description="Lista de propiedades")
+
+
+class PublicPropertyListResponse(BaseModel):
+    """Lista paginada para endpoints públicos (sin PII de contacto)"""
+    total: int = Field(..., description="Total de propiedades")
+    page: int = Field(..., ge=1, description="Página actual")
+    per_page: int = Field(..., ge=1, le=100, description="Propiedades por página")
+    properties: List[PublicPropertyResponse] = Field(..., description="Lista de propiedades")
 
 
 # ==========================================
