@@ -74,6 +74,7 @@ class Appointment(BaseModel):
     property_id = Column(
         Integer,
         ForeignKey("properties.id", ondelete="CASCADE"),
+        index=True,
         comment="FK a la propiedad (opcional)"
     )
     

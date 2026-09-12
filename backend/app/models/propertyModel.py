@@ -165,12 +165,14 @@ class Property(BaseModel):
     submitted_by_user_id = Column(
         Integer,
         ForeignKey("users.id"),
+        index=True,
         comment="FK al usuario que publicó la propiedad"
     )
     
     advisor_id = Column(
         Integer,
         ForeignKey("advisors.id"),
+        index=True,
         comment="FK al asesor asignado"
     )
     

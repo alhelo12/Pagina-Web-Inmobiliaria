@@ -58,7 +58,11 @@ def get_appointments(
     Returns:
         Lista de citas
     """
-    query = db.query(Appointment)
+    query = db.query(Appointment).options(
+        selectinload(Appointment.client),
+        selectinload(Appointment.advisor).selectinload(Advisor.user),
+        selectinload(Appointment.related_property),
+    )
     
     if client_id:
         query = query.filter(Appointment.client_id == client_id)
@@ -443,7 +447,8 @@ def get_upcoming_appointments(
     db: Session,
     client_id: Optional[int] = None,
     advisor_id: Optional[int] = None,
-    days_ahead: int = 7
+    days_ahead: int = 7,
+    limit: int = 50
 ) -> List[Appointment]:
     """
     Obtener citas próximas
@@ -453,6 +458,7 @@ def get_upcoming_appointments(
         client_id: Filtrar por cliente
         advisor_id: Filtrar por asesor
         days_ahead: Días hacia adelante a consultar
+        limit: Máximo de citas a retornar
         
     Returns:
         Lista de citas próximas
@@ -461,6 +467,11 @@ def get_upcoming_appointments(
     future_date = now + timedelta(days=days_ahead)
     
     query = db.query(Appointment)\
+        .options(
+            selectinload(Appointment.client),
+            selectinload(Appointment.advisor).selectinload(Advisor.user),
+            selectinload(Appointment.related_property),
+        )\
         .filter(Appointment.scheduled_date >= now)\
         .filter(Appointment.scheduled_date <= future_date)\
         .filter(Appointment.status.in_(['pending', 'confirmed']))
@@ -471,7 +482,7 @@ def get_upcoming_appointments(
     if advisor_id:
         query = query.filter(Appointment.advisor_id == advisor_id)
     
-    return query.order_by(Appointment.scheduled_date.asc()).all()
+    return query.order_by(Appointment.scheduled_date.asc()).limit(limit).all()
 
 
 def get_today_appointments(

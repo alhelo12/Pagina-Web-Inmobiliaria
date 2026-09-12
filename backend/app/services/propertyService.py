@@ -7,7 +7,7 @@ Incluye CRUD, sistema de aprobación y filtros avanzados.
 
 from pathlib import Path
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func, and_, text
+from sqlalchemy import func, and_, select, text, union_all
 from typing import Optional, List, Tuple
 from fastapi import HTTPException, status
 
@@ -988,29 +988,41 @@ def get_advisor_properties_with_available(
     Returns:
         Tupla (lista de propiedades, total)
     """
-    my_properties = (
+    my_ids = select(
+        Property.id.label("id"), Property.created_at.label("created_at")
+    ).where(Property.advisor_id == advisor_id)
+
+    available_ids = select(Property.id, Property.created_at).where(
+        Property.status == 'pending',
+        Property.advisor_id.is_(None)
+    )
+
+    combined = union_all(my_ids, available_ids).subquery()
+    total = db.query(func.count()).select_from(combined).scalar()
+
+    page_rows = (
+        db.query(combined.c.id)
+        .order_by(combined.c.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    page_ids = [row.id for row in page_rows]
+    if not page_ids:
+        return [], total
+
+    properties = (
         db.query(Property)
         .options(
             selectinload(Property.images),
             selectinload(Property.owner),
             selectinload(Property.advisor).selectinload(Advisor.user)
         )
-        .filter(Property.advisor_id == advisor_id)
+        .filter(Property.id.in_(page_ids))
         .all()
     )
-    
-    available = (
-        db.query(Property)
-        .options(selectinload(Property.images), selectinload(Property.owner))
-        .filter(Property.status == 'pending')
-        .filter(Property.advisor_id.is_(None))
-        .all()
-    )
-    
-    all_properties = my_properties + available
-    total = len(all_properties)
-    
-    return all_properties[skip:skip + limit], total
+    by_id = {prop.id: prop for prop in properties}
+    return [by_id[pid] for pid in page_ids if pid in by_id], total
 
 
 def get_property_stats_by_advisor(db: Session, advisor_id: int) -> dict:

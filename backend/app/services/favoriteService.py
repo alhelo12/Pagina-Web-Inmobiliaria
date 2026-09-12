@@ -6,7 +6,7 @@ Lógica de negocio para gestión de propiedades favoritas.
 Maneja agregar, quitar y consultar favoritos de usuarios.
 """
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func
 from typing import Optional, List
 from fastapi import HTTPException, status
@@ -51,6 +51,7 @@ def get_user_favorites(
         Lista de favoritos del usuario
     """
     return db.query(Favorite)\
+        .options(selectinload(Favorite.favorited_property))\
         .filter(Favorite.user_id == user_id)\
         .order_by(Favorite.created_at.desc())\
         .offset(skip)\

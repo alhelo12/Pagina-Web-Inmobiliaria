@@ -227,47 +227,33 @@ def get_advisor_stats(db: Session, advisor_id: int) -> dict:
             detail="Asesor no encontrado"
         )
     
-    # Contar propiedades
-    total_properties = db.query(func.count(Property.id))\
-        .filter(Property.advisor_id == advisor_id)\
-        .scalar()
-    
-    properties_approved = db.query(func.count(Property.id))\
-        .filter(Property.advisor_id == advisor_id)\
-        .filter(Property.status == 'approved')\
-        .scalar()
-    
-    properties_pending = db.query(func.count(Property.id))\
-        .filter(Property.advisor_id == advisor_id)\
-        .filter(Property.status == 'pending')\
-        .scalar()
-    
-    properties_sold = db.query(func.count(Property.id))\
-        .filter(Property.advisor_id == advisor_id)\
-        .filter(Property.status == 'sold')\
-        .scalar()
-    
-    # Contar citas
-    total_appointments = db.query(func.count(Appointment.id))\
-        .filter(Appointment.advisor_id == advisor_id)\
-        .scalar()
-    
-    completed_appointments = db.query(func.count(Appointment.id))\
-        .filter(Appointment.advisor_id == advisor_id)\
-        .filter(Appointment.status == 'completed')\
-        .scalar()
-    
-    pending_appointments = db.query(func.count(Appointment.id))\
-        .filter(Appointment.advisor_id == advisor_id)\
-        .filter(Appointment.status.in_(['pending', 'confirmed']))\
-        .scalar()
-    
-    # Calcular valor total de ventas
-    total_sales_value = db.query(func.sum(Property.price))\
-        .filter(Property.advisor_id == advisor_id)\
-        .filter(Property.status == 'sold')\
-        .scalar()
-    
+    # Conteos de propiedades en una sola query (FILTER de PostgreSQL)
+    (
+        total_properties,
+        properties_approved,
+        properties_pending,
+        properties_sold,
+        total_sales_value,
+    ) = db.query(
+        func.count(Property.id),
+        func.count(Property.id).filter(Property.status == 'approved'),
+        func.count(Property.id).filter(Property.status == 'pending'),
+        func.count(Property.id).filter(Property.status == 'sold'),
+        func.coalesce(func.sum(Property.price).filter(Property.status == 'sold'), 0),
+    ).filter(Property.advisor_id == advisor_id).one()
+
+    (
+        total_appointments,
+        completed_appointments,
+        pending_appointments,
+    ) = db.query(
+        func.count(Appointment.id),
+        func.count(Appointment.id).filter(Appointment.status == 'completed'),
+        func.count(Appointment.id).filter(
+            Appointment.status.in_(['pending', 'confirmed'])
+        ),
+    ).filter(Appointment.advisor_id == advisor_id).one()
+
     return {
         "advisor_id": advisor_id,
         "total_properties": total_properties,
@@ -432,19 +418,26 @@ def get_advisors_with_stats(
         Lista de diccionarios con asesor + stats
     """
     advisors = get_advisors(db, skip, limit)
-    
-    result = []
-    for advisor in advisors:
-        # Contar propiedades activas
-        active_properties = db.query(func.count(Property.id))\
-            .filter(Property.advisor_id == advisor.id)\
-            .filter(Property.status.in_(['approved', 'pending']))\
-            .scalar()
-        
-        result.append({
+
+    # Un solo query agrupado para todos los asesores de la página
+    ids = [advisor.id for advisor in advisors]
+    active_by_advisor = {}
+    if ids:
+        active_by_advisor = dict(
+            db.query(Property.advisor_id, func.count(Property.id))
+            .filter(
+                Property.advisor_id.in_(ids),
+                Property.status.in_(['approved', 'pending'])
+            )
+            .group_by(Property.advisor_id)
+            .all()
+        )
+
+    return [
+        {
             "advisor": advisor,
-            "active_properties": active_properties,
+            "active_properties": active_by_advisor.get(advisor.id, 0),
             "rating": float(advisor.rating)
-        })
-    
-    return result
+        }
+        for advisor in advisors
+    ]

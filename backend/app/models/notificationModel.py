@@ -15,7 +15,7 @@ Tipos de notificación:
     - property_updated: Propiedad actualizada
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean
+from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, Index
 from sqlalchemy.orm import relationship
 from app.dbConfig.baseModels import BaseModel
 
@@ -35,6 +35,9 @@ class Notification(BaseModel):
         created_at (datetime): Fecha de creación (heredado)
     """
     __tablename__ = "notifications"
+    __table_args__ = (
+        Index('ix_notifications_user_id_is_read', 'user_id', 'is_read'),
+    )
     
     # ==========================================
     # RELACIONES

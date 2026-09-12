@@ -332,6 +332,7 @@ def complete_appointment(
 def get_upcoming_appointments(
     client_id: int = Query(..., description="ID del cliente"),
     days_ahead: int = Query(7, ge=1, le=30, description="Días hacia adelante"),
+    limit: int = Query(50, ge=1, le=100, description="Máximo de citas"),
     current_user: User = Depends(get_current_user),  # 🔐 Requiere autenticación
     db: Session = Depends(get_db)
 ):
@@ -348,7 +349,7 @@ def get_upcoming_appointments(
         )
     
     result = appointmentService.get_upcoming_appointments(
-        db, client_id=client_id, days_ahead=days_ahead
+        db, client_id=client_id, days_ahead=days_ahead, limit=limit
     )
     return result
 
