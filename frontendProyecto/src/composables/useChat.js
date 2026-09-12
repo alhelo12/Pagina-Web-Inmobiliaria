@@ -75,7 +75,7 @@ export function useChat({ role, roleName, autoConnect = true }) {
       const { data } = await apiClient.get('/messages/conversations')
       conversations.value = data.items || []
     } catch (err) {
-      console.error('Error fetching conversations:', err)
+      console.error('Error fetching conversations:', err?.response?.status ?? err?.message)
     } finally {
       loading.value = false
     }
@@ -91,7 +91,7 @@ export function useChat({ role, roleName, autoConnect = true }) {
       messages.value = [...(data.items || []), ...optimisticMsgs]
       nextTick(() => scrollToBottom())
     } catch (err) {
-      console.error('Error fetching messages:', err)
+      console.error('Error fetching messages:', err?.response?.status ?? err?.message)
     }
   }
 
@@ -146,7 +146,7 @@ export function useChat({ role, roleName, autoConnect = true }) {
       } catch (err) {
         messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
         sendError.value = true
-        console.error('Error sending message via WS:', err)
+        console.error('Error sending message via WS:', err?.message ?? err)
       }
     } else {
       try {
@@ -167,7 +167,7 @@ export function useChat({ role, roleName, autoConnect = true }) {
       } catch (err) {
         messages.value = messages.value.filter(m => m.id !== optimisticMsg.id)
         sendError.value = true
-        console.error('Error sending message:', err)
+        console.error('Error sending message:', err?.response?.status ?? err?.message)
       }
     }
 

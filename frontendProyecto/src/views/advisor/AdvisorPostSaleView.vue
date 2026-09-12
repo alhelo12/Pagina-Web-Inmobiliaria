@@ -153,7 +153,7 @@ onMounted(async () => {
     pendingFollowups.value = pendingRes.data || []
     overdue.value = overdueRes.data || []
   } catch (error) {
-    console.error('Error cargando datos:', error)
+    console.error('Error cargando datos:', error?.response?.status ?? error?.message)
   } finally {
     loading.value = false
   }
@@ -192,7 +192,7 @@ async function completeFollowup() {
 
     closeModals()
   } catch (error) {
-    console.error('Error completando seguimiento:', error)
+    console.error('Error completando seguimiento:', error?.response?.status ?? error?.message)
     alert('Error al completar el seguimiento')
   }
 }
@@ -213,7 +213,7 @@ async function skipFollowup() {
 
     closeModals()
   } catch (error) {
-    console.error('Error omitiendo seguimiento:', error)
+    console.error('Error omitiendo seguimiento:', error?.response?.status ?? error?.message)
     alert('Error al omitir el seguimiento')
   }
 }

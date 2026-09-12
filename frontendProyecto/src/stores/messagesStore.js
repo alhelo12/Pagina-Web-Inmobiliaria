@@ -34,14 +34,7 @@ export const useMessagesStore = defineStore('messages', {
 
       if (state.filter === 'unread') {
         result = result.filter(c => c.unread_count > 0)
-      }
-
-      if (state.filter === 'unread') {
-        result.sort((a, b) => {
-          if (a.unread_count > 0 && b.unread_count === 0) return -1
-          if (a.unread_count === 0 && b.unread_count > 0) return 1
-          return 0
-        })
+        result.sort((a, b) => (b.unread_count || 0) - (a.unread_count || 0))
       }
 
       return result
@@ -100,7 +93,7 @@ export const useMessagesStore = defineStore('messages', {
         }
         return data
       } catch (err) {
-        console.error('Error al marcar conversacion como leida:', err)
+        console.error('Error al marcar conversacion como leida:', err?.response?.status ?? err?.message)
       }
     },
 

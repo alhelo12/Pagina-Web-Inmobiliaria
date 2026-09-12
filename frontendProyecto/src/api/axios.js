@@ -2,8 +2,15 @@
 import { useAuthStore } from '@/stores/authStore'
 import router from '@/router'
 
+const API_URL = import.meta.env.VITE_API_URL
+
+// En producción la URL es obligatoria; el fallback solo sirve para desarrollo.
+if (!API_URL && import.meta.env.PROD) {
+  throw new Error('VITE_API_URL no está definida en el build de producción')
+}
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
+  baseURL: API_URL ?? 'http://localhost:8000',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' }
 })
@@ -15,8 +22,8 @@ apiClient.interceptors.request.use((config) => {
     if (auth.backendToken) {
       config.headers.Authorization = `Bearer ${auth.backendToken}`
     }
-  } catch (err) {
-    console.error('[Axios Request Interceptor]', err)
+  } catch {
+    // Pinia aún no lista (arranque); la petición sigue sin token
   }
   return config
 })
@@ -30,12 +37,12 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !isLoginEndpoint) {
       try {
         const auth = useAuthStore()
-        if (auth.backendToken) {
-          await auth.logout()
+        await auth.logout()
+        if (router.currentRoute.value.path !== '/login') {
           router.push('/login')
         }
-      } catch (err) {
-        console.error('[Axios Response Interceptor]', err)
+      } catch {
+        // logout idempotente: ignorar fallos de Pinia/router
       }
     }
 
@@ -44,4 +51,3 @@ apiClient.interceptors.response.use(
 )
 
 export default apiClient
-

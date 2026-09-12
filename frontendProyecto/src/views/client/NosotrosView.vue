@@ -1,10 +1,12 @@
 ﻿<script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const seguridad = ref(0)
 const clientes = ref(0)
 const transparencia = ref(0)
 const animado = ref(false)
+let observer = null
+let counterTimer = null
 
 const testimonials = [
   { name: 'Mariana P.', role: 'Inversionista', text: 'El proceso fue transparente y bien asesorado. Cerramos en menos tiempo de lo esperado.' },
@@ -19,7 +21,7 @@ const team = [
 
 onMounted(() => {
   const elements = document.querySelectorAll('.reveal')
-  const observer = new IntersectionObserver((entries) => {
+  observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible')
@@ -34,14 +36,20 @@ onMounted(() => {
   elements.forEach((el) => observer.observe(el))
 })
 
+onUnmounted(() => {
+  if (observer) observer.disconnect()
+  if (counterTimer) clearInterval(counterTimer)
+})
+
 const animateCounters = () => {
-  const timer = setInterval(() => {
+  counterTimer = setInterval(() => {
     if (seguridad.value < 100) seguridad.value += 1
     if (clientes.value < 50) clientes.value += 1
     if (transparencia.value < 100) transparencia.value += 1
 
     if (seguridad.value === 100 && clientes.value === 50 && transparencia.value === 100) {
-      clearInterval(timer)
+      clearInterval(counterTimer)
+      counterTimer = null
     }
   }, 20)
 }

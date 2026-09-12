@@ -81,7 +81,7 @@ const load = async () => {
     users.value = data.users ?? data.items ?? data
     totalItems.value = data.total ?? users.value.length
   } catch (err) {
-    console.error('[UsersView] load error:', err)
+    console.error('[UsersView] load error:', err?.response?.status ?? err?.message)
     error.value = err.response?.data?.detail ?? 'Error al cargar usuarios'
   } finally {
     loading.value = false

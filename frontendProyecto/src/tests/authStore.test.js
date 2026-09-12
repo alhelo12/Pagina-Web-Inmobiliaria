@@ -112,6 +112,20 @@ describe('authStore', () => {
       expect(localStorage.getItem('backendToken')).toBeNull()
     })
 
+    it('ignora role manipulado en localStorage y usa el del JWT', async () => {
+      const store = useAuthStore()
+      const payload = { sub: '1', email: 'test@test.com', role: 'client', exp: Math.floor(Date.now() / 1000) + 3600 }
+      const token = 'header.' + btoa(JSON.stringify(payload)) + '.signature'
+      localStorage.setItem('backendToken', token)
+      localStorage.setItem('backendUserId', '1')
+      localStorage.setItem('role', 'admin')
+
+      await store.loadSession()
+
+      expect(store.isLogged).toBe(true)
+      expect(store.role).toBe('client')
+    })
+
     it('maneja payload null sin crash', async () => {
       const store = useAuthStore()
       // token que decodifica a null (malformado)

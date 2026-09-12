@@ -40,6 +40,7 @@ const router = createRouter({
         { path: 'mis-propiedades', component: () => import('@/views/client/MyPropertiesView.vue') },
         { path: 'favoritos', component: () => import('@/views/client/FavoritesView.vue') },
         { path: 'publicar', component: () => import('@/views/client/CreatePropertyView.vue') },
+        { path: 'publicar/:id/editar', component: () => import('@/views/client/CreatePropertyView.vue') },
         { path: 'notificaciones', component: () => import('@/views/client/NotificationsView.vue') },
         { path: 'citas', component: () => import('@/views/client/AppointmentsView.vue') },
         { path: 'mensajes', component: () => import('@/views/client/ClientChatView.vue') },

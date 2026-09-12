@@ -1,15 +1,6 @@
 import api from './axios'
 
 export const authApi = {
-  login(email, password) {
-    const form = new URLSearchParams()
-    form.append('username', email)
-    form.append('password', password)
-    return api.post('/auth/login', form, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    })
-  },
-
   registerClient(data) {
     return api.post('/auth/register/client', data)
   },

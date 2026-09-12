@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { appointmentsApi } from '@/api/appointments'
-import { useAuthStore } from '@/stores/authStore'
 
 export const useAppointmentsStore = defineStore('appointments', {
   state: () => ({
@@ -48,7 +47,6 @@ export const useAppointmentsStore = defineStore('appointments', {
       this.loading = true
       this.error = null
       try {
-        const auth = useAuthStore()
         const { data } = await appointmentsApi.getByClient({
           skip: 0,
           limit: 50,

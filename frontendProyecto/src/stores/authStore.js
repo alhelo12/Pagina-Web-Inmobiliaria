@@ -4,7 +4,9 @@ import { authApi } from '@/api/auth'
 
 export function decodeJwtPayload(token) {
   try {
-    return JSON.parse(atob(token.split('.')[1]))
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=')
+    return JSON.parse(atob(padded))
   } catch { return null }
 }
 
@@ -90,6 +92,12 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('backendUserId')
       localStorage.removeItem('isEmailVerified')
       localStorage.removeItem('userEmail')
+
+      // Limpia datos en memoria de otros stores (equipos compartidos)
+      try {
+        const { resetUserStores } = await import('@/stores/resetStores')
+        resetUserStores()
+      } catch { /* Pinia no inicializada */ }
     },
 
     async loadSession() {
@@ -114,8 +122,9 @@ export const useAuthStore = defineStore('auth', {
         }
 
         this.backendToken = savedBackendToken
-        this.role = savedRole
-        this.userId = Number(savedUserId)
+        // El rol/ID siempre se derivan del JWT firmado, nunca de localStorage
+        this.role = payload.role || savedRole
+        this.userId = Number(payload.sub) || Number(savedUserId)
         this.userEmail = payload.email || localStorage.getItem('userEmail') || null
         this.isLogged = true
       }

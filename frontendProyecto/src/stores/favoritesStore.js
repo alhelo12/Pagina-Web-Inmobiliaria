@@ -70,6 +70,9 @@ export const useFavoritesStore = defineStore('favorites', {
         this.favorites = this.favorites.filter((fav) => favoriteIdOf(fav) !== id)
         return data
       } catch (err) {
+        // Rollback: la UI no debe quedar con un favorito fantasma
+        this.favoriteIds = previousIds
+        this.favorites = previousFavorites
         console.warn('[Favoritos] Error al sincronizar con el servidor:', err.response?.data?.detail || err.message)
       }
     },

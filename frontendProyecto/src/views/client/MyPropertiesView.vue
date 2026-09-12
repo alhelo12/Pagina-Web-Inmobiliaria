@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
+import { advisorsApi } from '@/api/advisors'
 
 const { addToast } = useToast()
 const store = usePropertyStore()
@@ -191,18 +192,14 @@ const handleView = (propertyId) => {
 }
 
 const handleEdit = (propertyId) => {
-  router.push(`/admin/propiedades/${propertyId}/editar`)
+  router.push(`/cliente/publicar/${propertyId}/editar`)
 }
 
 // Obtener detalles del asesor
 const fetchAdvisorDetails = async (advisorId) => {
   advisorLoading.value = true
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/advisors/${advisorId}`, {
-      headers: { ...auth.authHeaders }
-    })
-    if (!response.ok) throw new Error('Error al cargar datos del asesor')
-    const data = await response.json()
+    const { data } = await advisorsApi.getById(advisorId)
     advisorDataCache.value[advisorId] = {
       name: data.user?.full_name || `Asesor #${advisorId}`,
       email: data.user?.email || '',

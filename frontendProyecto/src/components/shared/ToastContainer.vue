@@ -25,7 +25,7 @@ const { toasts, dismissToast } = useToast()
             <strong>{{ toast.title }}</strong>
             <p v-if="toast.message">{{ toast.message }}</p>
           </div>
-          <button class="toast-close" @click.stop="dismissToast(toast.id)">
+          <button class="toast-close" aria-label="Cerrar notificación" @click.stop="dismissToast(toast.id)">
             <AppIcon name="x" :size="14" />
           </button>
         </div>

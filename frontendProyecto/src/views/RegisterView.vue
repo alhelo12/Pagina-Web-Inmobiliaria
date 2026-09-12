@@ -1,9 +1,11 @@
 ﻿<script setup>
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api/auth'
 
 const router = useRouter()
+let redirectTimer = null
+onUnmounted(() => { if (redirectTimer) clearTimeout(redirectTimer) })
 
 const form = ref({
   first_name: '',
@@ -37,7 +39,7 @@ const submit = async () => {
       password:  form.value.password
     })
     success.value = true
-    setTimeout(() => router.push('/login'), 2500)
+    redirectTimer = setTimeout(() => router.push('/login'), 2500)
   } catch (err) {
     error.value = err.response?.data?.detail ?? 'Error al crear cuenta'
   } finally {

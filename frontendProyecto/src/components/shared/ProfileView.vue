@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useToast } from '@/composables/useToast'
+import { usersApi } from '@/api/users'
+import { authApi } from '@/api/auth'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const props = defineProps({
@@ -39,17 +41,13 @@ const fetchProfile = async () => {
   loading.value = true
   error.value = ''
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${auth.userId}`, {
-      headers: { ...auth.authHeaders }
-    })
-    if (!response.ok) throw new Error('Error al cargar perfil')
-    const data = await response.json()
+    const { data } = await usersApi.getById(auth.userId)
     form.value.full_name = data.full_name || ''
     form.value.email = data.email || ''
     form.value.phone = data.phone || ''
     originalData.value = { ...form.value }
   } catch (err) {
-    error.value = err.message
+    error.value = err.response?.data?.detail ?? err.message
   } finally {
     loading.value = false
   }
@@ -69,27 +67,15 @@ const saveProfile = async () => {
   saving.value = true
   error.value = ''
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${auth.userId}`, {
-      method: 'PUT',
-      headers: {
-        ...auth.authHeaders,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        full_name: form.value.full_name,
-        phone: form.value.phone
-      })
+    await usersApi.update(auth.userId, {
+      full_name: form.value.full_name,
+      phone: form.value.phone
     })
-    if (!response.ok) {
-      const err = await response.json()
-      throw new Error(err.detail || 'Error al guardar')
-    }
-    const data = await response.json()
     originalData.value = { ...form.value }
     addToast({ message: 'Perfil actualizado correctamente', type: 'success' })
   } catch (err) {
-    error.value = err.message
-    addToast({ message: err.message, type: 'error' })
+    error.value = err.response?.data?.detail ?? err.message
+    addToast({ message: error.value, type: 'error' })
   } finally {
     saving.value = false
   }
@@ -139,26 +125,15 @@ const changePassword = async () => {
   passwordSaving.value = true
   passwordError.value = ''
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/change-password`, {
-      method: 'POST',
-      headers: {
-        ...auth.authHeaders,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        current_password: passwordForm.value.current_password,
-        new_password: passwordForm.value.new_password
-      })
-    })
-    if (!response.ok) {
-      const err = await response.json()
-      throw new Error(err.detail || 'Error al cambiar contraseña')
-    }
+    await authApi.changePassword(
+      passwordForm.value.current_password,
+      passwordForm.value.new_password
+    )
     passwordForm.value = { current_password: '', new_password: '', confirm_password: '' }
     addToast({ message: 'Contraseña cambiada correctamente', type: 'success' })
   } catch (err) {
-    passwordError.value = err.message
-    addToast({ message: err.message, type: 'error' })
+    passwordError.value = err.response?.data?.detail ?? err.message
+    addToast({ message: passwordError.value, type: 'error' })
   } finally {
     passwordSaving.value = false
   }

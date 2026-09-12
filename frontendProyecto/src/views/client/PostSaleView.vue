@@ -79,7 +79,7 @@ onMounted(async () => {
       f => f.followup_type === 'satisfaction_survey' && f.status === 'pending'
     ) || null
   } catch (error) {
-    console.error('Error cargando seguimientos:', error)
+    console.error('Error cargando seguimientos:', error?.response?.status ?? error?.message)
   } finally {
     loading.value = false
   }

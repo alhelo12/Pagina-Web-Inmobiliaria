@@ -1,9 +1,7 @@
 <template>
   <section class="metrics">
     <article v-for="card in cards" :key="card.key" :class="['card', { highlight: card.highlight }]">
-      <div class="card-icon" :style="card.iconStyle">
-        <span v-html="card.icon"></span>
-      </div>
+      <div class="card-icon" :style="card.iconStyle" />
       <span>{{ card.label }}</span>
       <strong>{{ metrics[card.key] ?? 0 }}</strong>
       <small>{{ card.sublabel }}</small>

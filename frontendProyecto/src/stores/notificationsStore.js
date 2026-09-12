@@ -43,7 +43,7 @@ export const useNotificationsStore = defineStore('notifications', {
         this.unreadCount = data.unread_count ?? 0
       } catch (err) {
         if (err?.response?.status === 401) return
-        console.error('Error al obtener conteo de notificaciones:', err)
+        console.error('Error al obtener conteo de notificaciones:', err?.response?.status ?? err?.message)
       }
     },
 
@@ -72,6 +72,10 @@ export const useNotificationsStore = defineStore('notifications', {
 
     addNotification(notification) {
       this.notifications.unshift(notification)
+      // Tope para sesiones largas con WebSocket
+      if (this.notifications.length > 100) {
+        this.notifications = this.notifications.slice(0, 100)
+      }
       if (!notification.is_read) {
         this.unreadCount++
       }
@@ -79,9 +83,12 @@ export const useNotificationsStore = defineStore('notifications', {
 
     async deleteNotification(notificationId) {
       try {
+        const notification = this.notifications.find(n => n.id === notificationId)
         await notificationsApi.delete(notificationId)
         this.notifications = this.notifications.filter(n => n.id !== notificationId)
-        this.unreadCount = Math.max(0, this.unreadCount - 1)
+        if (notification && !notification.is_read) {
+          this.unreadCount = Math.max(0, this.unreadCount - 1)
+        }
       } catch (err) {
         this.error = err.response?.data?.detail ?? 'Error al eliminar notificación'
       }

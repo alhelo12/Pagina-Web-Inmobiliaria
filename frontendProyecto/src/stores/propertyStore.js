@@ -80,6 +80,14 @@ export const usePropertyStore = defineStore('property', {
     _updateLocal(updated) {
       const idx = this.properties.findIndex(p => p.id === updated.id)
       if (idx !== -1) this.properties[idx] = updated
+    },
+
+    clear() {
+      this.properties = []
+      this.total = 0
+      this.error = null
+      this.advisorStats = null
+      this.availableProperties = []
     }
   }
 })

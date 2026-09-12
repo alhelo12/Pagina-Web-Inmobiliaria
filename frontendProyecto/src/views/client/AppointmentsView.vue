@@ -75,7 +75,7 @@ const fetchAppointments = async () => {
     appointments.value = data.appointments || data.items || data
   } catch (err) {
     error.value = err.response?.data?.detail || err.message || 'Error al cargar citas'
-    console.error('Error fetching appointments:', err)
+    console.error('Error fetching appointments:', err?.response?.status ?? err?.message)
   } finally {
     loading.value = false
   }
@@ -140,16 +140,12 @@ const createAppointment = async () => {
 const cancelAppointment = async (appointmentId) => {
   if (!confirm('¿Cancelar esta cita?')) return
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments/${appointmentId}`, {
-      method: 'DELETE',
-      headers: { ...auth.authHeaders }
-    })
-    if (!response.ok) throw new Error('Error al cancelar cita')
+    await appointmentsApi.delete(appointmentId)
     await fetchAppointments()
     addToast({ message: 'Cita cancelada', type: 'info' })
   } catch (err) {
-    error.value = err.message
-    addToast({ message: err.message, type: 'error' })
+    error.value = err.response?.data?.detail || err.message
+    addToast({ message: error.value, type: 'error' })
   }
 }
 

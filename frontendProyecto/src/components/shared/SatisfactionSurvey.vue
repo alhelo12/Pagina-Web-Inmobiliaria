@@ -94,7 +94,7 @@ async function submitSurvey() {
     })
     emit('completed', props.followup.id)
   } catch (error) {
-    console.error('Error al enviar encuesta:', error)
+    console.error('Error al enviar encuesta:', error?.response?.status ?? error?.message)
     alert('Error al enviar la encuesta. Intenta nuevamente.')
   } finally {
     submitting.value = false

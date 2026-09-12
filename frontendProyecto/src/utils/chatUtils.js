@@ -34,12 +34,3 @@ export function formatDateGroup(dateStr) {
   if (msgDate.getTime() === yesterday.getTime()) return 'Ayer'
   return date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
-
-export function sanitizeMessage(content) {
-  if (typeof content !== 'string') return ''
-  return content
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-}

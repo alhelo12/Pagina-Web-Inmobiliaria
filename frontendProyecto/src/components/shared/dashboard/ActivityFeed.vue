@@ -25,7 +25,7 @@
       >
         <div v-if="item.icon || $slots.icon" class="feed-icon">
           <slot name="icon" :item="item">
-            <span v-html="item.icon"></span>
+            <span>{{ item.icon }}</span>
           </slot>
         </div>
         <div class="feed-body">

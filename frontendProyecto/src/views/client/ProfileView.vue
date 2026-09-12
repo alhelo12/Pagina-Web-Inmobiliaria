@@ -3,5 +3,5 @@ import ProfileView from '@/components/shared/ProfileView.vue'
 </script>
 
 <template>
-  <ProfileView />
+  <ProfileView role="client" />
 </template>
