@@ -71,9 +71,14 @@ def get_current_user(
     user_id: str = payload.get("sub")
     if user_id is None:
         raise credentials_exception
-    
+
+    try:
+        user_pk = int(user_id)
+    except (TypeError, ValueError):
+        raise credentials_exception
+
     # Buscar usuario en BD
-    user = userService.get_user_by_id(db, int(user_id))
+    user = userService.get_user_by_id(db, user_pk)
     if user is None:
         raise credentials_exception
     

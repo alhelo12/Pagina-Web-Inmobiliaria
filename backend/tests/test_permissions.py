@@ -525,9 +525,9 @@ class TestWebSocketAuth:
     """Tests básicos de autenticación WebSocket"""
 
     def test_websocket_rejects_invalid_token(self):
-        """WebSocket rechaza token inválido"""
+        """WebSocket rechaza token inválido (subprotocolo)"""
         with pytest.raises(WebSocketDisconnect) as exc:
-            with client.websocket_connect("/ws?token=invalid"):
+            with client.websocket_connect("/ws", subprotocols=["bearer.invalid"]):
                 pass
         assert exc.value.code == 4001
 

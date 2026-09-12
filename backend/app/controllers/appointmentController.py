@@ -9,11 +9,12 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.dbConfig.databaseSession import get_db
-from app.services import appointmentService
+from app.services import appointmentService, propertyService
 from app.core.activityLogger import log_activity
 from app.core.dependencies import (
     get_current_user,
-    require_advisor
+    require_advisor,
+    require_advisor_or_admin
 )
 from app.schemas import (
     AppointmentCreate,
@@ -355,15 +356,31 @@ def get_upcoming_appointments(
 @router.get("/property/{property_id}/appointments", response_model=list[AppointmentDetailResponse])
 def get_property_appointments(
     property_id: int,
-    current_user: User = Depends(require_advisor),  # 🔐 Solo advisors/admin
+    limit: int = Query(50, ge=1, le=100),
+    current_user: User = Depends(require_advisor_or_admin),  # 🔐 Solo advisors/admin
     db: Session = Depends(get_db)
 ):
     """
-    Citas para una propiedad específica (solo advisors/admin)
+    Citas para una propiedad específica (solo el asesor asignado o admin)
     
-    Muestra todas las citas asociadas a una propiedad.
+    Muestra las citas asociadas a una propiedad.
     """
-    result = appointmentService.get_property_appointments(db, property_id)
+    prop = propertyService.get_property_by_id(db, property_id)
+    if not prop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Propiedad no encontrada"
+        )
+
+    # Solo el asesor asignado o admin puede ver las citas (incluyen PII del cliente)
+    if current_user.is_advisor():
+        if not current_user.advisor or prop.advisor_id != current_user.advisor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No puedes ver citas de una propiedad de otro asesor"
+            )
+
+    result = appointmentService.get_property_appointments(db, property_id, limit=limit)
     return result
 
 

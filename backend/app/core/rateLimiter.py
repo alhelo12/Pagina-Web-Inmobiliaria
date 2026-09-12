@@ -7,10 +7,14 @@ Límites de peticiones por IP para proteger la API contra abuso.
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from app.core.config import settings
+
+# memory:// es por proceso: con varios workers cada uno limita aparte.
+# Definir REDIS_URL para compartir límites entre workers.
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["100 per minute"],
-    storage_uri="memory://"
+    storage_uri=settings.REDIS_URL or "memory://"
 )
 
 RATE_LIMITS = {

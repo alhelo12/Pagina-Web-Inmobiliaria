@@ -27,7 +27,7 @@ Acompañamiento integral, no portal de anuncios: inventario moderado por humanos
 - Flujo principal: publicar → moderar → visitar (cita) → cerrar → seguimiento postventa.
 - Entornos: navegadores de escritorio y móvil; PWA instalable en ambos. La web móvil sigue siendo `web`.
 - Sesiones JWT con expiración; layouts y permisos separados por rol.
-- Mapas Leaflet para ubicación de propiedades; notificaciones y chat por WebSocket unificado (`/ws?token=JWT`).
+- Mapas Leaflet para ubicación de propiedades; notificaciones y chat por WebSocket unificado (`/ws` con subprotocolo `bearer.<JWT>`).
 - Idioma de producto: español (México).
 
 ## Capabilities and Constraints

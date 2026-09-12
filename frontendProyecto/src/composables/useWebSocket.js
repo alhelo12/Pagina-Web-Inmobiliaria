@@ -3,6 +3,9 @@ import { useAuthStore } from '@/stores/authStore'
 
 const MAX_RECONNECT_DELAY = 30000
 const BASE_RECONNECT_DELAY = 1000
+const MAX_RECONNECT_ATTEMPTS = 10
+// 4001/4003: token inválido o usuario inactivo. 1008: política del servidor.
+const AUTH_CLOSE_CODES = new Set([4001, 4003, 1008])
 
 export function useWebSocket(options = {}) {
   const {
@@ -21,17 +24,16 @@ export function useWebSocket(options = {}) {
   let heartbeatTimer = null
 
   function getUrl() {
-    const token = auth.backendToken
-    if (!token) return null
     const base = import.meta.env.VITE_WS_URL || import.meta.env.VITE_API_URL?.replace('http', 'ws') || 'ws://localhost:8000'
-    return `${base}/ws?token=${token}`
+    return `${base}/ws`
   }
 
   function connect() {
-    const url = getUrl()
-    if (!url || ws.value) return
+    const token = auth.backendToken
+    if (!token || ws.value) return
 
-    const socket = new WebSocket(url)
+    // El JWT viaja en el subprotocolo, nunca en la URL (evita logs/APM)
+    const socket = new WebSocket(getUrl(), [`bearer.${token}`])
 
     socket.onopen = () => {
       connected.value = true
@@ -58,10 +60,12 @@ export function useWebSocket(options = {}) {
       } catch { /* ignore parse errors */ }
     }
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       connected.value = false
       ws.value = null
       if (heartbeatTimer) clearInterval(heartbeatTimer)
+      // Token rechazado: reintentar no sirve y genera storm
+      if (AUTH_CLOSE_CODES.has(event.code)) return
       scheduleReconnect()
     }
 
@@ -74,6 +78,7 @@ export function useWebSocket(options = {}) {
 
   function scheduleReconnect() {
     if (reconnectTimer) return
+    if (reconnectAttempts.value >= MAX_RECONNECT_ATTEMPTS) return
     const delay = Math.min(BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts.value), MAX_RECONNECT_DELAY)
     reconnectAttempts.value++
     reconnectTimer = setTimeout(() => {

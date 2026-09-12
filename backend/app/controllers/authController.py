@@ -51,6 +51,9 @@ router = APIRouter(
     tags=["Authentication"]
 )
 
+GENERIC_VERIFICATION_MESSAGE = "Si el email existe, recibirás un enlace de verificación"
+GENERIC_RESET_MESSAGE = "Si el email existe, recibirás un enlace para restablecer tu contraseña"
+
 
 # ==========================================
 # REGISTRO
@@ -152,30 +155,24 @@ def login(
 # ==========================================
 
 @router.post("/send-verification")
+@limiter.limit("5 per hour")
 def send_verification(
+    request: Request,
     body: SendVerificationRequest,
-    db: Session = Depends(get_db),
-    request: Request = None
+    db: Session = Depends(get_db)
 ):
     """
     Envía email de verificación al usuario.
+    Respuesta genérica para no revelar si el email existe.
     Si SMTP no está configurado, devuelve el token en la respuesta (desarrollo).
     """
     user = userService.get_user_by_email(db, body.email)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuario no encontrado"
-        )
-
-    if user.is_email_verified:
-        return {"message": "El email ya está verificado"}
-
-    from app.core.security import create_email_token
+    if not user or user.is_email_verified:
+        return {"message": GENERIC_VERIFICATION_MESSAGE}
 
     sent = authService.send_verification_email(db, user)
     if sent:
-        return {"message": "Email de verificación enviado"}
+        return {"message": GENERIC_VERIFICATION_MESSAGE}
 
     # Solo devolver token en desarrollo, nunca en producción
     if not is_production():
@@ -186,7 +183,7 @@ def send_verification(
             "token": token
         }
 
-    return {"message": "Email de verificación enviado"}
+    return {"message": GENERIC_VERIFICATION_MESSAGE}
 
 
 @router.get("/verify-email/{token}")
@@ -209,25 +206,25 @@ def verify_email(
 # ==========================================
 
 @router.post("/forgot-password")
+@limiter.limit("5 per hour")
 def forgot_password(
+    request: Request,
     body: ForgotPasswordRequest,
-    db: Session = Depends(get_db),
-    request: Request = None
+    db: Session = Depends(get_db)
 ):
     """
     Envía email con token para restablecer la contraseña.
+    Respuesta genérica para no revelar si el email existe.
     Si SMTP no está configurado, devuelve el token en la respuesta (desarrollo).
     """
     user = userService.get_user_by_email(db, body.email)
     if not user:
         # No revelar si el email existe o no
-        return {"message": "Si el email existe, recibirás un enlace para restablecer tu contraseña"}
-
-    from app.core.security import create_email_token
+        return {"message": GENERIC_RESET_MESSAGE}
 
     sent = authService.send_reset_password_email(db, user)
     if sent:
-        return {"message": "Si el email existe, recibirás un enlace para restablecer tu contraseña"}
+        return {"message": GENERIC_RESET_MESSAGE}
 
     # Solo devolver token en desarrollo, nunca en producción
     if not is_production():
@@ -238,11 +235,13 @@ def forgot_password(
             "token": token
         }
 
-    return {"message": "Si el email existe, recibirás un enlace para restablecer tu contraseña"}
+    return {"message": GENERIC_RESET_MESSAGE}
 
 
 @router.post("/reset-password")
+@limiter.limit("10 per hour")
 def reset_password(
+    request: Request,
     body: ResetPasswordRequest,
     db: Session = Depends(get_db)
 ):
@@ -291,7 +290,9 @@ def change_password(
 # ==========================================
 
 @router.post("/check-email")
+@limiter.limit("10 per hour")
 def check_email_available(
+    request: Request,
     body: EmailCheckRequest,
     db: Session = Depends(get_db)
 ):
@@ -303,7 +304,8 @@ def check_email_available(
 
 
 @router.post("/validate-password")
-def validate_password(body: PasswordValidateRequest):
+@limiter.limit("30 per minute")
+def validate_password(request: Request, body: PasswordValidateRequest):
     try:
         authService.validate_password_strength(body.password)
         return {"valid": True, "errors": []}

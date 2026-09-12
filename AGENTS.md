@@ -25,7 +25,7 @@ Guía para agentes de IA trabajando en este repo.
 - No subir `.env` ni secretos. Usar `.env-example.txt` / `.env.example` como plantilla.
 - Roles: `admin`, `advisor`, `client` — mantener layouts/vistas separadas por rol.
 - Enums del sistema: fuente de verdad en backend (`GET /constants`), el frontend los carga vía `utils/enums.js`.
-- Real-time: un solo WebSocket en `/ws?token=JWT` gestionado por `useWebSocket.js`.
+- Real-time: un solo WebSocket en `/ws` (JWT vía subprotocolo `bearer.<JWT>`) gestionado por `useWebSocket.js`.
 
 ## Notas
 

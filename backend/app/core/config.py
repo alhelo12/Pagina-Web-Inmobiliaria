@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # ==========================================
+    # RATE LIMITING
+    # ==========================================
+    # Si se define, el rate limiting se comparte entre workers/procesos.
+    # Formato: redis://usuario:password@host:6379/0
+    REDIS_URL: Optional[str] = None
     
     # ==========================================
     # CORS

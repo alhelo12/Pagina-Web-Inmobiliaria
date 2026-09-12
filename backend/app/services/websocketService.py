@@ -9,7 +9,7 @@ import time
 from collections import defaultdict
 from typing import Optional
 
-from fastapi import Query, WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
 from app.core.websocket import manager
@@ -22,6 +22,22 @@ from app.models import User
 # Configuración
 MAX_MESSAGES_PER_MINUTE = 30
 MAX_MESSAGE_LENGTH = 5000
+AUTH_SUBPROTOCOL_PREFIX = "bearer."
+
+
+def _extract_subprotocol_token(websocket: WebSocket) -> tuple[Optional[str], Optional[str]]:
+    """
+    Extrae el JWT del subprotocolo WebSocket (no de la URL).
+
+    El cliente envía: new WebSocket(url, ["bearer.<JWT>"])
+    """
+    raw = websocket.headers.get("sec-websocket-protocol")
+    if not raw:
+        return None, None
+    for protocol in (p.strip() for p in raw.split(",")):
+        if protocol.startswith(AUTH_SUBPROTOCOL_PREFIX):
+            return protocol[len(AUTH_SUBPROTOCOL_PREFIX):], protocol
+    return None, None
 
 
 def _get_recipient_user_id(conversation, sender_user_id: int) -> Optional[int]:
@@ -35,13 +51,12 @@ def _is_participant(conversation, user_id: int, db: Session) -> bool:
 
 
 async def websocket_endpoint(
-    websocket: WebSocket,
-    token: Optional[str] = Query(None)
+    websocket: WebSocket
 ):
     """
     WebSocket unificado para chat y notificaciones en tiempo real.
 
-    Conexion: ws://localhost:8000/ws?token=JWT_TOKEN
+    Conexion: ws://localhost:8000/ws con subprotocolo ["bearer.<JWT>"]
 
     Mensajes recibidos:
     - {"type": "ping"}
@@ -54,6 +69,7 @@ async def websocket_endpoint(
     - {"type": "typing", "conversation_id": 1, "user_id": 1}
     - {"type": "notification", "data": {...}}
     """
+    token, subprotocol = _extract_subprotocol_token(websocket)
     if not token:
         await websocket.close(code=4001, reason="Token requerido")
         return
@@ -63,7 +79,11 @@ async def websocket_endpoint(
         await websocket.close(code=4001, reason="Token invalido")
         return
 
-    user_id = int(payload.get("sub", 0))
+    try:
+        user_id = int(payload.get("sub", 0))
+    except (TypeError, ValueError):
+        await websocket.close(code=4001, reason="Token invalido")
+        return
     if not user_id:
         await websocket.close(code=4001, reason="Token invalido")
         return
@@ -78,7 +98,7 @@ async def websocket_endpoint(
     finally:
         db.close()
 
-    await manager.connect(websocket, user_id)
+    await manager.connect(websocket, user_id, subprotocol=subprotocol)
 
     # Rate limiting simple por conexión
     message_timestamps = defaultdict(list)

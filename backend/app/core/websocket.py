@@ -19,9 +19,9 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[int, Set[WebSocket]] = {}
     
-    async def connect(self, websocket: WebSocket, user_id: int):
+    async def connect(self, websocket: WebSocket, user_id: int, subprotocol: str | None = None):
         """Acepta y registra una nueva conexión WebSocket"""
-        await websocket.accept()
+        await websocket.accept(subprotocol=subprotocol)
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
         self.active_connections[user_id].add(websocket)

@@ -5,7 +5,7 @@ Lógica de negocio para gestión de citas.
 Maneja programación, confirmación, cancelación y seguimiento.
 """
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, and_, or_
 from typing import Optional, List
 from datetime import datetime, timedelta
@@ -545,21 +545,29 @@ def check_advisor_availability(
 
 def get_property_appointments(
     db: Session,
-    property_id: int
+    property_id: int,
+    limit: int = 50
 ) -> List[Appointment]:
     """
-    Obtener citas de una propiedad
+    Obtener citas de una propiedad (con límite y sin N+1)
     
     Args:
         db: Sesión de base de datos
         property_id: ID de la propiedad
+        limit: Máximo de citas a retornar
         
     Returns:
         Lista de citas de la propiedad
     """
     return db.query(Appointment)\
+        .options(
+            selectinload(Appointment.client),
+            selectinload(Appointment.advisor).selectinload(Advisor.user),
+            selectinload(Appointment.related_property),
+        )\
         .filter(Appointment.property_id == property_id)\
         .order_by(Appointment.scheduled_date.desc())\
+        .limit(limit)\
         .all()
 
 

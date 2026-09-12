@@ -1,10 +1,20 @@
-"""Checks de endurecimiento: validación de imágenes y DTOs públicos sin PII."""
+"""Checks de endurecimiento: validación de imágenes, DTOs públicos sin PII,
+authz de citas, enumeración de emails y manejo de credenciales."""
 
 from datetime import datetime
+from uuid import uuid4
+
+import pytest
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
 
 from app.controllers.propertyController import _is_valid_image_header
-from app.models import Advisor, Property, User
+from app.main import app
+from app.models import Advisor, Appointment, Property, Role, User
 from app.schemas import AdvisorPublicResponse, PublicPropertyResponse
+from app.services.authService import validate_password_strength, verify_password
+
+client = TestClient(app)
 
 
 def test_image_header_accepts_only_real_signatures():
@@ -65,3 +75,111 @@ def test_public_property_response_excludes_contact_data():
     assert "dueno@test.com" not in serialized
     assert "5550000000" not in serialized
     assert out["owner"] == {"id": 2, "full_name": "Nombre Test"}
+
+
+def test_verify_password_handles_malformed_hash():
+    assert verify_password("Password123", "no-es-un-hash") is False
+
+
+def test_password_over_72_bytes_rejected():
+    assert validate_password_strength("a" * 71 + "1") is True
+    with pytest.raises(HTTPException):
+        validate_password_strength("a" * 79 + "1")
+
+
+def test_token_with_non_numeric_sub_returns_401():
+    from app.core.security import create_access_token
+
+    token = create_access_token({"sub": "no-es-entero"})
+    response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 401
+
+
+def test_send_verification_does_not_enumerate_emails():
+    response = client.post(
+        "/auth/send-verification",
+        json={"email": f"nadie-{uuid4().hex[:8]}@example.com"},
+    )
+    assert response.status_code == 200
+    assert "token" not in response.json()
+
+
+def test_property_appointments_restricted_to_assigned_advisor():
+    from app.core.security import create_token_for_user
+    from app.dbConfig.databaseSession import SessionLocal
+
+    suffix = uuid4().hex[:8]
+    db = SessionLocal()
+    try:
+        advisor_role = db.query(Role).filter(Role.name == "advisor").first()
+        client_role = db.query(Role).filter(Role.name == "client").first()
+        assert advisor_role and client_role
+
+        advisor1_user = User(
+            full_name="Asesor Uno",
+            email=f"asesor1-{suffix}@test.com",
+            password_hash="x",
+            role_id=advisor_role.id,
+            is_active=True,
+        )
+        advisor2_user = User(
+            full_name="Asesor Dos",
+            email=f"asesor2-{suffix}@test.com",
+            password_hash="x",
+            role_id=advisor_role.id,
+            is_active=True,
+        )
+        client_user = User(
+            full_name="Cliente Cita",
+            email=f"cliente-{suffix}@test.com",
+            password_hash="x",
+            role_id=client_role.id,
+            is_active=True,
+        )
+        db.add_all([advisor1_user, advisor2_user, client_user])
+        db.commit()
+        for user in (advisor1_user, advisor2_user, client_user):
+            db.refresh(user)
+
+        advisor1 = Advisor(user_id=advisor1_user.id)
+        advisor2 = Advisor(user_id=advisor2_user.id)
+        db.add_all([advisor1, advisor2])
+        db.commit()
+        db.refresh(advisor1)
+        db.refresh(advisor2)
+
+        prop = Property(
+            title="Propiedad con citas",
+            price=1000,
+            property_type="house",
+            transaction_type="sale",
+            status="approved",
+            address="Calle 1",
+            city="CDMX",
+            submitted_by_user_id=client_user.id,
+            advisor_id=advisor1.id,
+        )
+        db.add(prop)
+        db.commit()
+        db.refresh(prop)
+
+        db.add(
+            Appointment(
+                client_id=client_user.id,
+                advisor_id=advisor1.id,
+                property_id=prop.id,
+                scheduled_date=datetime.now(),
+                status="pending",
+            )
+        )
+        db.commit()
+
+        token1 = create_token_for_user(advisor1_user.id, advisor1_user.email, "advisor")
+        token2 = create_token_for_user(advisor2_user.id, advisor2_user.email, "advisor")
+        property_id = prop.id
+    finally:
+        db.close()
+
+    url = f"/appointments/property/{property_id}/appointments"
+    assert client.get(url, headers={"Authorization": f"Bearer {token2}"}).status_code == 403
+    assert client.get(url, headers={"Authorization": f"Bearer {token1}"}).status_code == 200

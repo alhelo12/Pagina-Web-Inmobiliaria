@@ -124,6 +124,7 @@ npm run dev
 | `SMTP_PASSWORD` | Contraseña SMTP | — |
 | `SMTP_FROM_EMAIL` | Remitente emails | — |
 | `CORS_ORIGINS` | Orígenes permitidos | `["http://localhost:5173"]` |
+| `REDIS_URL` | Backend de rate limiting compartido (opcional) | `memory://` |
 
 ### Frontend (`.env`)
 
@@ -167,7 +168,7 @@ npm run dev
 | Notifications | `GET /notifications/meta` | Metadata de notificaciones |
 | Constants | `GET /constants` | Enums del sistema |
 | Health | `GET /health` | Health check |
-| WebSocket | `ws://.../ws?token=JWT` | Conexión unificada |
+| WebSocket | `ws://.../ws` (subprotocolo `bearer.<JWT>`) | Conexión unificada |
 
 Documentación interactiva: `http://localhost:8000/docs`
 

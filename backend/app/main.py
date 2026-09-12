@@ -5,12 +5,11 @@ Sistema Inmobiliario - Backend API
 
 import logging
 from pathlib import Path
-from fastapi import FastAPI, Request, WebSocket, Query
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
 from starlette.responses import JSONResponse
-from typing import Optional
 
 from app.core.config import settings
 from app.core.rateLimiter import limiter
@@ -110,15 +109,13 @@ app.include_router(constants_router)
 # ==========================================
 
 @app.websocket("/ws")
-async def websocket_route(
-    websocket: WebSocket,
-    token: Optional[str] = Query(None)
-):
+async def websocket_route(websocket: WebSocket):
     """
     WebSocket unificado para chat y notificaciones en tiempo real.
+    Token JWT vía subprotocolo: new WebSocket(url, ["bearer.<JWT>"])
     Delegado a websocketService para mantener main.py limpio.
     """
-    await websocket_endpoint(websocket, token)
+    await websocket_endpoint(websocket)
 
 
 # ==========================================
@@ -175,6 +172,14 @@ async def startup_event():
         print(f"Connection Pool: {pool['pool_size']} conexiones disponibles")
     else:
         print("Error: No se pudo conectar a PostgreSQL")
+
+    if settings.ENVIRONMENT != "production":
+        logger.warning(
+            "ENVIRONMENT=%s: /docs abierto y tokens de verificación/reset "
+            "pueden devolverse en la API si SMTP no está configurado. "
+            "Configura ENVIRONMENT=production, DEBUG=False y SECRET_KEY fuerte al desplegar.",
+            settings.ENVIRONMENT,
+        )
     
     print("="*80)
     print(f"Documentacion disponible en: http://localhost:8000{settings.DOCS_URL}")

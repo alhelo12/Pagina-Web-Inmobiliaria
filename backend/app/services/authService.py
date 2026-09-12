@@ -43,7 +43,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True si coincide, False si no
     """
-    return _bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    try:
+        return _bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except (ValueError, TypeError):
+        # Hash malformado o algoritmo inválido: nunca autenticar
+        return False
 
 
 # ==========================================
@@ -145,6 +149,7 @@ def validate_password_strength(password: str) -> bool:
     
     Requisitos:
     - Mínimo 8 caracteres
+    - Máximo 72 bytes (límite real de bcrypt; lo excedente se ignora)
     - Al menos una letra
     - Al menos un número
     
@@ -161,6 +166,12 @@ def validate_password_strength(password: str) -> bool:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="La contraseña debe tener al menos 8 caracteres"
+        )
+
+    if len(password.encode("utf-8")) > 72:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña no puede exceder 72 caracteres"
         )
     
     if not any(char.isalpha() for char in password):
