@@ -97,7 +97,7 @@ onMounted(async () => {
     <Breadcrumb :crumbs="[{ label: 'Dashboard', path: '/cliente/dashboard' }]" />
 
     <div v-if="loadingDashboard" class="state">Cargando resumen...</div>
-    <div v-else-if="error" class="state error-msg">{{ error }}</div>
+    <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
     <template v-else>
       <div class="overview-grid">
@@ -198,30 +198,30 @@ onMounted(async () => {
 .dashboard :deep(.fav-item) {
   background: transparent;
   border: none;
-  border-bottom: 1px solid #ece5d3;
+  border-bottom: 1px solid var(--color-line);
   border-radius: 0;
   padding: 12px 4px;
 }
 .dashboard :deep(.feed-item:last-child),
 .dashboard :deep(.recent-row:last-child),
 .dashboard :deep(.fav-item:last-child) { border-bottom: none; }
-.dashboard :deep(.feed-item.unread) { background: #faf5e9; }
+.dashboard :deep(.feed-item.unread) { background: var(--color-ivory-2); }
 .dashboard :deep(.feed-head h3),
 .dashboard :deep(.recent-head h3),
 .dashboard :deep(.card-head h3) { font-family: var(--serif); font-weight: 700; }
 
 /* JAKEDA: large serif numerals */
-.dashboard :deep(.stat-value) { font-family: var(--serif); font-size: 28px; font-weight: 700; color: #102d2d; }
+.dashboard :deep(.stat-value) { font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--color-petrol); }
 
 /* JAKEDA: status as text, not pills */
 .dashboard :deep(.recent-badge) { background: transparent !important; padding: 0; border-radius: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.dashboard :deep(.recent-badge.pending) { color: #8a5c00; }
-.dashboard :deep(.recent-badge.approved) { color: #166534; }
-.dashboard :deep(.recent-badge.rejected) { color: #991b1b; }
-.dashboard :deep(.recent-badge.sold) { color: #1a3f3f; }
+.dashboard :deep(.recent-badge.pending) { color: var(--color-brass-ink); }
+.dashboard :deep(.recent-badge.approved) { color: var(--color-success); }
+.dashboard :deep(.recent-badge.rejected) { color: var(--color-danger); }
+.dashboard :deep(.recent-badge.sold) { color: var(--color-petrol); }
 
 .state { padding: 18px; color: var(--color-muted); background: #fff; border: 1px solid var(--color-line); border-radius: 12px; }
-.error-msg { color: #991b1b; }
+.error-msg { color: var(--color-danger); }
 
 .actions-grid { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
 .action-btn {
@@ -232,28 +232,28 @@ onMounted(async () => {
   border-radius: 12px;
   border: 1px solid var(--color-line);
   background: #fff;
-  color: #102d2d;
+  color: var(--color-petrol);
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
   transition: border-color .2s ease;
 }
 .action-btn span:first-of-type { margin-right: auto; }
-.action-btn:hover { border-color: var(--color-gold); background: #fff; }
+.action-btn:hover { border-color: var(--color-brass); background: #fff; }
 .action-btn .icon {
   width: 36px;
   height: 36px;
   border-radius: 8px;
   background: rgba(16, 45, 45, .07);
-  color: #1a3f3f;
+  color: var(--color-petrol);
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
-.action-btn .icon.heart { background: rgba(201, 164, 92, .16); color: #7a5c1e; }
+.action-btn .icon.heart { background: rgba(201, 164, 92, .16); color: var(--color-brass-ink); }
 .action-count {
-  background: var(--color-gold);
-  color: #102d2d;
+  background: var(--color-brass);
+  color: var(--color-petrol);
   font-size: 11px;
   font-weight: 800;
   min-width: 20px;
@@ -267,14 +267,14 @@ onMounted(async () => {
 }
 .unread-badge {
   background: rgba(201, 164, 92, .18);
-  color: #7a5c1e;
+  color: var(--color-brass-ink);
   font-size: 11px;
   font-weight: 700;
   padding: 4px 8px;
   border-radius: 999px;
 }
-.view-all { color: #102d2d; font-size: 13px; font-weight: 600; text-decoration: none; }
-.view-all:hover { color: var(--color-gold); }
+.view-all { color: var(--color-petrol); font-size: 13px; font-weight: 600; text-decoration: none; }
+.view-all:hover { color: var(--color-brass); }
 
 @media (max-width: 1200px) {
   .overview-grid {

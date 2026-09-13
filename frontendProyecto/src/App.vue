@@ -6,10 +6,11 @@ import ToastContainer from '@/components/shared/ToastContainer.vue'
 
 <template>
   <div class="layout">
+    <a class="skip-link" href="#main">Saltar al contenido</a>
     <Navbar />
     <ToastContainer />
 
-    <main class="content">
+    <main id="main" class="content">
       <RouterView />
     </main>
 

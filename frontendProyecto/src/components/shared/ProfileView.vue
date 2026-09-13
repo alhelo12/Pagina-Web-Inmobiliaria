@@ -150,7 +150,7 @@ const changePassword = async () => {
     <Breadcrumb :crumbs="[{ label: title, path: `/${role}/perfil` }]" />
 
     <div v-if="loading" class="state">Cargando perfil...</div>
-    <div v-else-if="error && !form.email" class="state error-msg">{{ error }}</div>
+    <div v-else-if="error && !form.email" class="state error-msg" role="alert">{{ error }}</div>
 
     <template v-else>
       <div class="cards-grid">
@@ -180,7 +180,7 @@ const changePassword = async () => {
               <input id="profile-phone" v-model="form.phone" type="tel" placeholder="Tu número de teléfono" />
             </div>
 
-            <div v-if="error" class="field-error">{{ error }}</div>
+            <div v-if="error" class="field-error" role="alert">{{ error }}</div>
 
             <button
               class="btn-save"
@@ -219,7 +219,7 @@ const changePassword = async () => {
               <input id="profile-confirm-password" v-model="passwordForm.confirm_password" type="password" placeholder="Repite la nueva contraseña" />
             </div>
 
-            <div v-if="passwordError" class="field-error">{{ passwordError }}</div>
+            <div v-if="passwordError" class="field-error" role="alert">{{ passwordError }}</div>
 
             <button
               class="btn-save"
@@ -250,7 +250,7 @@ const changePassword = async () => {
 
 .page-header p {
   margin: 0 0 4px;
-  color: var(--color-gold);
+  color: var(--color-brass);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -259,7 +259,7 @@ const changePassword = async () => {
 
 .page-header h1 {
   margin: 0;
-  color: #102d2d;
+  color: var(--color-petrol);
   font-size: 30px;
   font-weight: 700;
   font-family: var(--serif);
@@ -276,7 +276,7 @@ const changePassword = async () => {
 }
 
 .error-msg {
-  color: #991b1b;
+  color: var(--color-danger);
 }
 
 .cards-grid {
@@ -295,16 +295,16 @@ const changePassword = async () => {
 }
 
 .card:hover {
-  border-color: var(--color-gold);
+  border-color: var(--color-brass);
   box-shadow: none;
 }
 
 .card-icon {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(201, 164, 92, 0.14);
-  color: #7a5c1e;
+  color: var(--color-brass-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -313,18 +313,18 @@ const changePassword = async () => {
 
 .card-icon.lock {
   background: rgba(16, 45, 45, 0.07);
-  color: #1a3f3f;
+  color: var(--color-petrol);
 }
 
 .card-content {
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #ece5d3;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .card-content h2 {
   margin: 0 0 6px;
-  color: #102d2d;
+  color: var(--color-petrol);
   font-size: 20px;
   font-weight: 700;
   font-family: var(--serif);
@@ -350,7 +350,7 @@ const changePassword = async () => {
 }
 
 .field label {
-  color: var(--color-navy);
+  color: var(--color-petrol);
   font-size: 13px;
   font-weight: 600
 }
@@ -360,23 +360,23 @@ const changePassword = async () => {
   border: 1px solid var(--color-line);
   border-radius: 8px;
   font-size: 14px;
-  color: var(--color-navy);
+  color: var(--color-petrol);
   background: #fff;
   transition: 0.3s ease
 }
 
 .field input::placeholder {
-  color: #9ca3af
+  color: var(--color-muted)
 }
 
 .field input:focus {
   outline: none;
-  border-color: var(--color-gold);
+  border-color: var(--color-brass);
   box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.15)
 }
 
 .field input.disabled {
-  background: #f3f4f6;
+  background: var(--color-ivory-2);
   color: var(--color-muted);
   cursor: not-allowed
 }
@@ -388,18 +388,18 @@ const changePassword = async () => {
 
 .field-error {
   padding: 10px 14px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-soft);
+  border: 1px solid var(--color-danger-soft);
   border-radius: 8px;
-  color: #dc2626;
+  color: var(--color-danger);
   font-size: 13px
 }
 
 .btn-save {
   margin-top: 8px;
   padding: 12px 20px;
-  background: #102d2d;
-  color: #f3ede0;
+  background: var(--color-petrol);
+  color: var(--color-ivory-2);
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -409,7 +409,7 @@ const changePassword = async () => {
 }
 
 .btn-save:hover:not(:disabled) {
-  background: #1a3f3f
+  background: var(--color-petrol)
 }
 
 .btn-save:disabled {

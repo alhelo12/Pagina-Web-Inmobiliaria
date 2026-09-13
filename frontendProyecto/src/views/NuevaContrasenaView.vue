@@ -33,7 +33,7 @@
           <button class="btn-ink cta" type="submit" :disabled="loading">{{ loading ? 'Actualizando...' : 'Actualizar contraseña →' }}</button>
         </form>
 
-        <p v-if="error" class="err">{{ error }}</p>
+        <p v-if="error" class="err" role="alert">{{ error }}</p>
       </div>
     </div>
 
@@ -179,13 +179,13 @@ const submit = async () => {
   color: var(--color-charcoal);
   margin-bottom: 2px;
 }
-.field-underline input::placeholder { color: #a9a294; }
+.field-underline input::placeholder { color: var(--color-muted); }
 
 /* CTA petrol full-width */
 .cta { width: 100%; margin-top: 8px; padding: 16px 22px; }
 .cta:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.err { margin-top: 16px; color: #b91c1c; font-size: 14px; line-height: 1.6; }
+.err { margin-top: 16px; color: var(--color-danger); font-size: 14px; line-height: 1.6; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {

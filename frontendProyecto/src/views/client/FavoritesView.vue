@@ -23,7 +23,7 @@ onMounted(() => favStore.fetchFavorites())
       </nav>
     </aside>
 
-    <main class="favorites">
+    <div class="favorites">
       <section class="hero-panel">
         <p class="eyebrow-label">Dashboard personal</p>
         <h1 class="serif-display">Mis favoritos</h1>
@@ -34,7 +34,7 @@ onMounted(() => favStore.fetchFavorites())
         <div class="spinner"></div>
       </div>
 
-      <div v-else-if="favStore.error" class="state error-msg">
+      <div v-else-if="favStore.error" class="state error-msg" role="alert">
         {{ favStore.error }}
       </div>
 
@@ -52,7 +52,7 @@ onMounted(() => favStore.fetchFavorites())
           class="fav-card"
         >
           <div class="media">
-            <img :src="imageOf(fav)" :alt="propertyOf(fav)?.title" loading="lazy" />
+            <img decoding="async" :src="imageOf(fav)" :alt="propertyOf(fav)?.title" loading="lazy" />
             <span>Guardada</span>
           </div>
           <div class="body">
@@ -66,7 +66,7 @@ onMounted(() => favStore.fetchFavorites())
           </div>
         </RouterLink>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -100,7 +100,7 @@ onMounted(() => favStore.fetchFavorites())
 .brand span {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   background: var(--color-brass);
@@ -188,7 +188,7 @@ nav a:hover {
   margin: 0;
 }
 
-.error-msg { color: #991b1b; }
+.error-msg { color: var(--color-danger); }
 .spinner {
   width: 42px;
   height: 42px;

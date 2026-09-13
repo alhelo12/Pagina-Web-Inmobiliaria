@@ -88,7 +88,7 @@ onMounted(() => {
         <button
           v-for="filter in filters"
           :key="filter.key"
-          :class="['filter-btn', { active: activeFilter === filter.key }]"
+          :class="['filter-btn', { active: activeFilter === filter.key }]" :aria-pressed="activeFilter === filter.key"
           @click="activeFilter = filter.key"
         >
           {{ filter.label }}
@@ -133,7 +133,7 @@ onMounted(() => {
 
     <div v-else-if="!filteredNotifications.length" class="empty-state">
       <div class="empty-icon"><AppIcon name="bell" :size="48" /></div>
-      <h3>No hay notificaciones</h3>
+      <h2>No hay notificaciones</h2>
       <p>No tienes notificaciones que coincidan con el filtro seleccionado.</p>
     </div>
 
@@ -144,7 +144,11 @@ onMounted(() => {
           v-for="notif in section.items"
           :key="notif.id"
           :class="['notification-card', { unread: !notif.is_read }]"
+          role="button"
+          tabindex="0"
           @click="handleNotificationClick(notif)"
+          @keydown.enter.prevent="handleNotificationClick(notif)"
+          @keydown.space.prevent="handleNotificationClick(notif)"
         >
           <div
             class="type-icon"
@@ -158,7 +162,7 @@ onMounted(() => {
 
           <div class="notification-content">
             <div class="notification-header">
-              <h3>{{ notif.title }}</h3>
+              <h2>{{ notif.title }}</h2>
               <div class="header-actions">
                 <span
                   class="type-badge"
@@ -266,8 +270,8 @@ onMounted(() => {
   background: transparent;
   border: 1px solid var(--color-line);
   color: var(--color-muted);
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -306,15 +310,15 @@ onMounted(() => {
 .card-icon {
   width: 42px;
   height: 42px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
 }
 
-.total-icon { background: #e8edf0; color: var(--color-navy-2); }
-.unread-icon { background: #fef3c7; color: #b45309; }
+.total-icon { background: var(--color-line); color: var(--color-ink); }
+.unread-icon { background: var(--color-ivory-2); color: var(--color-brass-ink); }
 
 .card span {
   color: var(--color-muted);
@@ -340,7 +344,7 @@ onMounted(() => {
 }
 
 .highlight {
-  background: #faf5e9;
+  background: var(--color-ivory-2);
 }
 
 .loading {
@@ -364,7 +368,7 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-.empty-state h3 {
+.empty-state h2 {
   margin: 0 0 8px;
   color: var(--color-petrol);
   font-family: var(--serif);
@@ -410,7 +414,7 @@ onMounted(() => {
 }
 
 .notification-card.unread {
-  background: #faf5e9;
+  background: var(--color-ivory-2);
   border-color: var(--color-brass);
 }
 
@@ -437,7 +441,7 @@ onMounted(() => {
   margin-bottom: 6px;
 }
 
-.notification-header h3 {
+.notification-header h2 {
   margin: 0;
   color: var(--color-petrol);
   font-family: var(--serif);
@@ -463,16 +467,16 @@ onMounted(() => {
 .delete-btn {
   background: transparent;
   border: none;
-  color: #d1d5db;
+  color: var(--color-line);
   cursor: pointer;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: 7px;
   transition: color 0.2s ease, background 0.2s ease;
 }
 
 .delete-btn:hover {
-  color: #dc2626;
-  background: #fef2f2;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .notification-content p {
@@ -507,7 +511,7 @@ onMounted(() => {
   .notification-card { flex-direction: column; gap: 12px; }
   .type-icon { width: 36px; height: 36px; }
   .notification-header { flex-direction: column; gap: 6px; }
-  .notification-header h3 { font-size: 14px; }
+  .notification-header h2 { font-size: 14px; }
   .card strong { font-size: 24px; }
 }
 </style>

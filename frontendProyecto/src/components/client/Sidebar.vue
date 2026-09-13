@@ -113,7 +113,7 @@ const handleLogout = async () => {
   padding: 10px 12px;
   background: rgba(243, 238, 228, 0.06);
   border: 1px solid rgba(185, 148, 95, 0.35);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 .user-avatar {
   width: 38px;
@@ -159,7 +159,7 @@ nav { display: grid; gap: 6px; }
 .nav-badge { margin-left: auto; background: var(--color-ink); color: var(--color-ivory); border: 1px solid rgba(243, 238, 228, 0.35); font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 5px; flex-shrink: 0; }
 
 .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
-.sidebar-card { padding: 16px; border-radius: 10px; background: rgba(243, 238, 228, 0.05); border: 1px solid rgba(185, 148, 95, 0.3); }
+.sidebar-card { padding: 16px; border-radius: 12px; background: rgba(243, 238, 228, 0.05); border: 1px solid rgba(185, 148, 95, 0.3); }
 .sidebar-card small { color: var(--color-brass); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
 .sidebar-card p { margin-top: 6px; color: rgba(243, 238, 228, 0.65); line-height: 1.5; font-size: 12px; }
 .logout-btn {

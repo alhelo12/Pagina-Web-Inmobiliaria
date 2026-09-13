@@ -7,6 +7,7 @@ import { advisorsApi } from '@/api/advisors'
 import { useAuthStore } from '@/stores/authStore'
 import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
+import { useDialog } from '@/composables/useDialog'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const { addToast } = useToast()
@@ -47,6 +48,10 @@ const editingUser = ref(null)
 const newUser = ref({ full_name: '', email: '', password: '', phone: '', role_name: 'advisor', license_number: '', agency_name: '' })
 
 const confirmModal = ref({ show: false, type: '', user: null })
+
+const { dialogRef: formDialogRef } = useDialog(showModal, () => (showModal.value = false))
+const confirmOpen = computed(() => confirmModal.value.show)
+const { dialogRef: confirmDialogRef } = useDialog(confirmOpen, () => (confirmModal.value.show = false))
 
 const actionLoading = ref(null)
 
@@ -251,41 +256,41 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
       <div class="filters-group">
         <span class="filter-label">Rol:</span>
         <div class="filters">
-          <button :class="{ active: filterRole === 'all' }" @click="changeFilterRole('all')">Todos</button>
-          <button :class="{ active: filterRole === 'admin' }" @click="changeFilterRole('admin')">Administradores</button>
-          <button :class="{ active: filterRole === 'advisor' }" @click="changeFilterRole('advisor')">Asesores</button>
-          <button :class="{ active: filterRole === 'client' }" @click="changeFilterRole('client')">Clientes</button>
+          <button :class="{ active: filterRole === 'all' }" :aria-pressed="filterRole === 'all'" @click="changeFilterRole('all')">Todos</button>
+          <button :class="{ active: filterRole === 'admin' }" :aria-pressed="filterRole === 'admin'" @click="changeFilterRole('admin')">Administradores</button>
+          <button :class="{ active: filterRole === 'advisor' }" :aria-pressed="filterRole === 'advisor'" @click="changeFilterRole('advisor')">Asesores</button>
+          <button :class="{ active: filterRole === 'client' }" :aria-pressed="filterRole === 'client'" @click="changeFilterRole('client')">Clientes</button>
         </div>
       </div>
       <div class="filters-group">
         <span class="filter-label">Estado:</span>
         <div class="filters">
-          <button :class="{ active: filterStatus === 'all' }" @click="changeFilterStatus('all')">Todos</button>
-          <button :class="{ active: filterStatus === 'active' }" @click="changeFilterStatus('active')">Activos</button>
-          <button :class="{ active: filterStatus === 'inactive' }" @click="changeFilterStatus('inactive')">Inactivos</button>
+          <button :class="{ active: filterStatus === 'all' }" :aria-pressed="filterStatus === 'all'" @click="changeFilterStatus('all')">Todos</button>
+          <button :class="{ active: filterStatus === 'active' }" :aria-pressed="filterStatus === 'active'" @click="changeFilterStatus('active')">Activos</button>
+          <button :class="{ active: filterStatus === 'inactive' }" :aria-pressed="filterStatus === 'inactive'" @click="changeFilterStatus('inactive')">Inactivos</button>
         </div>
       </div>
     </div>
 
     <div v-if="loading" class="state"><div class="spinner"></div></div>
-    <div v-else-if="error" class="state error-msg">{{ error }}</div>
+    <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
     <div v-else class="table-container">
       <table>
           <thead>
             <tr>
-              <th class="sortable" @click="sort('full_name')">
+              <th class="sortable" :aria-sort="sortKey === 'full_name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('full_name')" @keydown.enter.prevent="sort('full_name')" @keydown.space.prevent="sort('full_name')">
                 Nombre <span class="sort-icon" :class="{ active: sortKey === 'full_name' }">{{ sortKey === 'full_name' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
               </th>
               <th>Email</th>
               <th>Teléfono</th>
-              <th class="sortable" @click="sort('role_name')">
+              <th class="sortable" :aria-sort="sortKey === 'role_name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('role_name')" @keydown.enter.prevent="sort('role_name')" @keydown.space.prevent="sort('role_name')">
                 Rol <span class="sort-icon" :class="{ active: sortKey === 'role_name' }">{{ sortKey === 'role_name' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
               </th>
-              <th class="sortable" @click="sort('is_active')">
+              <th class="sortable" :aria-sort="sortKey === 'is_active' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('is_active')" @keydown.enter.prevent="sort('is_active')" @keydown.space.prevent="sort('is_active')">
                 Estado <span class="sort-icon" :class="{ active: sortKey === 'is_active' }">{{ sortKey === 'is_active' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
               </th>
-              <th class="sortable" @click="sort('created_at')">
+              <th class="sortable" :aria-sort="sortKey === 'created_at' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('created_at')" @keydown.enter.prevent="sort('created_at')" @keydown.space.prevent="sort('created_at')">
                 Creación <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span>
               </th>
               <th>Acciones</th>
@@ -355,9 +360,15 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
     </div>
 
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal">
+      <div
+        ref="formDialogRef"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="editingUser ? 'Editar usuario' : 'Agregar usuario'"
+      >
         <h2>{{ editingUser ? 'Editar usuario' : 'Agregar usuario' }}</h2>
-        <div v-if="modalError" class="alert-error">{{ modalError }}</div>
+        <div v-if="modalError" class="alert-error" role="alert">{{ modalError }}</div>
         <div class="form">
           <div class="field">
             <label for="user-name">Nombre completo</label>
@@ -405,7 +416,13 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 
     <Teleport to="body">
       <div v-if="confirmModal.show" class="modal-overlay" @click.self="confirmModal.show = false">
-        <div class="modal">
+        <div
+          ref="confirmDialogRef"
+          class="modal"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="confirmModal.type === 'delete' ? 'Eliminar usuario' : confirmModal.user?.is_active ? 'Desactivar usuario' : 'Activar usuario'"
+        >
           <h2>{{ confirmModal.type === 'delete' ? 'Eliminar usuario' : confirmModal.user?.is_active ? 'Desactivar usuario' : 'Activar usuario' }}</h2>
           <p class="modal-desc" v-if="confirmModal.type === 'delete'">
             ¿Eliminar permanentemente a <strong>{{ confirmModal.user?.full_name }}</strong>? Esta acción no se puede deshacer.
@@ -434,11 +451,11 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 .filter-label { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); white-space: nowrap; }
 .filters { display: flex; gap: 8px; flex-wrap: wrap; }
 .filters button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--color-line); background: white; color: var(--color-muted); font-weight: 800; cursor: pointer; transition: background .2s ease, color .2s ease, border-color .2s ease; }
-.filters button.active { background: #102d2d; color: #f3ede0; border-color: #102d2d; }
+.filters button.active { background: var(--color-petrol); color: var(--color-ivory-2); border-color: var(--color-petrol); }
 
 .state { display: flex; justify-content: center; padding: 40px; color: var(--color-muted); }
-.error-msg { color: #991b1b; }
-.spinner { width: 36px; height: 36px; border: 3px solid #eadfcf; border-top-color: #c9a45c; border-radius: 50%; animation: spin .8s linear infinite; }
+.error-msg { color: var(--color-danger); }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--color-line); border-top-color: var(--color-brass); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .table-container {
@@ -456,70 +473,70 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 .table-container::-webkit-scrollbar { height: 8px; }
 .table-container::-webkit-scrollbar-thumb { background: rgba(16, 45, 45, .3); border-radius: 999px; }
 table { width: max(100%, 980px); border-collapse: collapse; table-layout: auto; }
-th, td { padding: 14px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid #ece5d3; }
+th, td { padding: 14px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--color-line); }
 tbody tr:last-child td { border-bottom: none; }
 th { color: var(--color-muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .14em; white-space: nowrap; vertical-align: middle; }
 td { vertical-align: top; }
 .sortable { cursor: pointer; user-select: none; }
-.sortable:hover { color: #102d2d; }
+.sortable:hover { color: var(--color-petrol); }
 .sort-icon { margin-left: 4px; font-size: 10px; opacity: .4; }
-.sort-icon.active { opacity: 1; color: var(--color-gold); }
+.sort-icon.active { opacity: 1; color: var(--color-brass); }
 tbody tr:hover { background: rgba(201, 164, 92, .06); }
-.td-name { font-weight: 700; color: #102d2d; min-width: 220px; white-space: normal; }
+.td-name { font-weight: 700; color: var(--color-petrol); min-width: 220px; white-space: normal; }
 .td-date { color: var(--color-muted); font-size: 13px; }
-.empty { text-align: center; color: #999; padding: 30px !important; }
+.empty { text-align: center; color: var(--color-muted); padding: 30px !important; }
 
 /* JAKEDA: role kept subtle, status as text with dot */
-.role-badge { background: #f1ece0; color: #5c665f; padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.role-badge { background: var(--color-ivory-2); color: var(--color-muted); padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .status { display: inline-flex; align-items: center; gap: 6px; background: transparent; padding: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
 .status::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex-shrink: 0; }
-.status.on { color: #166534; }
-.status.off { color: #991b1b; }
+.status.on { color: var(--color-success); }
+.status.off { color: var(--color-danger); }
 
 .actions { vertical-align: top; white-space: nowrap; }
 .actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; padding: 7px 12px; border-radius: 7px; font-weight: 700; border: none; cursor: pointer; transition: filter .2s ease; margin-right: 6px; }
 .actions button:last-child { margin-right: 0; }
 .actions button:hover { filter: brightness(1.05); }
-.edit { background: rgba(16, 45, 45, .07); color: #1a3f3f; }
-.toggle { background: rgba(201, 164, 92, .16); color: #7a5c1e; }
-.delete { background: #102d2d; color: #f3ede0; }
+.edit { background: rgba(16, 45, 45, .07); color: var(--color-petrol); }
+.toggle { background: rgba(201, 164, 92, .16); color: var(--color-brass-ink); }
+.delete { background: var(--color-petrol); color: var(--color-ivory-2); }
 
 .pagination { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .pagination button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 11px; border-radius: 7px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--color-line); color: var(--color-muted); cursor: pointer; transition: border-color .2s ease, color .2s ease; }
-.pagination button:hover:not(:disabled) { border-color: #102d2d; color: #102d2d; }
-.pagination button.active { background: #102d2d; color: #f3ede0; border-color: #102d2d; }
+.pagination button:hover:not(:disabled) { border-color: var(--color-petrol); color: var(--color-petrol); }
+.pagination button.active { background: var(--color-petrol); color: var(--color-ivory-2); border-color: var(--color-petrol); }
 .pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .pagination .dots { color: var(--color-muted); font-size: 13px; padding: 0 2px; }
 .pagination-info { margin-left: auto; color: var(--color-muted); font-size: 13px; }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(16,45,45,.55); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(16,45,45,.55); display: flex; align-items: center; justify-content: center; z-index: var(--z-modal); padding: 20px; }
 .modal { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; padding: 30px; width: 100%; max-width: 460px; box-shadow: var(--shadow-strong); }
-.modal h2 { font-family: var(--serif); color: #102d2d; font-size: 24px; margin-bottom: 18px; }
+.modal h2 { font-family: var(--serif); color: var(--color-petrol); font-size: 24px; margin-bottom: 18px; }
 .modal-desc { color: var(--color-muted); line-height: 1.6; margin-bottom: 24px; }
-.alert-error { background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+.alert-error { background: var(--color-danger-soft); color: var(--color-danger); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
 .form { display: grid; gap: 14px; margin-bottom: 24px; }
 .field { display: grid; gap: 5px; }
-.field label { font-size: 13px; font-weight: 700; color: var(--color-navy); }
+.field label { font-size: 13px; font-weight: 700; color: var(--color-petrol); }
 .form input, .form select { padding: 12px; border-radius: 8px; border: 1px solid var(--color-line); background: white; font: inherit; }
-.form input:focus, .form select:focus { outline: none; border-color: var(--color-gold); box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.15); }
+.form input:focus, .form select:focus { outline: none; border-color: var(--color-brass); box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.15); }
 .form select:disabled { opacity: .5; cursor: not-allowed; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
-.btn-cancel { padding: 0 18px; min-height: 44px; background: #eee7dc; border-radius: 8px; color: #40566e; font-weight: 900; cursor: pointer; border: none; }
-.btn-save { min-height: 44px; padding: 0 18px; background: var(--color-gold); color: #102d2d; border-radius: 8px; font-weight: 900; cursor: pointer; border: none; }
+.btn-cancel { padding: 0 18px; min-height: 44px; background: var(--color-ivory-2); border-radius: 0; color: var(--color-muted); font-weight: 900; cursor: pointer; border: none; }
+.btn-save { min-height: 44px; padding: 0 18px; background: var(--color-brass); color: var(--color-petrol); border-radius: 0; font-weight: 900; cursor: pointer; border: none; }
 .btn-save:disabled { opacity: .6; cursor: not-allowed; }
-.btn-confirm { padding: 0 18px; min-height: 44px; border-radius: 8px; font-weight: 900; cursor: pointer; border: none; }
-.btn-confirm.remove { background: #102d2d; color: #f3ede0; }
-.btn-confirm.toggle { background: rgba(201, 164, 92, .16); color: #7a5c1e; }
+.btn-confirm { padding: 0 18px; min-height: 44px; border-radius: 0; font-weight: 900; cursor: pointer; border: none; }
+.btn-confirm.remove { background: var(--color-petrol); color: var(--color-ivory-2); }
+.btn-confirm.toggle { background: rgba(201, 164, 92, .16); color: var(--color-brass-ink); }
 
 .mobile-cards { display: none; }
 .mobile-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; padding: 14px; }
 .mc-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
-.mc-avatar { width: 42px; height: 42px; border-radius: 50%; background: #102d2d; color: #c9a45c; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; font-family: var(--serif); }
+.mc-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--color-petrol); color: var(--color-brass); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; font-family: var(--serif); }
 .mc-title-group { flex: 1; min-width: 0; }
-.mc-name { display: block; color: var(--color-navy); font-size: 14px; }
+.mc-name { display: block; color: var(--color-petrol); font-size: 14px; }
 .mc-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; word-break: break-all; }
 .mc-phone { display: block; color: var(--color-muted); font-size: 11px; }
-.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
+.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-petrol); }
 .mc-body span strong { color: var(--color-muted); font-weight: 600; }
 .mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .mc-actions button { border: none; border-radius: 7px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }

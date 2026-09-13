@@ -190,12 +190,12 @@ onMounted(async () => {
       <button class="verify-btn" :disabled="sendingEmail" @click="resendEmail">
         {{ sendingEmail ? 'Enviando...' : emailSent ? '¡Enviado! Revisa tu correo' : 'Reenviar email de verificación' }}
       </button>
-      <p v-if="emailSent" class="verify-sent">Email reenviado correctamente</p>
+      <p v-if="emailSent" class="verify-sent" role="status">Email reenviado correctamente</p>
     </div>
 
     <!-- Formulario nueva cita -->
     <div v-if="showForm" class="form-card">
-      <h3>Nueva Cita</h3>
+      <h2>Nueva Cita</h2>
       <div class="form-grid">
         <div class="form-group">
           <label for="appt-type">Tipo de visita</label>
@@ -226,7 +226,7 @@ onMounted(async () => {
           <textarea id="appt-notes" v-model="form.notes" rows="3" placeholder="Detalles adicionales para el asesor..." maxlength="500"></textarea>
         </div>
       </div>
-      <div v-if="error" class="error-message">{{ error }}</div>
+      <div v-if="error" class="error-message" role="alert">{{ error }}</div>
       <div class="form-actions">
         <button class="btn-save" :disabled="saving" @click="createAppointment">
           <span v-if="saving">Guardando...</span>
@@ -242,13 +242,13 @@ onMounted(async () => {
     </div>
 
     <!-- Error -->
-    <div v-else-if="error && !loading && !showForm" class="state error-msg">{{ error }}</div>
+    <div v-else-if="error && !loading && !showForm" class="state error-msg" role="alert">{{ error }}</div>
 
     <!-- Lista de citas -->
     <div v-else-if="!loading" class="content">
       <div v-if="!appointments.length && !showForm" class="empty-state">
         <div class="empty-icon"><AppIcon name="calendar" :size="48" /></div>
-        <h3>No tienes citas programadas</h3>
+        <h2>No tienes citas programadas</h2>
         <p>Solicita una cita para visitar tus propiedades o propiedades de tu interés.</p>
       </div>
 
@@ -350,7 +350,7 @@ onMounted(async () => {
   box-shadow: none;
 }
 
-.form-card h3 {
+.form-card h2 {
   margin: 0 0 4px;
   color: var(--color-petrol);
   font-family: var(--serif);
@@ -440,10 +440,10 @@ onMounted(async () => {
 
 .error-message {
   padding: 10px 14px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-soft);
+  border: 1px solid var(--color-danger-soft);
   border-radius: 8px;
-  color: #dc2626;
+  color: var(--color-danger);
   font-size: 13px;
   margin-bottom: 12px;
 }
@@ -458,7 +458,7 @@ onMounted(async () => {
 }
 
 .error-msg {
-  color: #991b1b;
+  color: var(--color-danger);
 }
 
 .spinner {
@@ -485,7 +485,7 @@ onMounted(async () => {
 
 .empty-icon { color: var(--color-brass); display: block; margin-bottom: 16px; }
 
-.empty-state h3 {
+.empty-state h2 {
   margin: 0 0 8px;
   color: var(--color-petrol);
   font-family: var(--serif);
@@ -519,7 +519,7 @@ onMounted(async () => {
 
 .appointment-card.pending {
   border-color: var(--color-brass);
-  background: #faf5e9;
+  background: var(--color-ivory-2);
 }
 
 .appointment-header {
@@ -550,12 +550,12 @@ onMounted(async () => {
 }
 
 .type-badge.viewing {
-  background: #f4e8cd;
-  color: #7a5c1e;
+  background: var(--color-ivory-2);
+  color: var(--color-brass-ink);
 }
 
 .type-badge.inspection {
-  background: #e7edeb;
+  background: var(--color-ivory-2);
   color: var(--color-petrol);
 }
 
@@ -568,10 +568,10 @@ onMounted(async () => {
   text-transform: uppercase;
 }
 
-.badge.pendiente { background: #f4e8cd; color: #7a5c1e; }
-.badge.confirmada { background: #e2f0e5; color: #166534; }
-.badge.completada { background: #e7edeb; color: var(--color-petrol); }
-.badge.cancelada { background: #fee2e2; color: #991b1b; }
+.badge.pendiente { background: var(--color-ivory-2); color: var(--color-brass-ink); }
+.badge.confirmada { background: var(--color-success-soft); color: var(--color-success); }
+.badge.completada { background: var(--color-ivory-2); color: var(--color-petrol); }
+.badge.cancelada { background: var(--color-danger-soft); color: var(--color-danger); }
 
 .appointment-body {
   padding: 0 20px 16px;
@@ -636,7 +636,7 @@ onMounted(async () => {
 .verify-hint { font-size: 13px; color: var(--color-muted); margin-bottom: 24px !important; }
 .verify-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 12px 28px; border: 1px solid var(--color-petrol); border-radius: 8px; background: var(--color-petrol); color: #fff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; cursor: pointer; }
 .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.verify-sent { margin-top: 12px !important; color: #065f46 !important; font-weight: 600; }
+.verify-sent { margin-top: 12px !important; color: var(--color-success) !important; font-weight: 600; }
 
 @media (max-width: 768px) {
   .verify-card { padding: 40px 24px; }

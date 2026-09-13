@@ -2,7 +2,7 @@
   <article class="recent-card">
     <div v-if="title || subtitle" class="recent-head">
       <p v-if="subtitle">{{ subtitle }}</p>
-      <h3>{{ title || 'Recientes' }}</h3>
+      <h2>{{ title || 'Recientes' }}</h2>
     </div>
 
     <div v-if="items?.length" class="recent-list">
@@ -14,7 +14,7 @@
         class="recent-row"
       >
         <div class="recent-thumb-wrap">
-          <img
+          <img decoding="async"
             :src="getImage(item)"
             :alt="item.title"
             class="recent-thumb"
@@ -63,25 +63,25 @@ const getImage = (p) => {
 </script>
 
 <style scoped>
-.recent-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: 0 10px 26px rgba(7, 23, 45, 0.08); padding: 18px; }
+.recent-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 12px; box-shadow: 0 10px 26px rgba(7, 27, 28, 0.08); padding: 18px; }
 .recent-head { margin-bottom: 12px; }
-.recent-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.recent-head h3 { margin: 0; color: var(--color-navy); font-size: 18px; }
+.recent-head p { margin: 0 0 4px; color: var(--color-brass); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.recent-head h2 { margin: 0; color: var(--color-petrol); font-size: 18px; }
 .recent-list { display: grid; gap: 10px; }
-.recent-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-line); background: #fff; text-decoration: none; transition: .2s ease; }
-.recent-row:hover { border-color: var(--color-gold); background: #fdfcf8; }
-.recent-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: #f0ece4; }
+.recent-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--color-line); background: #fff; text-decoration: none; transition: .2s ease; }
+.recent-row:hover { border-color: var(--color-brass); background: var(--color-card); }
+.recent-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: var(--color-ivory-2); }
 .recent-thumb { width: 100%; height: 100%; object-fit: cover; }
 .recent-info { flex: 1; min-width: 0; }
-.recent-info strong { display: block; color: var(--color-navy); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-info strong { display: block; color: var(--color-petrol); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .recent-info span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
 .recent-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; flex-shrink: 0; }
 .recent-badge::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex-shrink: 0; }
 .recent-badge.pending { color: var(--color-brass-ink); }
-.recent-badge.approved { color: #166534; }
-.recent-badge.rejected { color: #991b1b; }
+.recent-badge.approved { color: var(--color-success); }
+.recent-badge.rejected { color: var(--color-danger); }
 .recent-badge.sold { color: var(--color-petrol); }
-.recent-price { color: var(--color-navy-2); font-weight: 700; white-space: nowrap; font-size: 13px; flex-shrink: 0; }
+.recent-price { color: var(--color-ink); font-weight: 700; white-space: nowrap; font-size: 13px; flex-shrink: 0; }
 .empty { margin: 0; color: var(--color-muted); }
 @media (max-width: 560px) {
   .recent-card { padding: 14px 12px; }

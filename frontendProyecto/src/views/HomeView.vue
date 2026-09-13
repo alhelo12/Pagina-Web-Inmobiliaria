@@ -90,11 +90,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="home-page">
+  <div class="home-page">
     <header class="hero">
-      <img
+      <img decoding="async"
         class="hero-image"
         :src="heroImage"
+        fetchpriority="high"
         @error="onHeroImageError"
         alt="Propiedad principal"
       />
@@ -163,7 +164,7 @@ onMounted(async () => {
 
     <section class="about reveal">
       <div class="about-img-wrap">
-        <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Habitacion elegante" loading="lazy" />
+        <img decoding="async" src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Habitacion elegante" loading="lazy" />
       </div>
       <div class="about-content">
         <h2 class="serif-display">Espacios que se sienten como hogar</h2>
@@ -235,7 +236,7 @@ onMounted(async () => {
       </div>
       <div class="banner-cards">
         <article class="mini-card" v-for="p in highlightedProperties.slice(0, 2)" :key="`mini-${p.id}`">
-          <img :src="getPropertyImage(p)" :alt="p.title" loading="lazy" />
+          <img decoding="async" :src="getPropertyImage(p)" :alt="p.title" loading="lazy" />
           <div>
             <strong>{{ p.title }}</strong>
             <small>{{ p.city }} · ${{ Number(p.price).toLocaleString('es-MX') }}</small>
@@ -243,7 +244,7 @@ onMounted(async () => {
         </article>
       </div>
     </section>
-  </main>
+  </div>
 </template>
 
 <style scoped>

@@ -9,12 +9,10 @@
   --color-brass-ink: #7a5c1e;
   --color-charcoal: #232a2a;
   --color-line: #ddd5c3;
-  /* legacy aliases */
-  --color-navy: #102d2d;
-  --color-navy-2: #071b1c;
-  --color-blue: #2a8cff;
-  --color-gold: #b9945f;
-  --color-cream: #f3eee4;
+  --color-danger: #991b1b;
+  --color-danger-soft: #f2e0dc;
+  --color-success: #166534;
+  --color-success-soft: #e2f0e5;
   --color-card: #fffdf8;
   --color-muted: #5f665f;
   --shadow-soft: 0 18px 45px rgba(7, 27, 28, 0.12);
@@ -132,7 +130,6 @@ body {
   border-bottom: 1px solid var(--color-line);
   padding: 12px 2px;
   font-size: 15px;
-  outline: none;
   border-radius: 0;
 }
 .field-underline input:focus,
@@ -144,6 +141,23 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-brass);
   outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: var(--z-toast);
+  background: var(--color-petrol);
+  color: var(--color-ivory);
+  padding: 12px 20px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.skip-link:focus {
+  top: 16px;
 }
 
 @media (prefers-reduced-motion: reduce) {

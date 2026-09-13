@@ -27,6 +27,8 @@ const autoplayPaused = ref(false)
 const mapEl = ref(null)
 const contactStatus = ref('idle')
 const contactMessage = ref('')
+let contactRedirectTimer = null
+let contactResetTimer = null
 const bookingDate = ref('')
 const bookingTime = ref('')
 const bookingStatus = ref('idle')
@@ -255,13 +257,15 @@ const handleContactAdvisor = async () => {
     })
     contactStatus.value = 'success'
     contactMessage.value = 'Conversacion iniciada correctamente'
-    setTimeout(() => {
+    clearTimeout(contactRedirectTimer)
+    contactRedirectTimer = setTimeout(() => {
       router.push(auth.role === 'advisor' ? '/advisor/mensajes' : '/cliente/mensajes')
     }, 800)
   } catch (err) {
     contactStatus.value = 'error'
     contactMessage.value = err.response?.data?.detail || 'No se pudo iniciar la conversacion'
-    setTimeout(() => {
+    clearTimeout(contactResetTimer)
+    contactResetTimer = setTimeout(() => {
       contactStatus.value = 'idle'
       contactMessage.value = ''
     }, 3000)
@@ -409,6 +413,8 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKey)
   window.removeEventListener('keydown', trapLightbox)
   window.clearInterval(autoplayTimer)
+  clearTimeout(contactRedirectTimer)
+  clearTimeout(contactResetTimer)
   destroyMap()
 })
 </script>
@@ -420,18 +426,18 @@ onUnmounted(() => {
   </div>
 
   <div v-else-if="error" class="state">
-    <p class="error-msg">{{ error }}</p>
+    <p class="error-msg" role="alert">{{ error }}</p>
     <RouterLink to="/propiedades" class="back-link">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
       Volver a propiedades
     </RouterLink>
   </div>
 
-  <main v-else class="detail-page">
+  <div v-else class="detail-page">
     <section class="hero">
       <div class="hero-media">
         <Transition name="image-fade" mode="out-in">
-          <img
+          <img decoding="async"
             :key="generalImages[activeImg]?.image_url"
             :src="generalImages[activeImg]?.image_url"
             :alt="generalImages[activeImg]?.label || property.title"
@@ -489,7 +495,7 @@ onUnmounted(() => {
           :aria-selected="activeGallery === 'general' && activeImg === index"
           @click="selectGallery('general'); goTo(index)"
         >
-          <img :src="img.image_url" :alt="`Foto general ${index + 1}`" loading="lazy" />
+          <img decoding="async" :src="img.image_url" :alt="`Foto general ${index + 1}`" loading="lazy" />
         </button>
       </div>
     </section>
@@ -543,7 +549,7 @@ onUnmounted(() => {
           </div>
           <div v-if="currentTab?.count" class="section-gallery">
             <button v-for="(img, index) in images" :key="img.id ?? index" type="button" @click="openLightbox(index)">
-              <img :src="img.image_url" :alt="img.label || selectedLabel" />
+              <img decoding="async" :src="img.image_url" :alt="img.label || selectedLabel" />
             </button>
           </div>
           <p v-else class="empty-note">No hay fotos registradas para este apartado.</p>
@@ -663,7 +669,7 @@ onUnmounted(() => {
               <button v-if="images.length > 1" class="nav-btn nav-prev" type="button" aria-label="Anterior" @click.stop="prev">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
               </button>
-              <img :src="images[activeImg]?.image_url" :alt="images[activeImg]?.label || selectedLabel" />
+              <img decoding="async" :src="images[activeImg]?.image_url" :alt="images[activeImg]?.label || selectedLabel" />
               <button v-if="images.length > 1" class="nav-btn nav-next" type="button" aria-label="Siguiente" @click.stop="next">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
               </button>
@@ -672,7 +678,7 @@ onUnmounted(() => {
         </div>
       </Transition>
     </Teleport>
-  </main>
+  </div>
 </template>
 
 <style scoped>
@@ -706,7 +712,7 @@ onUnmounted(() => {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.error-msg { color: #991b1b; margin: 0; }
+.error-msg { color: var(--color-danger); margin: 0; }
 
 svg {
   width: 18px;
@@ -773,7 +779,7 @@ svg {
   -webkit-backdrop-filter: blur(6px);
   border: 0;
   border-radius: 999px;
-  color: #f3eee4;
+  color: var(--color-ivory);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .18em;
@@ -790,7 +796,7 @@ svg {
 }
 
 .badges .gold::before {
-  background: #f3eee4;
+  background: var(--color-ivory);
 }
 
 .hero-copy h1 {
@@ -928,7 +934,7 @@ svg {
 .summary-card,
 .section-card,
 .contact-card {
-  background: #fffdf8;
+  background: var(--color-card);
   border: 1px solid var(--color-line);
   border-radius: 2px;
   box-shadow: var(--shadow-soft);
@@ -991,7 +997,7 @@ svg {
 }
 
 .favorite-btn.active {
-  color: #b91c1c;
+  color: var(--color-danger);
   border-color: rgba(185, 28, 28, .3);
   background: #fff5f5;
 }
@@ -1008,7 +1014,7 @@ svg {
   min-height: 132px;
   padding: 18px;
   text-align: left;
-  background: #fffdf8;
+  background: var(--color-card);
   border: 1px solid var(--color-line);
   border-radius: 12px;
   color: var(--color-ink);
@@ -1087,7 +1093,7 @@ svg {
 
 .description {
   margin: 0;
-  color: #3d4b5d;
+  color: var(--color-muted);
   font-size: 16px;
   line-height: 1.9;
 }
@@ -1110,7 +1116,7 @@ svg {
   padding: 13px 14px;
   border: 1px solid var(--color-line);
   background: var(--color-ivory);
-  color: #344257;
+  color: var(--color-charcoal);
   font-size: 14px;
 }
 
@@ -1122,7 +1128,7 @@ svg {
   margin-top: 12px;
   border: 1px solid var(--color-line);
   overflow: hidden;
-  background: #e8edf0;
+  background: var(--color-line);
   z-index: 1;
 }
 
@@ -1194,8 +1200,8 @@ svg {
 
 .contact-btn-action:hover:not(:disabled) { background: var(--color-ink); }
 .contact-btn-action:disabled { cursor: default; }
-.contact-btn-action.success { background: #15803d; border-color: #15803d; color: #fff; }
-.contact-btn-action.error { background: #dc2626; border-color: #dc2626; color: #fff; }
+.contact-btn-action.success { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+.contact-btn-action.error { background: var(--color-danger); border-color: var(--color-danger); color: #fff; }
 .spin-icon { animation: spin 1s linear infinite; }
 
 .secondary-link,
@@ -1224,13 +1230,13 @@ svg {
 .booking-cancel-btn { margin-top: 8px; cursor: pointer; font-family: inherit; }
 .booking-cancel-btn:disabled { opacity: .6; cursor: not-allowed; }
 .booking-cancelled { margin: 10px 0 0; color: var(--color-muted); font-size: 14px; }
-.booking-success { margin: 10px 0 0; color: #166534; font-size: 14px; }
-.booking-error { margin: 10px 0 0; color: #991b1b; font-size: 14px; }
+.booking-success { margin: 10px 0 0; color: var(--color-success); font-size: 14px; }
+.booking-error { margin: 10px 0 0; color: var(--color-danger); font-size: 14px; }
 
 .lightbox {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--z-toast);
   display: grid;
   place-items: center;
   padding: 20px;

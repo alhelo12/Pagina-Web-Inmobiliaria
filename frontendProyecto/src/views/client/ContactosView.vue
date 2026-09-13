@@ -152,7 +152,7 @@ const submitNewsletter = () => {
                 <label for="contact-message">Mensaje</label>
                 <textarea id="contact-message" v-model="form.message" rows="4" placeholder="Cuentanos sobre lo que buscas..." required></textarea>
               </div>
-              <p v-if="submitStatus !== 'idle'" class="form-status" :class="submitStatus">{{ submitMessage }}</p>
+              <p v-if="submitStatus !== 'idle'" class="form-status" :class="submitStatus" :role="submitStatus === 'error' ? 'alert' : 'status'">{{ submitMessage }}</p>
               <button type="submit" class="btn-submit" :disabled="submitting">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 {{ submitting ? 'Enviando...' : 'Enviar solicitud' }}
@@ -304,7 +304,7 @@ const submitNewsletter = () => {
 
 .desc {
   font-size: 15px;
-  color: #43524f;
+  color: var(--color-charcoal);
   line-height: 1.75;
   margin: 0 0 36px;
 }
@@ -423,11 +423,11 @@ form {
 }
 
 .form-status.success {
-  border-left-color: #166534;
+  border-left-color: var(--color-success);
 }
 
 .form-status.error {
-  border-left-color: #991b1b;
+  border-left-color: var(--color-danger);
 }
 
 .btn-submit {

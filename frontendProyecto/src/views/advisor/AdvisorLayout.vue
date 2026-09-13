@@ -5,27 +5,18 @@ import Sidebar from '@/components/advisor/Sidebar.vue'
 <template>
   <div class="advisor-layout">
     <Sidebar />
-    <main class="content">
+    <div class="content">
       <RouterView />
-    </main>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .advisor-layout {
-  --color-navy: #102d2d;
-  --color-navy-2: #1a3f3f;
-  --color-gold: #c9a45c;
-  --color-cream: #f6f1e7;
-  --color-card: #ffffff;
-  --color-muted: #5f665f;
-  --color-line: #e5dcc8;
-  --shadow-soft: none;
-  --shadow-strong: 0 20px 50px rgba(16, 45, 45, 0.18);
   min-height: calc(100vh - 60px);
   display: flex;
-  background: var(--color-cream);
-  font-family: 'Poppins', sans-serif;
+  background: var(--color-ivory);
+  font-family: var(--sans);
   overflow-x: hidden;
 }
 
@@ -68,11 +59,11 @@ import Sidebar from '@/components/advisor/Sidebar.vue'
 .advisor-layout :deep(.table-card),
 .advisor-layout :deep(.table-container),
 .advisor-layout :deep(.filters-bar) {
-  border: 1px solid #e5dcc8 !important;
+  border: 1px solid var(--color-line) !important;
   background: #ffffff !important;
 }
 
-.content { flex: 1; min-width: 0; padding: 32px; background: var(--color-cream); overflow-x: hidden; }
+.content { flex: 1; min-width: 0; padding: 32px; background: var(--color-ivory); overflow-x: hidden; }
 @media (max-width: 900px) {
   .advisor-layout { flex-direction: column; }
   .content { padding: 18px; }

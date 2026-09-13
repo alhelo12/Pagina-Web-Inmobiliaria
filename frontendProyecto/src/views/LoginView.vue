@@ -69,7 +69,7 @@ const submit = async () => {
         <p class="sub">Acceso para administradores, asesores<br />y clientes registrados</p>
 
         <!-- Error -->
-        <div v-if="error" class="alert-error">
+        <div v-if="error" class="alert-error" role="alert">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span>{{ error }}</span>
           <button class="close-error" aria-label="Cerrar error" @click="error = ''">✕</button>
@@ -226,10 +226,10 @@ const submit = async () => {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: #fdf3f0;
-  color: #b91c1c;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
   padding: 12px 14px;
-  border: 1px solid #f0d5cd;
+  border: 1px solid var(--color-danger-soft);
   font-size: 13px;
   margin-bottom: 22px;
   line-height: 1.5;
@@ -238,7 +238,7 @@ const submit = async () => {
 .close-error {
   background: none;
   border: none;
-  color: #b91c1c;
+  color: var(--color-danger);
   cursor: pointer;
   font-size: 12px;
   padding: 0;
@@ -283,7 +283,7 @@ const submit = async () => {
 }
 .uwrap { position: relative; display: flex; align-items: center; }
 .uwrap input { padding-right: 34px; }
-.uwrap input::placeholder { color: #a9a294; }
+.uwrap input::placeholder { color: var(--color-muted); }
 .toggle-password {
   position: absolute;
   right: 2px;
@@ -323,7 +323,7 @@ const submit = async () => {
   align-items: center;
   gap: 14px;
   margin: 28px 0 18px;
-  color: #a9a294;
+  color: var(--color-muted);
   font-size: 13px;
 }
 .divider::before,

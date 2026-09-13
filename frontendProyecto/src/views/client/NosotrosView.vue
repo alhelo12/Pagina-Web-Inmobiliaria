@@ -73,7 +73,7 @@ const animateCounters = () => {
 
     <section class="split reveal">
       <div class="media-card">
-        <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80" alt="Equipo inmobiliario" loading="lazy" />
+        <img decoding="async" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80" alt="Equipo inmobiliario" loading="lazy" />
         <div class="floating-badge">
           <strong class="serif-display">25+</strong>
           <span>Años de experiencia combinada</span>
@@ -285,7 +285,7 @@ const animateCounters = () => {
 
 .copy-card p {
   margin: 0 0 18px;
-  color: #43524f;
+  color: var(--color-charcoal);
   line-height: 1.75;
 }
 

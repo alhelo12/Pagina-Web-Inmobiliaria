@@ -1,12 +1,4 @@
 ﻿import { createRouter, createWebHistory } from 'vue-router'
-import HomeView           from '../views/HomeView.vue'
-import RegisterView       from '../views/RegisterView.vue'
-import LoginView          from '../views/LoginView.vue'
-import PropertiesView     from '../views/PropertiesView.vue'
-import PropertyDetailView from '../views/PropertyDetailView.vue'
-import NosotrosView       from '../views/client/NosotrosView.vue'
-import ContactosView      from '../views/client/ContactosView.vue'
-import ServicesView       from '../views/client/ServicesView.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = createRouter({
@@ -18,14 +10,14 @@ const router = createRouter({
     return { top: 0, left: 0 }
   },
   routes: [
-    { path: '/',            name: 'home',            component: HomeView },
-    { path: '/propiedades', name: 'properties',      component: PropertiesView },
-    { path: '/propiedades/:id', name: 'property-detail', component: PropertyDetailView },
-    { path: '/nosotros',    name: 'nosotros',        component: NosotrosView },
-    { path: '/contacto',    name: 'contacto',        component: ContactosView },
-    { path: '/servicios',   name: 'servicios',       component: ServicesView },
-    { path: '/login',       name: 'login',           component: LoginView },
-    { path: '/registro',    name: 'register',        component: RegisterView },
+    { path: '/',            name: 'home',            component: () => import('../views/HomeView.vue') },
+    { path: '/propiedades', name: 'properties',      component: () => import('../views/PropertiesView.vue') },
+    { path: '/propiedades/:id', name: 'property-detail', component: () => import('../views/PropertyDetailView.vue') },
+    { path: '/nosotros',    name: 'nosotros',        component: () => import('../views/client/NosotrosView.vue') },
+    { path: '/contacto',    name: 'contacto',        component: () => import('../views/client/ContactosView.vue') },
+    { path: '/servicios',   name: 'servicios',       component: () => import('../views/client/ServicesView.vue') },
+    { path: '/login',       name: 'login',           component: () => import('../views/LoginView.vue') },
+    { path: '/registro',    name: 'register',        component: () => import('../views/RegisterView.vue') },
     { path: '/verificado', component: () => import('@/views/VerificadoView.vue') },
     { path: '/recuperar-contrasena', component: () => import('@/views/RecuperarContrasenaView.vue') },
     { path: '/nueva-contrasena', component: () => import('@/views/NuevaContrasenaView.vue') },

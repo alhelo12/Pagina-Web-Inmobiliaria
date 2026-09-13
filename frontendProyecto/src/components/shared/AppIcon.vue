@@ -17,6 +17,7 @@ defineProps({
     stroke-linecap="round"
     stroke-linejoin="round"
     class="app-icon"
+    aria-hidden="true"
   >
     <template v-if="name === 'bell'">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>

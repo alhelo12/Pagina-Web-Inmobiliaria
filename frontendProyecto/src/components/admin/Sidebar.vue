@@ -118,7 +118,7 @@ nav { display: grid; gap: 6px; }
   padding: 0 6px;
 }
 .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
-.sidebar-card { padding: 18px; border-radius: 10px; background: rgba(243, 238, 228, 0.05); border: 1px solid rgba(185, 148, 95, 0.3); }
+.sidebar-card { padding: 18px; border-radius: 12px; background: rgba(243, 238, 228, 0.05); border: 1px solid rgba(185, 148, 95, 0.3); }
 .sidebar-card small { color: var(--color-brass); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
 .sidebar-card p { margin-top: 8px; color: rgba(243, 238, 228, 0.65); line-height: 1.6; font-size: 13px; }
 .logout-btn {

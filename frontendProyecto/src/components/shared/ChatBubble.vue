@@ -37,7 +37,7 @@ const time = computed(() => formatMessageTime(props.message.created_at))
 .message-bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; border: 1px solid transparent; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08); transition: transform .2s ease, box-shadow .2s ease; }
 .message-bubble:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12); }
 .message-bubble-wrapper:not(.mine) .message-bubble { background: #fff; color: var(--color-ink); border-color: var(--color-line); border-bottom-left-radius: 6px; }
-.message-bubble-wrapper.mine .message-bubble { background: #102d2d; color: #fff; border-bottom-right-radius: 6px; }
+.message-bubble-wrapper.mine .message-bubble { background: var(--color-petrol); color: #fff; border-bottom-right-radius: 6px; }
 .message-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .message-meta.meta-mine { justify-content: flex-end; }
 .message-time { font-size: 11px; color: var(--color-muted); }

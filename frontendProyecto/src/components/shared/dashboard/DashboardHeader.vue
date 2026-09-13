@@ -60,10 +60,10 @@ button { border-radius: 8px; padding: 10px 14px; font-weight: 700; border: 1px s
 .ghost { background: transparent; color: var(--color-petrol); border-color: var(--color-line); }
 .primary { background: var(--color-petrol); color: #fff; }
 button:hover { filter: brightness(1.05); box-shadow: none; transform: none; }
-.profile { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #fff; border: 1px solid var(--color-line); border-radius: 10px; min-width: 0; max-width: 100%; flex: 1 1 250px; }
+.profile { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #fff; border: 1px solid var(--color-line); border-radius: 12px; min-width: 0; max-width: 100%; flex: 1 1 250px; }
 .avatar { width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; background: var(--color-petrol); color: var(--color-ivory); font-weight: 800; }
 .profile > div { min-width: 0; }
-.profile strong { display: block; color: var(--color-navy); font-size: 12px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.profile strong { display: block; color: var(--color-petrol); font-size: 12px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .profile small { display: block; color: var(--color-muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 1100px) {
   .dash-header { flex-direction: column; align-items: stretch; }

@@ -16,7 +16,7 @@ const advisorPhone = computed(() => props.advisor?.phone || 'Sin teléfono')
 <template>
   <div class="relationship-panel">
     <div class="panel-header">
-      <h3>Resumen</h3>
+      <h2>Resumen</h2>
       <span class="status-badge" v-if="advisor">Activo</span>
     </div>
 
@@ -69,26 +69,31 @@ const advisorPhone = computed(() => props.advisor?.phone || 'Sin teléfono')
   padding: 20px;
 }
 .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.panel-header h3 { font-size: 14px; font-weight: 700; color: var(--color-navy); text-transform: uppercase; letter-spacing: .5px; margin: 0; }
-.status-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #d1fae5; color: #059669; }
+.panel-header h2 { font-size: 14px; font-weight: 700; color: var(--color-petrol); text-transform: uppercase; letter-spacing: .5px; margin: 0; }
+.status-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: var(--color-success-soft); color: var(--color-success); }
 
-.advisor-info { display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 10px; margin-bottom: 16px; }
-.advisor-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-gold); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+.advisor-info { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--color-ivory-2); border-radius: 12px; margin-bottom: 16px; }
+.advisor-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-brass); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
 .advisor-details { display: flex; flex-direction: column; min-width: 0; }
-.advisor-name { font-weight: 600; color: var(--color-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.advisor-name { font-weight: 600; color: var(--color-petrol); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .advisor-contact { font-size: 13px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.no-advisor { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 16px; }
-.no-advisor p { font-weight: 600; color: var(--color-navy); margin: 0 0 4px; }
+.no-advisor { text-align: center; padding: 20px; background: var(--color-ivory-2); border-radius: 12px; margin-bottom: 16px; }
+.no-advisor p { font-weight: 600; color: var(--color-petrol); margin: 0 0 4px; }
 .no-advisor small { color: var(--color-muted); font-size: 13px; }
 
 .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-.stat { text-align: center; padding: 12px 8px; background: #f8f9fa; border-radius: 8px; }
-.stat-value { display: block; font-size: 20px; font-weight: 800; color: var(--color-navy); }
+.stat { text-align: center; padding: 12px 8px; background: var(--color-ivory-2); border-radius: 8px; }
+.stat-value { display: block; font-size: 20px; font-weight: 800; color: var(--color-petrol); }
 .stat-label { font-size: 11px; color: var(--color-muted); text-transform: uppercase; }
 
 .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.action-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--color-line); background: white; color: var(--color-navy); text-decoration: none; font-weight: 600; font-size: 13px; transition: .2s; }
-.action-link:hover { border-color: var(--color-gold); background: #fdfcf8; }
-.action-icon { color: var(--color-navy-2); display: flex; align-items: center; }
+.action-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; min-height: 44px; border-radius: 8px; border: 1px solid var(--color-line); background: white; color: var(--color-petrol); text-decoration: none; font-weight: 600; font-size: 13px; transition: .2s; }
+.action-link:hover { border-color: var(--color-brass); background: var(--color-card); }
+.action-icon { color: var(--color-ink); display: flex; align-items: center; }
+
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: 1fr; }
+}
 </style>

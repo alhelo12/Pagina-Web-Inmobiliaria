@@ -31,7 +31,7 @@ function handleNotification(notif) {
   })
 }
 
-const { connect: wsConnect, disconnect: wsDisconnect } = useWebSocket({
+const { connect: wsConnect, disconnect: wsDisconnect, connected: wsConnected } = useWebSocket({
   onNotification: handleNotification,
   autoConnect: false
 })
@@ -94,9 +94,9 @@ onMounted(() => {
   store.fetchNotifications()
   store.fetchUnreadCount()
   safeWsConnect()
-  // Polling fallback cada 60s por si WebSocket falla
+  // Polling fallback cada 60s solo si el WebSocket no está conectado
   pollInterval = setInterval(() => {
-    store.fetchUnreadCount()
+    if (!wsConnected.value) store.fetchUnreadCount()
   }, 60000)
   document.addEventListener('click', handleOutsideClick)
 })
@@ -110,7 +110,13 @@ onUnmounted(() => {
 
 <template>
   <div ref="dropdownRef" class="notification-bell">
-    <button class="bell-btn" aria-label="Notificaciones" @click="handleBellClick">
+    <button
+      class="bell-btn"
+      aria-label="Notificaciones"
+      aria-haspopup="true"
+      :aria-expanded="dropdownOpen"
+      @click="handleBellClick"
+    >
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
         <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -140,7 +146,11 @@ onUnmounted(() => {
               v-for="notification in section.items"
               :key="notification.id"
               :class="['notification-item', { unread: !notification.is_read }]"
+              role="button"
+              tabindex="0"
               @click="handleNotificationClick(notification)"
+              @keydown.enter.prevent="handleNotificationClick(notification)"
+              @keydown.space.prevent="handleNotificationClick(notification)"
             >
               <span
                 class="icon"
@@ -193,6 +203,8 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
   padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
   display: grid;
   place-items: center;
   transition: color 0.3s ease;
@@ -206,7 +218,7 @@ onUnmounted(() => {
   position: absolute;
   top: 2px;
   right: 2px;
-  background: #dc2626;
+  background: var(--color-danger);
   color: white;
   font-size: 10px;
   font-weight: 900;
@@ -230,7 +242,7 @@ onUnmounted(() => {
   border: 1px solid var(--color-line);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: var(--z-dropdown);
 }
 
 .dropdown-header {
@@ -297,21 +309,21 @@ onUnmounted(() => {
 }
 
 .notification-item:hover {
-  background: #faf5e9;
+  background: var(--color-ivory-2);
 }
 
 .notification-item.unread {
-  background: #faf5e9;
+  background: var(--color-ivory-2);
 }
 
 .notification-item.unread:hover {
-  background: #f4e8cd;
+  background: var(--color-ivory-2);
 }
 
 .notification-item .icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   font-size: 18px;
@@ -349,22 +361,30 @@ onUnmounted(() => {
 .delete-btn {
   background: transparent;
   border: none;
-  color: #d1d5db;
+  color: var(--color-line);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
   flex-shrink: 0;
   transition: color 0.2s ease, background 0.2s ease;
   opacity: 0;
 }
 
-.notification-item:hover .delete-btn {
+.notification-item:hover .delete-btn,
+.delete-btn:focus-visible {
   opacity: 1;
 }
 
+@media (hover: none) {
+  .delete-btn { opacity: 1; }
+}
+
 .delete-btn:hover {
-  color: #dc2626;
-  background: #fef2f2;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .dropdown-footer {

@@ -97,11 +97,11 @@ onMounted(() => {
       <p>Cargando citas...</p>
     </div>
 
-    <div v-else-if="error" class="state error-msg">{{ error }}</div>
+    <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
     <div v-else-if="!appointments.length" class="empty-state">
       <div class="empty-icon"><AppIcon name="calendar" :size="48" /></div>
-      <h3>No hay citas</h3>
+      <h2>No hay citas</h2>
       <p>Las citas de tus clientes aparecerán aquí</p>
     </div>
 
@@ -180,16 +180,16 @@ onMounted(() => {
 .card-icon {
   width: 42px;
   height: 42px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
 }
 
-.total-icon { background: #e8edf0; color: var(--color-navy-2); }
-.pending-icon { background: #fff3ce; color: #856404; }
-.confirmed-icon { background: #dff7e9; color: #166534; }
+.total-icon { background: var(--color-line); color: var(--color-ink); }
+.pending-icon { background: var(--color-ivory-2); color: var(--color-brass-ink); }
+.confirmed-icon { background: var(--color-success-soft); color: var(--color-success); }
 
 .card span {
   color: var(--color-muted);
@@ -223,7 +223,7 @@ onMounted(() => {
   border-radius: 12px;
 }
 
-.error-msg { color: #991b1b; }
+.error-msg { color: var(--color-danger); }
 
 .spinner {
   width: 40px;
@@ -247,7 +247,7 @@ onMounted(() => {
 
 .empty-icon { color: var(--color-brass); display: block; margin-bottom: 16px; }
 
-.empty-state h3 {
+.empty-state h2 {
   margin: 0 0 8px;
   color: var(--color-petrol);
   font-family: var(--serif);
@@ -299,8 +299,8 @@ onMounted(() => {
   gap: 4px;
 }
 
-.type-badge.viewing { background: #f4e8cd; color: #7a5c1e; }
-.type-badge.inspection { background: #e7edeb; color: var(--color-petrol); }
+.type-badge.viewing { background: var(--color-ivory-2); color: var(--color-brass-ink); }
+.type-badge.inspection { background: var(--color-ivory-2); color: var(--color-petrol); }
 
 .badge {
   padding: 5px 10px;
@@ -311,10 +311,10 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.badge.pendiente { background: #f4e8cd; color: #7a5c1e; }
-.badge.confirmada { background: #e2f0e5; color: #166534; }
-.badge.completada { background: #e7edeb; color: var(--color-petrol); }
-.badge.cancelada { background: #fee2e2; color: #991b1b; }
+.badge.pendiente { background: var(--color-ivory-2); color: var(--color-brass-ink); }
+.badge.confirmada { background: var(--color-success-soft); color: var(--color-success); }
+.badge.completada { background: var(--color-ivory-2); color: var(--color-petrol); }
+.badge.cancelada { background: var(--color-danger-soft); color: var(--color-danger); }
 
 .appointment-body {
   padding: 0 20px 16px;

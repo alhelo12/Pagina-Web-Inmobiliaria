@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'JAKEDA Inmobiliaria',
         short_name: 'JAKEDA',
         description: 'Plataforma inmobiliaria para venta y renta de propiedades',
-        theme_color: '#07172d',
-        background_color: '#f5f2ec',
+        theme_color: '#071b1c',
+        background_color: '#f3eee4',
         display: 'standalone',
         scope: '/',
         start_url: '/',
@@ -45,6 +45,15 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: {
               cacheName: 'google-fonts-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gstatic-fonts-cache',
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] }
             }

@@ -39,7 +39,7 @@ import { RouterLink } from 'vue-router'
 <style scoped>
 .footer {
   background: var(--color-ink);
-  color: #f3eee4;
+  color: var(--color-ivory);
   padding: 72px 24px 24px;
   border-top: 1px solid rgba(185, 148, 95, 0.35);
 }
@@ -67,7 +67,7 @@ h4 {
   font-weight: 500;
   font-size: 34px;
   letter-spacing: 0.12em;
-  color: #f3eee4;
+  color: var(--color-ivory);
   text-transform: none;
 }
 
@@ -80,6 +80,9 @@ a {
 }
 
 a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   transition: color .2s ease, transform .2s ease;
 }
 

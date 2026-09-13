@@ -54,8 +54,8 @@ const submit = async () => {
           <button class="btn-ink cta" type="submit" :disabled="loading">{{ loading ? 'Enviando...' : 'Enviar enlace →' }}</button>
         </form>
 
-        <p v-if="success" class="ok">{{ success }}</p>
-        <p v-if="error" class="err">{{ error }}</p>
+        <p v-if="success" class="ok" role="status">{{ success }}</p>
+        <p v-if="error" class="err" role="alert">{{ error }}</p>
 
         <RouterLink to="/login" class="back">← Volver al inicio de sesión</RouterLink>
       </div>
@@ -164,14 +164,14 @@ const submit = async () => {
   color: var(--color-charcoal);
   margin-bottom: 2px;
 }
-.field-underline input::placeholder { color: #a9a294; }
+.field-underline input::placeholder { color: var(--color-muted); }
 
 /* CTA petrol full-width */
 .cta { width: 100%; margin-top: 8px; padding: 16px 22px; }
 .cta:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.ok { margin-top: 16px; color: #0c5c46; font-size: 14px; line-height: 1.6; }
-.err { margin-top: 16px; color: #b91c1c; font-size: 14px; line-height: 1.6; }
+.ok { margin-top: 16px; color: var(--color-success); font-size: 14px; line-height: 1.6; }
+.err { margin-top: 16px; color: var(--color-danger); font-size: 14px; line-height: 1.6; }
 
 .back {
   display: inline-block;

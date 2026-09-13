@@ -38,7 +38,7 @@ defineProps({
   transition: color .2s ease;
   text-decoration: none;
 }
-.breadcrumb a:hover { color: var(--color-navy); }
+.breadcrumb a:hover { color: var(--color-petrol); }
 .breadcrumb .sep { flex-shrink: 0; }
-.breadcrumb .current { color: var(--color-navy); font-weight: 700; }
+.breadcrumb .current { color: var(--color-petrol); font-weight: 700; }
 </style>

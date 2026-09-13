@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
+import { useDialog } from '@/composables/useDialog'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 
 const { addToast } = useToast()
@@ -26,6 +27,8 @@ const perPage = ref(20)
 const totalItems = ref(0)
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
+const confirmOpen = computed(() => confirmModal.value.show)
+const { dialogRef: confirmDialogRef } = useDialog(confirmOpen, () => (confirmModal.value.show = false))
 const actionLoading = ref(false)
 
 const sortKey = ref('created_at')
@@ -212,13 +215,13 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 
     <div class="section-tabs">
       <button
-        :class="{ active: currentSection === 'my-properties' }"
+        :class="{ active: currentSection === 'my-properties' }" :aria-pressed="currentSection === 'my-properties'"
         @click="changeSection('my-properties')"
       >
         Mis Propiedades ({{ counts.my }})
       </button>
       <button
-        :class="{ active: currentSection === 'available' }"
+        :class="{ active: currentSection === 'available' }" :aria-pressed="currentSection === 'available'"
         @click="changeSection('available')"
       >
         Disponibles para asignarme ({{ availableProperties.length }})
@@ -228,34 +231,34 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
     <template v-if="currentSection === 'my-properties'">
       <article class="table-card">
         <div class="filters">
-          <button :class="{ active: currentStatus === 'all' }" @click="changeFilter('all')">Todas</button>
-          <button :class="{ active: currentStatus === 'pending' }" @click="changeFilter('pending')">Pendientes</button>
-          <button :class="{ active: currentStatus === 'approved' }" @click="changeFilter('approved')">Aprobadas</button>
-          <button :class="{ active: currentStatus === 'rejected' }" @click="changeFilter('rejected')">Rechazadas</button>
-          <button :class="{ active: currentStatus === 'sold' }" @click="changeFilter('sold')">Vendidas</button>
+          <button :class="{ active: currentStatus === 'all' }" :aria-pressed="currentStatus === 'all'" @click="changeFilter('all')">Todas</button>
+          <button :class="{ active: currentStatus === 'pending' }" :aria-pressed="currentStatus === 'pending'" @click="changeFilter('pending')">Pendientes</button>
+          <button :class="{ active: currentStatus === 'approved' }" :aria-pressed="currentStatus === 'approved'" @click="changeFilter('approved')">Aprobadas</button>
+          <button :class="{ active: currentStatus === 'rejected' }" :aria-pressed="currentStatus === 'rejected'" @click="changeFilter('rejected')">Rechazadas</button>
+          <button :class="{ active: currentStatus === 'sold' }" :aria-pressed="currentStatus === 'sold'" @click="changeFilter('sold')">Vendidas</button>
         </div>
 
         <div v-if="loading" class="state"><div class="spinner"></div></div>
-        <div v-else-if="error" class="state error-msg">{{ error }}</div>
+        <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
         <div v-else class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th></th>
-                <th class="sortable" @click="sort('title')">Título <span class="sort-icon" :class="{ active: sortKey === 'title' }">{{ sortKey === 'title' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+                <th class="sortable" :aria-sort="sortKey === 'title' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('title')" @keydown.enter.prevent="sort('title')" @keydown.space.prevent="sort('title')">Título <span class="sort-icon" :class="{ active: sortKey === 'title' }">{{ sortKey === 'title' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
                 <th>Registrado por</th>
-                <th class="sortable" @click="sort('created_at')">Registrada <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
-                <th class="sortable" @click="sort('city')">Ciudad <span class="sort-icon" :class="{ active: sortKey === 'city' }">{{ sortKey === 'city' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
-                <th class="sortable" @click="sort('price')">Precio <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortKey === 'price' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
-                <th class="sortable" @click="sort('status')">Estado <span class="sort-icon" :class="{ active: sortKey === 'status' }">{{ sortKey === 'status' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+                <th class="sortable" :aria-sort="sortKey === 'created_at' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('created_at')" @keydown.enter.prevent="sort('created_at')" @keydown.space.prevent="sort('created_at')">Registrada <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+                <th class="sortable" :aria-sort="sortKey === 'city' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('city')" @keydown.enter.prevent="sort('city')" @keydown.space.prevent="sort('city')">Ciudad <span class="sort-icon" :class="{ active: sortKey === 'city' }">{{ sortKey === 'city' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+                <th class="sortable" :aria-sort="sortKey === 'price' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('price')" @keydown.enter.prevent="sort('price')" @keydown.space.prevent="sort('price')">Precio <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortKey === 'price' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+                <th class="sortable" :aria-sort="sortKey === 'status' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('status')" @keydown.enter.prevent="sort('status')" @keydown.space.prevent="sort('status')">Estado <span class="sort-icon" :class="{ active: sortKey === 'status' }">{{ sortKey === 'status' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="p in filtered" :key="p.id">
                 <td class="td-thumb">
-                  <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
+                  <img decoding="async" loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
                 </td>
                 <td class="td-title">{{ p.title }}</td>
                 <td>
@@ -304,7 +307,7 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
         <div class="mobile-cards">
           <div v-for="p in filtered" :key="p.id" class="mobile-card">
             <div class="mc-header">
-              <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
+              <img decoding="async" loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
               <div class="mc-title-group">
                 <strong class="mc-title">{{ p.title }}</strong>
                 <span class="mc-owner">{{ ownerName(p) }}</span>
@@ -358,7 +361,13 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 
     <Teleport to="body">
       <div v-if="confirmModal.show" class="modal-overlay" @click.self="confirmModal.show = false">
-        <div class="modal">
+        <div
+          ref="confirmDialogRef"
+          class="modal"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="`Confirmar ${confirmModal.action === 'remove' ? 'eliminar' : confirmModal.action === 'approve' ? 'aprobar' : confirmModal.action === 'reject' ? 'rechazar' : 'marcar vendida'} propiedad`"
+        >
           <h2>{{ confirmModal.action === 'remove' ? 'Eliminar' : confirmModal.action === 'approve' ? 'Aprobar' : confirmModal.action === 'reject' ? 'Rechazar' : 'Marcar vendida' }} propiedad</h2>
           <p class="modal-desc">¿Confirmas que deseas <strong>{{ confirmModal.action === 'remove' ? 'eliminar' : confirmModal.action === 'approve' ? 'aprobar' : confirmModal.action === 'reject' ? 'rechazar' : 'marcar como vendida' }}</strong> la propiedad <strong>"{{ confirmModal.title }}"</strong>?</p>
           <div class="modal-actions">
@@ -375,21 +384,21 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 </template>
 
 <style scoped>
-.properties-advisor { font-family: 'Poppins', sans-serif; display: grid; gap: 16px; }
+.properties-advisor { font-family: var(--sans); display: grid; gap: 16px; }
 
 .section-tabs { display: flex; gap: 10px; }
 .section-tabs button {
   min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
-  padding: 12px 20px; border: 1px solid var(--color-line); border-radius: 10px;
+  padding: 12px 20px; border: 1px solid var(--color-line); border-radius: 12px;
   background: #fff; color: var(--color-muted); font-weight: 600;
   cursor: pointer; transition: background .2s ease, color .2s ease;
 }
-.section-tabs button.active { background: #102d2d; color: #f3ede0; border-color: #102d2d; }
+.section-tabs button.active { background: var(--color-petrol); color: var(--color-ivory-2); border-color: var(--color-petrol); }
 
 .table-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 16px; }
 .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .filters button { border: 1px solid var(--color-line); background: #fff; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 7px 14px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: background .2s ease, color .2s ease, border-color .2s ease; cursor: pointer; }
-.filters button.active, .filters button:hover { background: #102d2d; color: #f3ede0; border-color: #102d2d; }
+.filters button.active, .filters button:hover { background: var(--color-petrol); color: var(--color-ivory-2); border-color: var(--color-petrol); }
 .table-wrap {
   width: 100%;
   overflow-x: auto;
@@ -401,92 +410,92 @@ onUnmounted(() => { clearTimeout(searchTimeout) })
 .table-wrap::-webkit-scrollbar { height: 8px; }
 .table-wrap::-webkit-scrollbar-thumb { background: rgba(16, 45, 45, .3); border-radius: 999px; }
 table { width: max(100%, 980px); border-collapse: collapse; table-layout: auto; }
-th, td { padding: 14px 12px; font-size: 14px; text-align: left; border-bottom: 1px solid #ece5d3; }
+th, td { padding: 14px 12px; font-size: 14px; text-align: left; border-bottom: 1px solid var(--color-line); }
 tbody tr:last-child td { border-bottom: none; }
 th { font-size: 11px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .14em; font-weight: 800; white-space: nowrap; vertical-align: middle; }
 td { vertical-align: top; }
 .sortable { cursor: pointer; user-select: none; }
-.sortable:hover { color: #102d2d; }
+.sortable:hover { color: var(--color-petrol); }
 .sort-icon { margin-left: 4px; font-size: 10px; opacity: .4; }
-.sort-icon.active { opacity: 1; color: var(--color-gold); }
+.sort-icon.active { opacity: 1; color: var(--color-brass); }
 tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .td-thumb { width: 44px; padding-right: 8px; }
-.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; max-width: none; }
-.td-title { color: #102d2d; font-weight: 700; min-width: 220px; white-space: normal; }
-.owner-name { display: block; color: #102d2d; font-weight: 700; }
+.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--color-ivory-2); max-width: none; }
+.td-title { color: var(--color-petrol); font-weight: 700; min-width: 220px; white-space: normal; }
+.owner-name { display: block; color: var(--color-petrol); font-weight: 700; }
 .owner-email { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; white-space: normal; }
-.registered-at { color: #1a3f3f; font-weight: 600; white-space: nowrap; }
+.registered-at { color: var(--color-petrol); font-weight: 600; white-space: nowrap; }
 /* JAKEDA: status as text with dot, not pills */
 .badge { display: inline-flex; align-items: center; gap: 6px; background: transparent; padding: 0; border-radius: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
 .badge::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex-shrink: 0; }
-.pendiente { color: #8a5c00; }
-.aprobada { color: #166534; }
-.rechazada { color: #991b1b; }
-.vendida { color: #1a3f3f; }
+.pendiente { color: var(--color-brass-ink); }
+.aprobada { color: var(--color-success); }
+.rechazada { color: var(--color-danger); }
+.vendida { color: var(--color-petrol); }
 .actions { vertical-align: top; white-space: nowrap; }
 .actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: none; border-radius: 7px; min-height: 44px; padding: 6px 12px; font-size: 12px; font-weight: 700; transition: filter .2s ease; cursor: pointer; margin-right: 6px; }
 .actions button:last-child { margin-right: 0; }
 .actions button:hover { filter: brightness(1.02); }
-.view { background: rgba(201, 164, 92, .16); color: #7a5c1e; }
-.edit { background: rgba(16, 45, 45, .07); color: #1a3f3f; }
-.approve { background: #e2f0e5; color: #166534; }
-.reject { background: #fbe4e4; color: #991b1b; }
-.sold { background: #f4e8cd; color: #7a5c1e; }
-.delete { background: #102d2d; color: #f3ede0; }
+.view { background: rgba(201, 164, 92, .16); color: var(--color-brass-ink); }
+.edit { background: rgba(16, 45, 45, .07); color: var(--color-petrol); }
+.approve { background: var(--color-success-soft); color: var(--color-success); }
+.reject { background: var(--color-danger-soft); color: var(--color-danger); }
+.sold { background: var(--color-ivory-2); color: var(--color-brass-ink); }
+.delete { background: var(--color-petrol); color: var(--color-ivory-2); }
 .state { display: flex; justify-content: center; padding: 40px; color: var(--color-muted); }
-.error-msg { color: #991b1b; }
-.spinner { width: 36px; height: 36px; border: 3px solid #eadfcf; border-top-color: var(--color-gold); border-radius: 50%; animation: spin .8s linear infinite; }
+.error-msg { color: var(--color-danger); }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--color-line); border-top-color: var(--color-brass); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty { text-align: center; color: var(--color-muted); padding: 20px; }
 
 .available-list { display: flex; flex-direction: column; gap: 0; }
-.available-row { display: flex; align-items: center; gap: 16px; padding: 14px 4px; border-radius: 0; border: none; border-bottom: 1px solid #ece5d3; background: transparent; }
+.available-row { display: flex; align-items: center; gap: 16px; padding: 14px 4px; border-radius: 0; border: none; border-bottom: 1px solid var(--color-line); background: transparent; }
 .available-row:last-child { border-bottom: none; }
 .prop-info { flex: 1; }
-.prop-info strong { display: block; color: #102d2d; font-size: 14px; }
+.prop-info strong { display: block; color: var(--color-petrol); font-size: 14px; }
 .prop-info span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
-.prop-price { color: #102d2d; font-weight: 700; font-size: 14px; }
-.take-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: 8px; background: var(--color-gold); color: #102d2d; font-weight: 700; border: none; cursor: pointer; transition: filter .2s ease; }
+.prop-price { color: var(--color-petrol); font-weight: 700; font-size: 14px; }
+.take-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: 8px; background: var(--color-brass); color: var(--color-petrol); font-weight: 700; border: none; cursor: pointer; transition: filter .2s ease; }
 .take-btn:hover { filter: brightness(1.05); }
 
 .clients-list { display: flex; flex-direction: column; gap: 10px; }
-.client-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--color-line); background: #fff; }
+.client-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--color-line); background: #fff; }
 .client-info { flex: 1; }
-.client-info strong { display: block; color: var(--color-navy); font-size: 14px; }
+.client-info strong { display: block; color: var(--color-petrol); font-size: 14px; }
 .client-info span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
 .client-info small { display: block; margin-top: 4px; color: var(--color-muted); font-size: 11px; }
 .client-stats { text-align: right; }
-.property-count { display: inline-block; padding: 6px 12px; border-radius: 20px; background: #f7efe0; color: var(--color-navy-2); font-size: 12px; font-weight: 700; }
+.property-count { display: inline-block; padding: 6px 12px; border-radius: 20px; background: var(--color-ivory-2); color: var(--color-ink); font-size: 12px; font-weight: 700; }
 
 .pagination { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--color-line); flex-wrap: wrap; }
 .pagination button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 11px; border-radius: 999px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--color-line); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
-.pagination button:hover:not(:disabled) { border-color: var(--color-navy); color: var(--color-navy); }
-.pagination button.active { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
+.pagination button:hover:not(:disabled) { border-color: var(--color-petrol); color: var(--color-petrol); }
+.pagination button.active { background: var(--color-petrol); color: #fff; border-color: var(--color-petrol); }
 .pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .pagination .dots { color: var(--color-muted); font-size: 13px; padding: 0 2px; }
 .pagination-info { margin-left: auto; color: var(--color-muted); font-size: 13px; }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(16, 45, 45, .55); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(16, 45, 45, .55); display: flex; align-items: center; justify-content: center; z-index: var(--z-modal); padding: 20px; }
 .modal { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; padding: 30px; width: 100%; max-width: 460px; box-shadow: var(--shadow-strong); }
-.modal h2 { font-family: var(--serif); color: #102d2d; font-size: 24px; margin-bottom: 14px; }
+.modal h2 { font-family: var(--serif); color: var(--color-petrol); font-size: 24px; margin-bottom: 14px; }
 .modal-desc { color: var(--color-muted); line-height: 1.6; margin-bottom: 24px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
-.btn-cancel { padding: 0 18px; min-height: 44px; background: #eee7dc; border-radius: 8px; color: #40566e; font-weight: 900; cursor: pointer; border: none; }
-.btn-confirm { padding: 0 18px; min-height: 44px; border-radius: 8px; font-weight: 900; cursor: pointer; border: none; }
-.btn-confirm.approve { background: #dff7e9; color: #166534; }
-.btn-confirm.reject { background: #fee2e2; color: #991b1b; }
-.btn-confirm.markSold { background: #f2eadc; color: var(--color-navy-2); }
-.btn-confirm.remove { background: var(--color-navy); color: #fff; }
+.btn-cancel { padding: 0 18px; min-height: 44px; background: var(--color-ivory-2); border-radius: 0; color: var(--color-muted); font-weight: 900; cursor: pointer; border: none; }
+.btn-confirm { padding: 0 18px; min-height: 44px; border-radius: 0; font-weight: 900; cursor: pointer; border: none; }
+.btn-confirm.approve { background: var(--color-success-soft); color: var(--color-success); }
+.btn-confirm.reject { background: var(--color-danger-soft); color: var(--color-danger); }
+.btn-confirm.markSold { background: var(--color-ivory-2); color: var(--color-ink); }
+.btn-confirm.remove { background: var(--color-petrol); color: #fff; }
 
 .mobile-cards { display: none; }
-.mobile-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; padding: 14px; }
+.mobile-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 12px; padding: 14px; }
 .mc-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
-.mc-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #f0ece4; flex-shrink: 0; }
+.mc-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--color-ivory-2); flex-shrink: 0; }
 .mc-title-group { flex: 1; min-width: 0; }
-.mc-title { display: block; color: var(--color-navy); font-size: 14px; }
+.mc-title { display: block; color: var(--color-petrol); font-size: 14px; }
 .mc-owner { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
 .mc-email { display: block; color: var(--color-muted); font-size: 11px; }
-.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
+.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-petrol); }
 .mc-body span strong { color: var(--color-muted); font-weight: 600; }
 .mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .mc-actions button { border: none; border-radius: 7px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }

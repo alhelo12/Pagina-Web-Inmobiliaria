@@ -77,7 +77,13 @@
     </div>
 
     <div v-if="showCompleteModal" class="modal-overlay" @click.self="closeModals">
-      <div class="modal">
+      <div
+        ref="completeDialogRef"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Completar seguimiento"
+      >
         <h3>Completar Seguimiento</h3>
         <p>{{ selectedFollowup?.client?.full_name }} - {{ getTypeLabel(selectedFollowup?.followup_type) }}</p>
 
@@ -89,11 +95,14 @@
               :key="star"
               type="button"
               role="radio"
-              :aria-checked="star <= modalRating"
+              :aria-checked="star === modalRating"
+              :tabindex="star === (modalRating || 1) ? 0 : -1"
               :aria-label="`${star} de 5`"
               class="star-btn"
               :class="{ active: star <= modalRating }"
               @click="modalRating = star"
+              @keydown.left.prevent="modalRating = Math.max(1, (modalRating || 1) - 1)"
+              @keydown.right.prevent="modalRating = Math.min(5, (modalRating || 0) + 1)"
             >
               {{ star <= modalRating ? '★' : '☆' }}
             </button>
@@ -110,7 +119,13 @@
     </div>
 
     <div v-if="showSkipModal" class="modal-overlay" @click.self="closeModals">
-      <div class="modal">
+      <div
+        ref="skipDialogRef"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Omitir seguimiento"
+      >
         <h3>Omitir Seguimiento</h3>
         <p>{{ selectedFollowup?.client?.full_name }} - {{ getTypeLabel(selectedFollowup?.followup_type) }}</p>
 
@@ -128,6 +143,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { postSaleApi } from '../../api/postSale.js'
+import { useDialog } from '@/composables/useDialog'
 
 const loading = ref(true)
 const stats = ref({})
@@ -140,6 +156,9 @@ const selectedFollowup = ref(null)
 const modalNotes = ref('')
 const modalRating = ref(0)
 const skipReason = ref('')
+
+const { dialogRef: completeDialogRef } = useDialog(showCompleteModal, closeModals)
+const { dialogRef: skipDialogRef } = useDialog(showSkipModal, closeModals)
 
 onMounted(async () => {
   try {
@@ -293,7 +312,7 @@ function formatDate(dateStr) {
 }
 
 .stat-card.score {
-  background: #faf5e9;
+  background: var(--color-ivory-2);
 }
 
 .stat-value {
@@ -315,8 +334,8 @@ function formatDate(dateStr) {
   color: var(--color-muted);
 }
 
-.stat-card.pending .stat-value { color: #7a5c1e; }
-.stat-card.completed .stat-value { color: #166534; }
+.stat-card.pending .stat-value { color: var(--color-brass-ink); }
+.stat-card.completed .stat-value { color: var(--color-success); }
 .stat-card.score .stat-value { color: var(--color-petrol); }
 
 .overdue-section, .pending-section {
@@ -354,8 +373,8 @@ function formatDate(dateStr) {
 }
 
 .followup-card.overdue {
-  border-color: #991b1b;
-  background: #fdf3f0;
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .followup-header {
@@ -432,7 +451,7 @@ function formatDate(dateStr) {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
 }
 
 .modal {
@@ -500,7 +519,7 @@ function formatDate(dateStr) {
   border: none;
   font-size: 2rem;
   cursor: pointer;
-  color: #cbd5e1;
+  color: var(--color-line);
   transition: color 0.2s;
 }
 

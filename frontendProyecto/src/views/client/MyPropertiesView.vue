@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { storeToRefs } from 'pinia'
 import DashboardHeader from '@/components/shared/dashboard/DashboardHeader.vue'
 import { useToast } from '@/composables/useToast'
+import { useDialog } from '@/composables/useDialog'
 import Breadcrumb from '@/components/shared/Breadcrumb.vue'
 import { advisorsApi } from '@/api/advisors'
 
@@ -25,6 +26,8 @@ const perPage = ref(20)
 const totalItems = ref(0)
 
 const confirmModal = ref({ show: false, action: '', propertyId: null, title: '' })
+const confirmOpen = computed(() => confirmModal.value.show)
+const { dialogRef: confirmDialogRef } = useDialog(confirmOpen, () => (confirmModal.value.show = false))
 const actionLoading = ref(false)
 const verifyToast = ref({ show: false })
 let verifyToastTimeout = null
@@ -243,12 +246,18 @@ const closeAdvisorPopover = () => {
   activeAdvisorPopover.value = null
 }
 
+const onPopoverKeydown = (event) => {
+  if (event.key === 'Escape') closeAdvisorPopover()
+}
+
 document.addEventListener('click', closeAdvisorPopover)
+window.addEventListener('keydown', onPopoverKeydown)
 
 onMounted(fetchPage)
 onUnmounted(() => {
   clearTimeout(searchTimeout)
   document.removeEventListener('click', closeAdvisorPopover)
+  window.removeEventListener('keydown', onPopoverKeydown)
 })
 </script>
 
@@ -270,33 +279,33 @@ onUnmounted(() => {
 
     <article class="table-card">
       <div class="filters">
-        <button :class="{ active: currentStatus === 'all' }" @click="changeFilter('all')">Todas ({{ counts.all }})</button>
-        <button :class="{ active: currentStatus === 'pending' }" @click="changeFilter('pending')">Pendientes ({{ counts.pending }})</button>
-        <button :class="{ active: currentStatus === 'approved' }" @click="changeFilter('approved')">Aprobadas ({{ counts.approved }})</button>
-        <button :class="{ active: currentStatus === 'rejected' }" @click="changeFilter('rejected')">Rechazadas ({{ counts.rejected }})</button>
+        <button :class="{ active: currentStatus === 'all' }" :aria-pressed="currentStatus === 'all'" @click="changeFilter('all')">Todas ({{ counts.all }})</button>
+        <button :class="{ active: currentStatus === 'pending' }" :aria-pressed="currentStatus === 'pending'" @click="changeFilter('pending')">Pendientes ({{ counts.pending }})</button>
+        <button :class="{ active: currentStatus === 'approved' }" :aria-pressed="currentStatus === 'approved'" @click="changeFilter('approved')">Aprobadas ({{ counts.approved }})</button>
+        <button :class="{ active: currentStatus === 'rejected' }" :aria-pressed="currentStatus === 'rejected'" @click="changeFilter('rejected')">Rechazadas ({{ counts.rejected }})</button>
       </div>
 
       <div v-if="loading" class="state"><div class="spinner"></div></div>
-      <div v-else-if="error" class="state error-msg">{{ error }}</div>
+      <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
       <div v-else class="table-wrap">
         <table>
           <thead>
             <tr>
               <th></th>
-              <th class="sortable" @click="sort('title')">Título <span class="sort-icon" :class="{ active: sortKey === 'title' }">{{ sortKey === 'title' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
-              <th class="sortable" @click="sort('created_at')">Fecha <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
-              <th class="sortable" @click="sort('city')">Ciudad <span class="sort-icon" :class="{ active: sortKey === 'city' }">{{ sortKey === 'city' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
-              <th class="sortable" @click="sort('price')">Precio <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortKey === 'price' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" :aria-sort="sortKey === 'title' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('title')" @keydown.enter.prevent="sort('title')" @keydown.space.prevent="sort('title')">Título <span class="sort-icon" :class="{ active: sortKey === 'title' }">{{ sortKey === 'title' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" :aria-sort="sortKey === 'created_at' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('created_at')" @keydown.enter.prevent="sort('created_at')" @keydown.space.prevent="sort('created_at')">Fecha <span class="sort-icon" :class="{ active: sortKey === 'created_at' }">{{ sortKey === 'created_at' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" :aria-sort="sortKey === 'city' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('city')" @keydown.enter.prevent="sort('city')" @keydown.space.prevent="sort('city')">Ciudad <span class="sort-icon" :class="{ active: sortKey === 'city' }">{{ sortKey === 'city' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" :aria-sort="sortKey === 'price' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('price')" @keydown.enter.prevent="sort('price')" @keydown.space.prevent="sort('price')">Precio <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortKey === 'price' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
               <th>Asesor</th>
-              <th class="sortable" @click="sort('status')">Estado <span class="sort-icon" :class="{ active: sortKey === 'status' }">{{ sortKey === 'status' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
+              <th class="sortable" :aria-sort="sortKey === 'status' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'" tabindex="0" @click="sort('status')" @keydown.enter.prevent="sort('status')" @keydown.space.prevent="sort('status')">Estado <span class="sort-icon" :class="{ active: sortKey === 'status' }">{{ sortKey === 'status' ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}</span></th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="p in filtered" :key="p.id">
               <td class="td-thumb">
-                <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
+                <img decoding="async" loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" @error="(e) => { e.target.src = propertyFallback }" />
               </td>
               <td class="td-title">{{ p.title }}</td>
               <td class="registered-at">{{ formatRegisteredAt(p.created_at) }}</td>
@@ -307,7 +316,12 @@ onUnmounted(() => {
                   v-if="p.advisor_id"
                   :id="`advisor-badge-${p.id}`"
                   class="advisor-badge"
+                  role="button"
+                  tabindex="0"
+                  aria-label="Ver datos del asesor"
                   @click="toggleAdvisorPopover($event, p)"
+                  @keydown.enter.prevent="toggleAdvisorPopover($event, p)"
+                  @keydown.space.prevent="toggleAdvisorPopover($event, p)"
                 >
                   {{ getAdvisorName(p) }}
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -341,7 +355,7 @@ onUnmounted(() => {
       <div class="mobile-cards">
         <div v-for="p in filtered" :key="p.id" class="mobile-card">
           <div class="mc-header">
-            <img loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
+            <img decoding="async" loading="lazy" :src="getPropertyImage(p) || propertyFallback" :alt="p.title" class="mc-thumb" @error="(e) => { e.target.src = propertyFallback }" />
             <div class="mc-title-group">
               <strong class="mc-title">{{ p.title }}</strong>
               <small class="mc-date">{{ formatRegisteredAt(p.created_at) }}</small>
@@ -376,12 +390,14 @@ onUnmounted(() => {
       <div
         v-if="activeAdvisorPopover"
         class="advisor-popover"
+        role="dialog"
+        aria-label="Datos del asesor"
         :style="{ top: popoverPosition.top + 'px', left: popoverPosition.left + 'px' }"
         @click.stop
       >
         <div class="popover-header">
           <strong>{{ activeAdvisorData?.name }}</strong>
-          <button class="popover-close" @click="closeAdvisorPopover">
+          <button class="popover-close" aria-label="Cerrar" @click="closeAdvisorPopover">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -412,7 +428,13 @@ onUnmounted(() => {
 
     <Teleport to="body">
       <div v-if="confirmModal.show" class="modal-overlay" @click.self="confirmModal.show = false">
-        <div class="modal">
+        <div
+          ref="confirmDialogRef"
+          class="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Eliminar propiedad"
+        >
           <h2>Eliminar propiedad</h2>
           <p class="modal-desc">¿Confirmas que deseas <strong>eliminar</strong> la propiedad <strong>"{{ confirmModal.title }}"</strong>?</p>
           <div class="modal-actions">
@@ -425,7 +447,7 @@ onUnmounted(() => {
       </div>
     </Teleport>
 
-    <div v-if="verifyToast.show" class="verify-toast">
+    <div v-if="verifyToast.show" class="verify-toast" role="alert">
       <div class="verify-toast-content">
         <strong>Debes verificar tu correo</strong> para eliminar propiedades.
         <button class="verify-toast-btn" :disabled="sendingEmail" @click="resendEmail">
@@ -438,12 +460,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.my-properties { font-family: 'Poppins', sans-serif; display: grid; gap: 16px; }
+.my-properties { font-family: var(--sans); display: grid; gap: 16px; }
 
 .table-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 16px; }
 .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .filters button { border: 1px solid var(--color-line); background: #fff; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 7px 14px; border-radius: 999px; font-weight: 700; color: var(--color-muted); transition: background .2s ease, color .2s ease, border-color .2s ease; cursor: pointer; }
-.filters button.active, .filters button:hover { background: #102d2d; color: #f3ede0; border-color: #102d2d; }
+.filters button.active, .filters button:hover { background: var(--color-petrol); color: var(--color-ivory-2); border-color: var(--color-petrol); }
 .table-wrap {
   width: 100%;
   overflow-x: auto;
@@ -455,35 +477,35 @@ onUnmounted(() => {
 .table-wrap::-webkit-scrollbar { height: 8px; }
 .table-wrap::-webkit-scrollbar-thumb { background: rgba(16, 45, 45, .3); border-radius: 999px; }
 table { width: max(100%, 980px); border-collapse: collapse; table-layout: auto; }
-th, td { padding: 14px 12px; font-size: 14px; text-align: left; border-bottom: 1px solid #ece5d3; }
+th, td { padding: 14px 12px; font-size: 14px; text-align: left; border-bottom: 1px solid var(--color-line); }
 tbody tr:last-child td { border-bottom: none; }
 th { font-size: 11px; color: var(--color-muted); text-transform: uppercase; letter-spacing: .14em; font-weight: 800; white-space: nowrap; vertical-align: middle; }
 td { vertical-align: top; }
 .sortable { cursor: pointer; user-select: none; }
-.sortable:hover { color: #102d2d; }
+.sortable:hover { color: var(--color-petrol); }
 .sort-icon { margin-left: 4px; font-size: 10px; opacity: .4; }
-.sort-icon.active { opacity: 1; color: var(--color-gold); }
+.sort-icon.active { opacity: 1; color: var(--color-brass); }
 tbody tr:hover { background: rgba(201, 164, 92, .06); }
 .td-thumb { width: 44px; padding-right: 8px; }
-.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f0ece4; max-width: none; }
-.td-title { color: #102d2d; font-weight: 700; min-width: 220px; white-space: normal; }
-.registered-at { color: #1a3f3f; font-weight: 600; white-space: nowrap; }
+.td-thumb img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--color-ivory-2); max-width: none; }
+.td-title { color: var(--color-petrol); font-weight: 700; min-width: 220px; white-space: normal; }
+.registered-at { color: var(--color-petrol); font-weight: 600; white-space: nowrap; }
 /* JAKEDA: status as text with dot, not pills */
 .badge { display: inline-flex; align-items: center; gap: 6px; background: transparent; padding: 0; border-radius: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
 .badge::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex-shrink: 0; }
-.pendiente { color: #8a5c00; }
-.aprobada { color: #166534; }
-.rechazada { color: #991b1b; }
+.pendiente { color: var(--color-brass-ink); }
+.aprobada { color: var(--color-success); }
+.rechazada { color: var(--color-danger); }
 .actions { vertical-align: top; white-space: nowrap; }
 .actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: none; border-radius: 7px; min-height: 44px; padding: 6px 12px; font-size: 12px; font-weight: 700; transition: filter .2s ease; cursor: pointer; margin-right: 6px; }
 .actions button:last-child { margin-right: 0; }
 .actions button:hover { filter: brightness(1.02); }
-.view { background: rgba(201, 164, 92, .16); color: #7a5c1e; }
-.edit { background: rgba(16, 45, 45, .07); color: #1a3f3f; }
-.delete { background: #102d2d; color: #f3ede0; }
+.view { background: rgba(201, 164, 92, .16); color: var(--color-brass-ink); }
+.edit { background: rgba(16, 45, 45, .07); color: var(--color-petrol); }
+.delete { background: var(--color-petrol); color: var(--color-ivory-2); }
 .state { display: flex; justify-content: center; padding: 40px; color: var(--color-muted); }
-.error-msg { color: #991b1b; }
-.spinner { width: 36px; height: 36px; border: 3px solid #eadfcf; border-top-color: var(--color-gold); border-radius: 50%; animation: spin .8s linear infinite; }
+.error-msg { color: var(--color-danger); }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--color-line); border-top-color: var(--color-brass); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty { text-align: center; color: var(--color-muted); padding: 20px; }
 
@@ -501,20 +523,20 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
   border-radius: 7px;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--sans);
   cursor: pointer;
   transition: background 0.2s ease;
   border: none;
   background: rgba(201, 164, 92, 0.14);
-  color: #1a3f3f;
+  color: var(--color-petrol);
 }
-.advisor-badge:hover { background: rgba(201, 164, 92, 0.24); color: #102d2d; }
+.advisor-badge:hover { background: rgba(201, 164, 92, 0.24); color: var(--color-petrol); }
 .advisor-badge.unassigned { background: transparent; color: var(--color-muted); cursor: default; }
-.advisor-badge svg { color: var(--color-gold); flex-shrink: 0; }
+.advisor-badge svg { color: var(--color-brass); flex-shrink: 0; }
 
 .advisor-popover {
   position: fixed;
-  z-index: 2000;
+  z-index: var(--z-modal);
   min-width: 280px;
   max-width: 320px;
   background: #fff;
@@ -542,9 +564,9 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
   border-bottom: 1px solid var(--color-line);
 }
 .popover-item:last-child { border-bottom: none; }
-.popover-item svg { color: var(--color-gold); flex-shrink: 0; }
-.popover-link { color: var(--color-navy-2); text-decoration: none; font-weight: 500; transition: 0.2s ease; }
-.popover-link:hover { color: var(--color-gold); text-decoration: underline; }
+.popover-item svg { color: var(--color-brass); flex-shrink: 0; }
+.popover-link { color: var(--color-ink); text-decoration: none; font-weight: 500; transition: 0.2s ease; }
+.popover-link:hover { color: var(--color-brass); text-decoration: underline; }
 .popover-unavailable { color: var(--color-muted); font-style: italic; font-size: 12px; }
 
 .popover-header {
@@ -553,9 +575,9 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
   align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--color-line);
-  background: #faf5e9;
+  background: var(--color-ivory-2);
 }
-.popover-header strong { color: #102d2d; font-size: 14px; font-family: var(--serif); }
+.popover-header strong { color: var(--color-petrol); font-size: 14px; font-family: var(--serif); }
 .popover-close {
   width: 44px;
   height: 44px;
@@ -564,7 +586,7 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
   border-radius: 50%;
   border: none;
   background: rgba(16, 45, 45, 0.07);
-  color: var(--color-navy);
+  color: var(--color-petrol);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -572,30 +594,30 @@ tbody tr:hover { background: rgba(201, 164, 92, .06); }
   transition: 0.2s ease;
   flex-shrink: 0;
 }
-.popover-close:hover { background: rgba(153, 27, 27, 0.12); color: #991b1b; }
+.popover-close:hover { background: rgba(153, 27, 27, 0.12); color: var(--color-danger); }
 
 /* Pagination */
 .pagination { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--color-line); flex-wrap: wrap; }
 .pagination button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 11px; border-radius: 7px; font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--color-line); color: var(--color-muted); cursor: pointer; transition: .2s ease; }
-.pagination button:hover:not(:disabled) { border-color: var(--color-navy); color: var(--color-navy); }
-.pagination button.active { background: var(--color-navy); color: #fff; border-color: var(--color-navy); }
+.pagination button:hover:not(:disabled) { border-color: var(--color-petrol); color: var(--color-petrol); }
+.pagination button.active { background: var(--color-petrol); color: #fff; border-color: var(--color-petrol); }
 .pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .pagination .dots { color: var(--color-muted); font-size: 13px; padding: 0 2px; }
 .pagination-info { margin-left: auto; color: var(--color-muted); font-size: 13px; }
 
-.verify-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 24px; box-shadow: 0 16px 48px rgba(7,23,45,0.2); max-width: 480px; }
-.verify-toast-content { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #991b1b; flex-wrap: wrap; }
-.verify-toast-btn { border: none; border-radius: 8px; padding: 8px 16px; background: var(--color-gold); color: var(--color-navy); font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.verify-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: var(--z-toast); background: var(--color-danger-soft); border: 1px solid var(--color-danger-soft); border-radius: 12px; padding: 16px 24px; box-shadow: 0 16px 48px rgba(7,27,28,0.2); max-width: 480px; }
+.verify-toast-content { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--color-danger); flex-wrap: wrap; }
+.verify-toast-btn { border: none; border-radius: 0; padding: 8px 16px; min-height: 44px; background: var(--color-brass); color: var(--color-petrol); font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .verify-toast-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .mobile-cards { display: none; }
-.mobile-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; padding: 14px; }
+.mobile-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 12px; padding: 14px; }
 .mc-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
-.mc-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #f0ece4; flex-shrink: 0; }
+.mc-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--color-ivory-2); flex-shrink: 0; }
 .mc-title-group { flex: 1; min-width: 0; }
-.mc-title { display: block; color: var(--color-navy); font-size: 14px; }
+.mc-title { display: block; color: var(--color-petrol); font-size: 14px; }
 .mc-date { display: block; color: var(--color-muted); font-size: 11px; margin-top: 2px; }
-.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-navy); }
+.mc-body { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; font-size: 13px; color: var(--color-petrol); }
 .mc-body span strong { color: var(--color-muted); font-weight: 600; }
 .mc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .mc-actions button { border: none; border-radius: 7px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }

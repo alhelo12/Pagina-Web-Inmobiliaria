@@ -51,7 +51,7 @@ const services = [
     <div class="services-wrap">
       <article v-for="service in services" :key="service.title" class="service-card">
         <span class="tag">{{ service.tag }}</span>
-        <h3 class="serif-display">{{ service.title }}</h3>
+              <h2 class="serif-display">{{ service.title }}</h2>
         <hr class="rule" />
         <p>{{ service.description }}</p>
         <button type="button" class="read-more">
@@ -190,7 +190,7 @@ const services = [
   color: var(--color-brass-deep);
 }
 
-.service-card h3 {
+.service-card h2 {
   margin: 10px 0 0;
   font-size: clamp(28px, 3vw, 38px);
   color: var(--color-petrol);
@@ -203,7 +203,7 @@ const services = [
 
 .service-card p {
   margin: 0;
-  color: #43524f;
+  color: var(--color-charcoal);
   line-height: 1.7;
   flex: 1;
 }

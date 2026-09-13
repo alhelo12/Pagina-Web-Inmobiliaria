@@ -27,12 +27,12 @@ const userStats = ref({ total_users: 0, active_users: 0, advisors_count: 0, clie
 const recentActivity = ref([])
 
 const cardConfig = [
-  { key: 'total', label: 'Total propiedades', sublabel: 'En toda la plataforma', highlight: false, iconStyle: { background: '#e7edeb', color: '#1a3f3f' } },
+  { key: 'total', label: 'Total propiedades', sublabel: 'En toda la plataforma', highlight: false, iconStyle: { background: '#ece6d8', color: '#102d2d' } },
   { key: 'approved', label: 'Aprobadas', sublabel: 'Disponibles al público', highlight: false, iconStyle: { background: '#e2f0e5', color: '#166534' } },
-  { key: 'pending', label: 'Pendientes', sublabel: 'En revisión', highlight: false, iconStyle: { background: '#f4e8cd', color: '#7a5c1e' } },
-  { key: 'approvalRate', label: 'Tasa aprobación', sublabel: 'Rendimiento general', highlight: true, iconStyle: { background: '#102d2d', color: '#c9a45c' } },
-  { key: 'totalUsers', label: 'Total usuarios', sublabel: 'Registrados en plataforma', highlight: false, iconStyle: { background: '#e7edeb', color: '#1a3f3f' } },
-  { key: 'activeAdvisors', label: 'Asesores', sublabel: 'Publicando propiedades', highlight: false, iconStyle: { background: '#ece7db', color: '#5c665f' } }
+  { key: 'pending', label: 'Pendientes', sublabel: 'En revisión', highlight: false, iconStyle: { background: '#ece6d8', color: '#7a5c1e' } },
+  { key: 'approvalRate', label: 'Tasa aprobación', sublabel: 'Rendimiento general', highlight: true, iconStyle: { background: '#102d2d', color: '#b9945f' } },
+  { key: 'totalUsers', label: 'Total usuarios', sublabel: 'Registrados en plataforma', highlight: false, iconStyle: { background: '#ece6d8', color: '#102d2d' } },
+  { key: 'activeAdvisors', label: 'Asesores', sublabel: 'Publicando propiedades', highlight: false, iconStyle: { background: '#ece6d8', color: '#5f665f' } }
 ]
 
 const metrics = computed(() => ({
@@ -129,7 +129,7 @@ onMounted(async () => {
     <Breadcrumb :crumbs="[{ label: 'Panel', path: '/admin/dashboard' }]" />
 
     <div v-if="loading" class="state">Cargando resumen...</div>
-    <div v-else-if="error" class="state error-msg">{{ error }}</div>
+    <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
     <template v-else>
       <MetricCards :cards="cardConfig" :metrics="metrics" />
@@ -159,7 +159,7 @@ onMounted(async () => {
           <div class="review-head">
             <div>
               <p>Revisión</p>
-              <h3>Pendientes por revisar</h3>
+              <h2>Pendientes por revisar</h2>
             </div>
             <button @click="router.push('/admin/propiedades')">Ver tabla</button>
           </div>
@@ -167,7 +167,7 @@ onMounted(async () => {
           <div v-if="pendingProperties.length" class="review-list">
             <div v-for="property in pendingProperties" :key="property.id" class="review-row">
               <div class="review-thumb-wrap">
-                <img
+                <img decoding="async"
                   :src="getPropertyImage(property) || propertyFallback"
                   :alt="property.title"
                   class="review-thumb"
@@ -197,48 +197,48 @@ onMounted(async () => {
 .middle-grid > *, .overview-grid > * { min-width: 0; }
 
 /* JAKEDA: metrics as hairline-divided grid, large serif numerals */
-.dashboard :deep(.metrics) { background: #ece5d3; border: 1px solid var(--color-line); border-radius: 12px; padding: 0; gap: 1px; overflow: hidden; }
+.dashboard :deep(.metrics) { background: var(--color-line); border: 1px solid var(--color-line); border-radius: 12px; padding: 0; gap: 1px; overflow: hidden; }
 .dashboard :deep(.metrics .card) { border: none; border-radius: 0; box-shadow: none; background: #fff; }
-.dashboard :deep(.metrics .card strong) { font-family: var(--serif); font-size: 34px; font-weight: 700; color: #102d2d; }
-.dashboard :deep(.metrics .card.highlight) { background: #faf5e9; }
+.dashboard :deep(.metrics .card strong) { font-family: var(--serif); font-size: 34px; font-weight: 700; color: var(--color-petrol); }
+.dashboard :deep(.metrics .card.highlight) { background: var(--color-ivory-2); }
 
 /* JAKEDA: thin-rule rows inside shared cards */
 .dashboard :deep(.recent-row),
 .dashboard :deep(.feed-item) {
   background: transparent;
   border: none;
-  border-bottom: 1px solid #ece5d3;
+  border-bottom: 1px solid var(--color-line);
   border-radius: 0;
   padding: 12px 4px;
 }
 .dashboard :deep(.recent-row:last-child),
 .dashboard :deep(.feed-item:last-child) { border-bottom: none; }
-.dashboard :deep(.feed-item.unread) { background: #faf5e9; }
-.dashboard :deep(.item-row) { background: #faf6ec; border: 1px solid #ece5d3; border-radius: 8px; }
+.dashboard :deep(.feed-item.unread) { background: var(--color-ivory-2); }
+.dashboard :deep(.item-row) { background: var(--color-ivory-2); border: 1px solid var(--color-line); border-radius: 8px; }
 
 /* JAKEDA: status as text, not pills */
 .dashboard :deep(.recent-badge) { background: transparent !important; padding: 0; border-radius: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.dashboard :deep(.recent-badge.pending) { color: #8a5c00; }
-.dashboard :deep(.recent-badge.approved) { color: #166534; }
-.dashboard :deep(.recent-badge.rejected) { color: #991b1b; }
-.dashboard :deep(.recent-badge.sold) { color: #1a3f3f; }
+.dashboard :deep(.recent-badge.pending) { color: var(--color-brass-ink); }
+.dashboard :deep(.recent-badge.approved) { color: var(--color-success); }
+.dashboard :deep(.recent-badge.rejected) { color: var(--color-danger); }
+.dashboard :deep(.recent-badge.sold) { color: var(--color-petrol); }
 
 .state { padding: 18px; color: var(--color-muted); background: #fff; border: 1px solid var(--color-line); border-radius: 12px; }
-.error-msg { color: #991b1b; }
+.error-msg { color: var(--color-danger); }
 .review-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 18px; }
 .review-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
-.review-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.review-head h3 { margin: 0; color: #102d2d; font-size: 20px; font-family: var(--serif); }
-.review-head button { min-height: 38px; padding: 0 14px; border-radius: 8px; background: #102d2d; color: #f3ede0; font-weight: 700; border: none; cursor: pointer; transition: background .2s ease; }
-.review-head button:hover { background: #1a3f3f; }
+.review-head p { margin: 0 0 4px; color: var(--color-brass); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.review-head h2 { margin: 0; color: var(--color-petrol); font-size: 20px; font-family: var(--serif); }
+.review-head button { min-height: 44px; padding: 0 14px; border-radius: 0; background: var(--color-petrol); color: var(--color-ivory-2); font-weight: 700; border: none; cursor: pointer; transition: background .2s ease; }
+.review-head button:hover { background: var(--color-petrol); }
 .review-list { display: grid; gap: 0; }
-.review-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 4px; border-radius: 0; border: none; border-bottom: 1px solid #ece5d3; background: transparent; }
+.review-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 4px; border-radius: 0; border: none; border-bottom: 1px solid var(--color-line); background: transparent; }
 .review-row:last-child { border-bottom: none; }
-.review-row strong { display: block; color: #102d2d; font-size: 14px; }
+.review-row strong { display: block; color: var(--color-petrol); font-size: 14px; }
 .review-row span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
-.review-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: #f0ece4; }
+.review-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: var(--color-ivory-2); }
 .review-thumb { width: 100%; height: 100%; object-fit: cover; }
-.review-row small { color: #1a3f3f; font-weight: 700; white-space: nowrap; }
+.review-row small { color: var(--color-petrol); font-weight: 700; white-space: nowrap; }
 .empty { margin: 0; color: var(--color-muted); }
 @media (max-width: 1050px) {
   .middle-grid, .overview-grid { grid-template-columns: 1fr 1fr; }

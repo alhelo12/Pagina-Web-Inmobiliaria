@@ -38,7 +38,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="properties-page">
+  <div class="properties-page">
     <header class="properties-header reveal">
       <p class="eyebrow-label">Catálogo — Jakeda</p>
       <h1 class="serif-display">Propiedades singulares</h1>
@@ -54,7 +54,7 @@ onMounted(async () => {
         <p>Cargando propiedades...</p>
       </div>
 
-      <div v-else-if="error" class="state error-state reveal">
+      <div v-else-if="error" class="state error-state reveal" role="alert">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/>
           <line x1="12" y1="8" x2="12" y2="12"/>
@@ -97,7 +97,7 @@ onMounted(async () => {
         </RouterLink>
       </div>
     </section>
-  </main>
+  </div>
 </template>
 
 <style scoped>
@@ -176,7 +176,7 @@ onMounted(async () => {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.error-state { color: #991b1b; }
+.error-state { color: var(--color-danger); }
 
 .retry-btn {
   min-height: 44px;

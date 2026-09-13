@@ -77,7 +77,7 @@ onMounted(() => {
 
     <article class="table-card">
       <div v-if="loading" class="state"><div class="spinner"></div></div>
-      <div v-else-if="error" class="state error-msg">{{ error }}</div>
+      <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
       <div v-else-if="myClients.length" class="clients-list">
         <div v-for="client in myClients" :key="client.id" class="client-row">
@@ -110,7 +110,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.clients-view { font-family: 'Poppins', sans-serif; display: grid; gap: 16px; }
+.clients-view { font-family: var(--sans); display: grid; gap: 16px; }
 
 .filters-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 18px; background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; }
 .search-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px; background: #fff; border: 1px solid var(--color-line); border-radius: 8px; padding: 8px 12px; }
@@ -121,7 +121,7 @@ onMounted(() => {
 .table-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 16px; }
 
 .state { display: flex; justify-content: center; padding: 40px; color: var(--color-muted); }
-.error-msg { color: #991b1b; }
+.error-msg { color: var(--color-danger); }
 .spinner { width: 36px; height: 36px; border: 3px solid var(--color-line); border-top-color: var(--color-brass); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty { text-align: center; color: var(--color-muted); padding: 40px 20px; font-size: 14px; }
@@ -129,7 +129,7 @@ onMounted(() => {
 .clients-list { display: flex; flex-direction: column; gap: 0; }
 .client-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 4px; border-radius: 0; border: none; border-bottom: 1px solid var(--color-line); background: transparent; transition: background .2s ease; }
 .client-row:last-child { border-bottom: none; }
-.client-row:hover { box-shadow: none; background: #faf5e9; }
+.client-row:hover { box-shadow: none; background: var(--color-ivory-2); }
 
 .client-info { display: flex; align-items: center; gap: 14px; }
 .client-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--color-petrol); color: var(--color-ivory); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; font-family: var(--serif); }
@@ -138,7 +138,7 @@ onMounted(() => {
 .client-details small { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
 
 .client-properties { text-align: right; }
-.property-count { display: inline-block; padding: 5px 12px; border-radius: 999px; background: #f4e8cd; color: #7a5c1e; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+.property-count { display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--color-ivory-2); color: var(--color-brass-ink); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
 .property-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .property-tag { padding: 4px 10px; border-radius: 999px; background: transparent; border: 1px solid var(--color-line); color: var(--color-muted); font-size: 11px; font-weight: 600; }
 .property-tag.more { background: var(--color-petrol); border-color: var(--color-petrol); color: #fff; }

@@ -1,7 +1,7 @@
 <template>
   <div class="survey-container">
     <div class="survey-header">
-      <h3>Encuesta de Satisfacción</h3>
+      <h2>Encuesta de Satisfacción</h2>
       <p class="survey-subtitle">Tu opinión nos ayuda a mejorar nuestro servicio</p>
     </div>
 
@@ -116,7 +116,7 @@ async function submitSurvey() {
   text-align: center;
 }
 
-.survey-header h3 {
+.survey-header h2 {
   margin: 0 0 8px;
   font-size: 1.5rem;
   color: var(--color-ink);

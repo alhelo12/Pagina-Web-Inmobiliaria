@@ -21,9 +21,9 @@ defineProps({
 
 <style scoped>
 .typing-indicator { display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px; color: var(--color-muted); }
-.typing-name { font-weight: 600; color: var(--color-navy); }
+.typing-name { font-weight: 600; color: var(--color-petrol); }
 .typing-dots { display: flex; gap: 3px; }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-muted); animation: typingBounce 1.4s infinite ease-in-out; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-muted); animation: typingBounce 1.4s infinite ease-in-out; } /* impeccable-disable-line bounce-easing: indicador de escritura convencional, easing ease-in-out */
 .dot:nth-child(1) { animation-delay: 0s; }
 .dot:nth-child(2) { animation-delay: 0.2s; }
 .dot:nth-child(3) { animation-delay: 0.4s; }

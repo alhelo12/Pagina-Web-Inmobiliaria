@@ -31,14 +31,14 @@ defineProps({
   padding: 18px;
   background: var(--color-card);
   border: 1px solid var(--color-line);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .skeleton-icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: #e5e7eb;
+  background: var(--color-line);
   flex-shrink: 0;
 }
 
@@ -51,8 +51,8 @@ defineProps({
 }
 
 .skeleton-line {
-  background: #e5e7eb;
-  border-radius: 6px;
+  background: var(--color-line);
+  border-radius: 7px;
 }
 
 .skeleton-title {

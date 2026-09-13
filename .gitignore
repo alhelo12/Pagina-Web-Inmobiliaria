@@ -25,3 +25,6 @@ backend/media/properties/*
 .DS_Store
 /.opencode
 opencode.json
+
+# Herramientas AI locales (artefactos de critique/design quedan solo en local)
+.impeccable/

@@ -73,6 +73,7 @@ onUnmounted(() => {
         class="hamburger"
         type="button"
         :aria-expanded="mobileOpen"
+        aria-controls="main-menu"
         :aria-label="mobileOpen ? 'Cerrar menú' : 'Abrir menú'"
         @click="mobileOpen = !mobileOpen"
       >
@@ -81,7 +82,7 @@ onUnmounted(() => {
         <span></span>
       </button>
 
-      <nav :class="['menu', { open: mobileOpen }]">
+      <nav id="main-menu" :class="['menu', { open: mobileOpen }]">
         <RouterLink to="/" @click="closeAll">Inicio</RouterLink>
         <RouterLink to="/servicios" @click="closeAll">Servicios</RouterLink>
         <RouterLink to="/propiedades" @click="closeAll">Propiedades</RouterLink>
@@ -92,7 +93,13 @@ onUnmounted(() => {
           <NotificationBell v-if="auth.role === 'client' || auth.role === 'advisor'" />
 
           <div ref="dropdownRef" class="account">
-            <button class="btn-account" type="button" @click="dropdownOpen = !dropdownOpen">
+            <button
+              class="btn-account"
+              type="button"
+              aria-haspopup="true"
+              :aria-expanded="dropdownOpen"
+              @click="dropdownOpen = !dropdownOpen"
+            >
               Mi cuenta
               <span class="chevron" :class="{ up: dropdownOpen }">▾</span>
             </button>
@@ -234,7 +241,7 @@ onUnmounted(() => {
   text-transform: uppercase;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
   text-decoration: none;
 }
 .navbar.scrolled .btn-login,
@@ -292,14 +299,14 @@ onUnmounted(() => {
 .dropdown button {
   border: none;
   background: transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 10px 12px;
   min-height: 44px;
   display: flex;
   align-items: center;
   text-align: left;
   color: var(--color-ink);
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   cursor: pointer;
   transition: background 0.3s ease, color 0.3s ease;
@@ -377,6 +384,12 @@ onUnmounted(() => {
     pointer-events: auto;
   }
   .navbar.scrolled .menu.open :deep(.bell-btn) { color: rgba(255, 255, 255, 0.92); }
+
+  .menu a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
 
   .menu a::after {
     bottom: -3px;

@@ -10,7 +10,7 @@ let metaPromise = null
 
 export const FALLBACK_META = {
   icon: 'megaphone',
-  color: '#65717e',
+  color: '#5f665f',
   label: 'Notificación'
 }
 

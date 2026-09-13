@@ -3,12 +3,16 @@ import { ref, onMounted } from 'vue'
 import { notificationPreferencesApi } from '@/api/notificationPreferences'
 import { useAuthStore } from '@/stores/authStore'
 import { getNotificationMeta, getTypeFilters } from '@/constants/notifications'
+import { useDialog } from '@/composables/useDialog'
 import AppIcon from '@/components/shared/AppIcon.vue'
 
 const emit = defineEmits(['close'])
 const auth = useAuthStore()
 const preferences = ref([])
 const loading = ref(true)
+
+const isOpen = ref(true)
+const { dialogRef } = useDialog(isOpen, () => emit('close'))
 
 const visibleTypes = getTypeFilters(auth.role).map(t => [t.key, { label: t.label, color: t.color, icon: getNotificationMeta(t.key).icon }])
 
@@ -46,7 +50,13 @@ onMounted(async () => {
 
 <template>
   <div class="preferences-overlay" @click.self="$emit('close')">
-    <div class="preferences-panel">
+    <div
+      ref="dialogRef"
+      class="preferences-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Preferencias de notificación"
+    >
       <div class="panel-header">
         <h3>Preferencias de notificación</h3>
         <button class="close-btn" aria-label="Cerrar" @click="$emit('close')">
@@ -94,7 +104,7 @@ onMounted(async () => {
   inset: 0;
   background: rgba(7, 27, 28, 0.4);
   backdrop-filter: blur(4px);
-  z-index: 5000;
+  z-index: var(--z-modal);
   display: grid;
   place-items: center;
   padding: 16px;
@@ -102,7 +112,7 @@ onMounted(async () => {
 
 .preferences-panel {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 12px;
   width: 100%;
   max-width: 420px;
   max-height: 80vh;
@@ -132,7 +142,7 @@ onMounted(async () => {
   color: var(--color-muted);
   cursor: pointer;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: 7px;
   transition: color 0.2s ease;
   min-width: 44px;
   min-height: 44px;
@@ -147,7 +157,7 @@ onMounted(async () => {
 .loading {
   padding: 40px;
   text-align: center;
-  color: #65717e;
+  color: var(--color-muted);
 }
 
 .pref-list {
@@ -164,7 +174,7 @@ onMounted(async () => {
 }
 
 .pref-item:hover {
-  background: #f8fafc;
+  background: var(--color-ivory-2);
 }
 
 .pref-info {
@@ -178,7 +188,7 @@ onMounted(async () => {
 .pref-icon {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -232,10 +242,15 @@ onMounted(async () => {
 }
 
 .toggle input:checked + .slider {
-  background: #d6a848;
+  background: var(--color-brass);
 }
 
 .toggle input:checked + .slider::before {
   transform: translateX(20px);
+}
+
+.toggle input:focus-visible + .slider {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 2px;
 }
 </style>

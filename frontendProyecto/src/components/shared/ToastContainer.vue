@@ -13,6 +13,7 @@ const { toasts, dismissToast } = useToast()
           v-for="toast in toasts"
           :key="toast.id"
           :class="['toast', `toast-${toast.type}`, { visible: toast.visible }]"
+          :role="toast.type === 'error' ? 'alert' : 'status'"
           @click="dismissToast(toast.id)"
         >
           <div class="toast-icon">
@@ -39,7 +40,7 @@ const { toasts, dismissToast } = useToast()
   position: fixed;
   top: 16px;
   right: 16px;
-  z-index: 10000;
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -55,14 +56,14 @@ const { toasts, dismissToast } = useToast()
   padding: 14px 16px;
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 12px 28px rgba(7, 23, 45, 0.18);
-  border: 1px solid #e7ebf3;
+  box-shadow: 0 12px 28px rgba(7, 27, 28, 0.18);
+  border: 1px solid var(--color-line);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
 
 .toast:hover {
-  box-shadow: 0 16px 36px rgba(7, 23, 45, 0.24);
+  box-shadow: 0 16px 36px rgba(7, 27, 28, 0.24);
 }
 
 .toast-icon {
@@ -70,10 +71,10 @@ const { toasts, dismissToast } = useToast()
   margin-top: 2px;
 }
 
-.toast-info .toast-icon { color: #3b82f6; }
-.toast-success .toast-icon { color: #22c55e; }
-.toast-error .toast-icon { color: #dc2626; }
-.toast-warning .toast-icon { color: #f59e0b; }
+.toast-info .toast-icon { color: var(--color-petrol); }
+.toast-success .toast-icon { color: var(--color-success); }
+.toast-error .toast-icon { color: var(--color-danger); }
+.toast-warning .toast-icon { color: var(--color-brass-ink); }
 
 .toast-content {
   flex: 1;
@@ -82,14 +83,14 @@ const { toasts, dismissToast } = useToast()
 
 .toast-content strong {
   display: block;
-  color: #07172d;
+  color: var(--color-ink);
   font-size: 13px;
   font-weight: 700;
 }
 
 .toast-content p {
   margin: 2px 0 0;
-  color: #65717e;
+  color: var(--color-muted);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -97,7 +98,7 @@ const { toasts, dismissToast } = useToast()
 .toast-close {
   background: transparent;
   border: none;
-  color: #9ca3af;
+  color: var(--color-muted);
   cursor: pointer;
   padding: 2px;
   flex-shrink: 0;
@@ -105,15 +106,15 @@ const { toasts, dismissToast } = useToast()
 }
 
 .toast-close:hover {
-  color: #07172d;
+  color: var(--color-ink);
 }
 
 .toast-enter-active {
-  transition: all 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .toast-enter-from {

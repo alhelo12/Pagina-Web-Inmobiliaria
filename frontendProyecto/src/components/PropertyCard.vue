@@ -76,7 +76,7 @@ const handleImageError = (event) => {
 <template>
   <article class="card">
     <div class="media">
-      <img :src="image || FALLBACK_PROPERTY_IMAGE" :alt="title" loading="lazy" @error="handleImageError" />
+      <img decoding="async" :src="image || FALLBACK_PROPERTY_IMAGE" :alt="title" loading="lazy" @error="handleImageError" />
       <span class="type-pill type-gold">{{ typeLabel(type) }}</span>
       <span class="type-pill type-blue">{{ operationLabel(transactionType) }}</span>
       <button
@@ -86,7 +86,7 @@ const handleImageError = (event) => {
         :title="auth.isLogged ? (isFav ? 'Quitar de favoritos' : 'Guardar favorito') : 'Inicia sesion para guardar favoritos'"
         @click="toggle"
       >
-        <svg v-if="isFav" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#991b1b" stroke="#991b1b" stroke-width="2">
+        <svg v-if="isFav" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
         <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -221,6 +221,7 @@ const handleImageError = (event) => {
 
 .fav-btn.active {
   background: #fff;
+  color: var(--color-danger);
   animation: heartPop .35s ease;
 }
 

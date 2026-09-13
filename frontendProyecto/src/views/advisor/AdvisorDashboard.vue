@@ -26,12 +26,12 @@ const stats = computed(() => store.advisorStats || {
 })
 
 const cardConfig = [
-  { key: 'total', label: 'Mis propiedades', sublabel: 'Total asignadas', highlight: false, iconStyle: { background: '#e7edeb', color: '#1a3f3f' } },
+  { key: 'total', label: 'Mis propiedades', sublabel: 'Total asignadas', highlight: false, iconStyle: { background: '#ece6d8', color: '#102d2d' } },
   { key: 'approved', label: 'Aprobadas', sublabel: 'Visibles al público', highlight: false, iconStyle: { background: '#e2f0e5', color: '#166534' } },
-  { key: 'pending', label: 'Pendientes', sublabel: 'En revisión', highlight: false, iconStyle: { background: '#f4e8cd', color: '#7a5c1e' } },
-  { key: 'sold', label: 'Vendidas', sublabel: 'Cerradas', highlight: true, iconStyle: { background: '#102d2d', color: '#c9a45c' } },
-  { key: 'availableToTake', label: 'Disponibles', sublabel: 'Para asignarme', highlight: false, iconStyle: { background: '#f6f1e7', color: '#1a3f3f' } },
-  { key: 'clientsCount', label: 'Clientes', sublabel: 'Propietarios únicos', highlight: false, iconStyle: { background: '#ece7db', color: '#5c665f' } }
+  { key: 'pending', label: 'Pendientes', sublabel: 'En revisión', highlight: false, iconStyle: { background: '#ece6d8', color: '#7a5c1e' } },
+  { key: 'sold', label: 'Vendidas', sublabel: 'Cerradas', highlight: true, iconStyle: { background: '#102d2d', color: '#b9945f' } },
+  { key: 'availableToTake', label: 'Disponibles', sublabel: 'Para asignarme', highlight: false, iconStyle: { background: '#f3eee4', color: '#102d2d' } },
+  { key: 'clientsCount', label: 'Clientes', sublabel: 'Propietarios únicos', highlight: false, iconStyle: { background: '#ece6d8', color: '#5f665f' } }
 ]
 
 const metrics = computed(() => ({
@@ -100,7 +100,7 @@ onMounted(async () => {
     <Breadcrumb :crumbs="[{ label: 'Dashboard', path: '/advisor/dashboard' }]" />
 
     <div v-if="loadingDashboard" class="state">Cargando resumen...</div>
-    <div v-else-if="error" class="state error-msg">{{ error }}</div>
+    <div v-else-if="error" class="state error-msg" role="alert">{{ error }}</div>
 
     <template v-else>
       <MetricCards :cards="cardConfig" :metrics="metrics" />
@@ -142,13 +142,13 @@ onMounted(async () => {
         <article class="available-card">
           <div class="available-head">
             <p>Nuevas</p>
-            <h3>Disponibles para asignarme</h3>
+            <h2>Disponibles para asignarme</h2>
           </div>
 
           <div v-if="availableProperties?.length" class="available-list">
             <div v-for="p in availableProperties" :key="p.id" class="available-row">
               <div class="available-thumb-wrap">
-                <img
+                <img decoding="async"
                   :src="(p.images?.find(i => i.is_main) ?? p.images?.[0])?.image_url ?? ''"
                   :alt="p.title"
                   class="available-thumb"
@@ -178,55 +178,55 @@ onMounted(async () => {
 .middle-grid > *, .overview-grid > * { min-width: 0; }
 
 /* JAKEDA: metrics as hairline-divided grid, large serif numerals */
-.dashboard :deep(.metrics) { background: #ece5d3; border: 1px solid var(--color-line); border-radius: 12px; padding: 0; gap: 1px; overflow: hidden; }
+.dashboard :deep(.metrics) { background: var(--color-line); border: 1px solid var(--color-line); border-radius: 12px; padding: 0; gap: 1px; overflow: hidden; }
 .dashboard :deep(.metrics .card) { border: none; border-radius: 0; box-shadow: none; background: #fff; }
-.dashboard :deep(.metrics .card strong) { font-family: var(--serif); font-size: 34px; font-weight: 700; color: #102d2d; }
-.dashboard :deep(.metrics .card.highlight) { background: #faf5e9; }
+.dashboard :deep(.metrics .card strong) { font-family: var(--serif); font-size: 34px; font-weight: 700; color: var(--color-petrol); }
+.dashboard :deep(.metrics .card.highlight) { background: var(--color-ivory-2); }
 
 /* JAKEDA: thin-rule rows inside shared cards */
 .dashboard :deep(.recent-row) {
   background: transparent;
   border: none;
-  border-bottom: 1px solid #ece5d3;
+  border-bottom: 1px solid var(--color-line);
   border-radius: 0;
   padding: 12px 4px;
 }
 .dashboard :deep(.recent-row:last-child) { border-bottom: none; }
-.dashboard :deep(.item-row) { background: #faf6ec; border: 1px solid #ece5d3; border-radius: 8px; }
+.dashboard :deep(.item-row) { background: var(--color-ivory-2); border: 1px solid var(--color-line); border-radius: 8px; }
 
 /* JAKEDA: status as text, not pills */
 .dashboard :deep(.recent-badge) { background: transparent !important; padding: 0; border-radius: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.dashboard :deep(.recent-badge.pending) { color: #8a5c00; }
-.dashboard :deep(.recent-badge.approved) { color: #166534; }
-.dashboard :deep(.recent-badge.rejected) { color: #991b1b; }
-.dashboard :deep(.recent-badge.sold) { color: #1a3f3f; }
+.dashboard :deep(.recent-badge.pending) { color: var(--color-brass-ink); }
+.dashboard :deep(.recent-badge.approved) { color: var(--color-success); }
+.dashboard :deep(.recent-badge.rejected) { color: var(--color-danger); }
+.dashboard :deep(.recent-badge.sold) { color: var(--color-petrol); }
 
 .state { padding: 18px; color: var(--color-muted); background: #fff; border: 1px solid var(--color-line); border-radius: 12px; }
-.error-msg { color: #991b1b; }
+.error-msg { color: var(--color-danger); }
 .empty { margin: 0; color: var(--color-muted); }
 .actions-list { display: flex; flex-direction: column; gap: 0; flex: 1; }
-.action-item { padding: 12px 4px; border-radius: 0; background: transparent; border: none; border-bottom: 1px solid #ece5d3; }
+.action-item { padding: 12px 4px; border-radius: 0; background: transparent; border: none; border-bottom: 1px solid var(--color-line); }
 .action-item:last-child { border-bottom: none; }
 .action-info { min-width: 0; }
-.action-info strong { display: block; color: #102d2d; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.action-info strong { display: block; color: var(--color-petrol); font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .action-info span { display: block; color: var(--color-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.action-info small { display: block; color: #102d2d; font-weight: 700; font-size: 13px; margin-top: 4px; }
-.review-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: #102d2d; color: #f3ede0; font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: background .2s ease; width: 100%; }
-.review-btn:hover { background: #1a3f3f; }
+.action-info small { display: block; color: var(--color-petrol); font-weight: 700; font-size: 13px; margin-top: 4px; }
+.review-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: var(--color-petrol); color: var(--color-ivory-2); font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: background .2s ease; width: 100%; }
+.review-btn:hover { background: var(--color-petrol); }
 .available-card { background: #fff; border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; padding: 18px; }
 .available-head { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-.available-head p { margin: 0 0 4px; color: var(--color-gold); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.available-head h3 { margin: 0; color: #102d2d; font-size: 20px; min-width: 0; font-family: var(--serif); }
+.available-head p { margin: 0 0 4px; color: var(--color-brass); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.available-head h2 { margin: 0; color: var(--color-petrol); font-size: 20px; min-width: 0; font-family: var(--serif); }
 .available-list { display: grid; gap: 0; }
-.available-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 12px 4px; border-radius: 0; border: none; border-bottom: 1px solid #ece5d3; background: transparent; }
+.available-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 12px 4px; border-radius: 0; border: none; border-bottom: 1px solid var(--color-line); background: transparent; }
 .available-row:last-child { border-bottom: none; }
-.available-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: #f0ece4; }
+.available-thumb-wrap { flex-shrink: 0; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: var(--color-ivory-2); }
 .available-thumb { width: 100%; height: 100%; object-fit: cover; }
 .available-info { flex: 1; min-width: 0; }
-.available-info strong { display: block; color: #102d2d; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.available-info strong { display: block; color: var(--color-petrol); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .available-info span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 12px; }
-.available-row small { color: #1a3f3f; font-weight: 700; white-space: nowrap; }
-.take-btn { padding: 6px 12px; border-radius: 6px; background: var(--color-gold); color: #102d2d; font-weight: 700; font-size: 12px; border: none; cursor: pointer; transition: filter .2s ease; }
+.available-row small { color: var(--color-petrol); font-weight: 700; white-space: nowrap; }
+.take-btn { padding: 6px 12px; min-height: 44px; border-radius: 7px; background: var(--color-brass); color: var(--color-petrol); font-weight: 700; font-size: 12px; border: none; cursor: pointer; transition: filter .2s ease; }
 .take-btn:hover { filter: brightness(1.05); }
 @media (max-width: 1050px) {
   .middle-grid { grid-template-columns: 1fr; }

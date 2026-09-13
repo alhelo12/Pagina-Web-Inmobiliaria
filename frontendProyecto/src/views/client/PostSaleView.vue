@@ -168,7 +168,7 @@ function formatDate(dateStr) {
 }
 
 .survey-alert {
-  background: #faf5e9;
+  background: var(--color-ivory-2);
   border: 1px solid var(--color-brass);
   border-radius: 12px;
   padding: 20px;
@@ -213,7 +213,7 @@ function formatDate(dateStr) {
 }
 
 .followup-card.completed {
-  border-color: #166534;
+  border-color: var(--color-success);
 }
 
 .followup-card.pending {
@@ -249,13 +249,13 @@ function formatDate(dateStr) {
 }
 
 .followup-status.pending {
-  background: #f4e8cd;
-  color: #7a5c1e;
+  background: var(--color-ivory-2);
+  color: var(--color-brass-ink);
 }
 
 .followup-status.completed {
-  background: #e2f0e5;
-  color: #166534;
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 
 .followup-status.skipped {

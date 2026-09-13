@@ -6,9 +6,6 @@ import { loadNotificationMeta } from '@/constants/notifications'
 import { loadEnums } from '@/utils/enums'
 import './style.css'
 
-// Leaflet CSS required so map and controls render correctly
-import 'leaflet/dist/leaflet.css'
-
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -28,4 +25,4 @@ loadEnums()
 
 app.mount('#app')
 
-registerSW({ onRegisteredSW() { console.log('Service Worker registered') } })
+registerSW({ onRegisteredSW() {} })

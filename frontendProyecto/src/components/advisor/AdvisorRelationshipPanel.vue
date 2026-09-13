@@ -17,7 +17,7 @@ const activeClients = computed(() => props.clients?.filter(c => c.is_active).len
 <template>
   <div class="relationship-panel">
     <div class="panel-header">
-      <h3>Mis Clientes</h3>
+      <h2>Mis Clientes</h2>
       <span class="client-count">{{ totalClients }} total</span>
     </div>
 
@@ -70,27 +70,27 @@ const activeClients = computed(() => props.clients?.filter(c => c.is_active).len
   padding: 20px;
 }
 .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
-.panel-header h3 { font-size: 14px; font-weight: 700; color: var(--color-navy); text-transform: uppercase; letter-spacing: .5px; margin: 0; }
+.panel-header h2 { font-size: 14px; font-weight: 700; color: var(--color-petrol); text-transform: uppercase; letter-spacing: .5px; margin: 0; }
 .client-count { font-size: 12px; color: var(--color-muted); }
 
 .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-.stat { text-align: center; padding: 12px; background: #f8f9fa; border-radius: 8px; }
-.stat-value { display: block; font-size: 20px; font-weight: 800; color: var(--color-navy); }
+.stat { text-align: center; padding: 12px; background: var(--color-ivory-2); border-radius: 8px; }
+.stat-value { display: block; font-size: 20px; font-weight: 800; color: var(--color-petrol); }
 .stat-label { font-size: 11px; color: var(--color-muted); text-transform: uppercase; }
 
 .clients-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-.client-item { display: flex; align-items: center; gap: 10px; padding: 8px; background: #f8f9fa; border-radius: 8px; }
-.client-avatar { width: 32px; height: 32px; border-radius: 50%; background: #4b5563; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
+.client-item { display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--color-ivory-2); border-radius: 8px; }
+.client-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-muted); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
 .client-info { display: flex; flex-direction: column; overflow: hidden; }
-.client-name { font-weight: 600; font-size: 13px; color: var(--color-navy); }
+.client-name { font-weight: 600; font-size: 13px; color: var(--color-petrol); }
 .client-email { font-size: 11px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.no-clients { text-align: center; padding: 16px; background: #f8f9fa; border-radius: 8px; margin-bottom: 16px; }
+.no-clients { text-align: center; padding: 16px; background: var(--color-ivory-2); border-radius: 8px; margin-bottom: 16px; }
 .no-clients p { margin: 0; color: var(--color-muted); font-size: 13px; }
 
 .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.action-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--color-line); background: white; color: var(--color-navy); text-decoration: none; font-weight: 600; font-size: 13px; transition: .2s; }
-.action-link:hover { border-color: var(--color-gold); background: #fdfcf8; }
+.action-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; min-height: 44px; border-radius: 8px; border: 1px solid var(--color-line); background: white; color: var(--color-petrol); text-decoration: none; font-weight: 600; font-size: 13px; transition: .2s; }
+.action-link:hover { border-color: var(--color-brass); background: var(--color-card); }
 .action-icon { font-size: 16px; }
 @media (max-width: 600px) {
   .stats-row { grid-template-columns: 1fr; }

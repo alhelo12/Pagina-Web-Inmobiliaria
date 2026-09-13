@@ -115,7 +115,7 @@ const reset = () => {
   color: var(--color-ink);
 }
 
-.filter-input::placeholder { color: #a8a294; }
+.filter-input::placeholder { color: var(--color-muted); }
 
 .filter-select {
   cursor: pointer;
@@ -171,9 +171,9 @@ const reset = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
+    width: 44px;
+    height: 44px;
+    padding: 0;
   background: transparent;
   color: var(--color-petrol);
   border: 1px solid var(--color-line);
